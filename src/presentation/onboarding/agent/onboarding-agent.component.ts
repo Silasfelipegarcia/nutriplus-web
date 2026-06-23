@@ -32,7 +32,7 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
           </button>
         </div>
         <div class="onboarding__actions">
-          <nutri-button variant="primary" to="/onboarding/tipo">Continuar</nutri-button>
+          <nutri-button variant="primary" to="/onboarding/tipo" label="Continuar">Continuar</nutri-button>
         </div>
       </div>
     </div>

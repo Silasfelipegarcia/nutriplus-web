@@ -10,6 +10,11 @@ button.nutri-btn {
 
 .nutri-btn__label {
   color: inherit;
+  white-space: nowrap;
+}
+
+.nutri-btn__source {
+  display: none !important;
 }
 
 .nutri-btn {
