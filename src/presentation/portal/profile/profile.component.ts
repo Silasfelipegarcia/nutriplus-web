@@ -92,11 +92,11 @@ const DIET_LABELS: Record<string, string> = {
                 <p><strong>Orçamento:</strong> {{ profile()!.foodBudgetLevel }}</p>
               }
               <div class="portal-actions" style="margin-top: 1rem; padding-top: 1rem">
-                <nutri-button variant="secondary" routerLink="/onboarding">Editar onboarding</nutri-button>
-                <nutri-button variant="secondary" routerLink="/app/treino">Modo atleta</nutri-button>
-                <nutri-button variant="secondary" routerLink="/app/nutricionistas">Buscar nutricionista</nutri-button>
+                <nutri-button variant="secondary" to="/onboarding">Editar onboarding</nutri-button>
+                <nutri-button variant="secondary" to="/app/treino">Modo atleta</nutri-button>
+                <nutri-button variant="secondary" to="/app/nutricionistas">Buscar nutricionista</nutri-button>
                 @if (isNutritionist()) {
-                  <nutri-button variant="primary" routerLink="/pro/dashboard">Portal Pro</nutri-button>
+                  <nutri-button variant="primary" to="/pro/dashboard">Portal Pro</nutri-button>
                 }
               </div>
             </div>

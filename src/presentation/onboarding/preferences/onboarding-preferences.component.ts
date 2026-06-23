@@ -65,8 +65,8 @@ const BUDGET_OPTIONS = [
           placeholder="Ex: prefiro café da manhã leve..."
         />
         <div class="onboarding__actions">
-          <nutri-button variant="ghost" [routerLink]="backLink">Voltar</nutri-button>
-          <nutri-button variant="primary" routerLink="/onboarding/metricas" (click)="save()">Continuar</nutri-button>
+          <nutri-button variant="ghost" [to]="backLink">Voltar</nutri-button>
+          <nutri-button variant="primary" to="/onboarding/metricas" (click)="save()">Continuar</nutri-button>
         </div>
       </div>
     </div>

@@ -55,7 +55,7 @@ import { withActionFeedback } from '../../core/action-feedback';
       }
 
       <div class="portal-actions">
-        <nutri-button variant="ghost" routerLink="/app/perfil">Voltar ao perfil</nutri-button>
+        <nutri-button variant="ghost" to="/app/perfil">Voltar ao perfil</nutri-button>
       </div>
     </div>
   `,

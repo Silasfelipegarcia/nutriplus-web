@@ -149,7 +149,7 @@ const STATUS_LABELS: Record<string, string> = {
           message="Registre sua primeira medição em Progresso para comparar sua evolução ao longo do tempo."
         >
           <div class="evolution-empty-cta">
-            <nutri-button variant="primary" routerLink="/app/progresso">Registrar medição</nutri-button>
+            <nutri-button variant="primary" to="/app/progresso">Registrar medição</nutri-button>
           </div>
         </nutri-empty-state>
       }
@@ -160,7 +160,7 @@ const STATUS_LABELS: Record<string, string> = {
         message="Registre medições para gerar seu relatório de evolução."
       >
         <div class="evolution-empty-cta">
-          <nutri-button variant="primary" routerLink="/app/progresso">Ir para Progresso</nutri-button>
+          <nutri-button variant="primary" to="/app/progresso">Ir para Progresso</nutri-button>
         </div>
       </nutri-empty-state>
     }

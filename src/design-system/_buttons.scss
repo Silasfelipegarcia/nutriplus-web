@@ -138,6 +138,9 @@ button.nutri-btn--outline {
   font-size: 0.85rem;
 }
 
-.nutri-btn--block {
-  width: 100%;
+.nutri-btn--disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: not-allowed;
 }
+

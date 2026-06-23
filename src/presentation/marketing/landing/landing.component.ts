@@ -52,7 +52,7 @@ import { environment } from '../../../environments/environment';
                 acompanhamento diário — para você evoluir com clareza e consistência.
               </p>
               <div class="hero__ctas">
-                <nutri-button variant="primary" routerLink="/auth/cadastro">Começar gratuitamente</nutri-button>
+                <nutri-button variant="primary" to="/auth/cadastro">Começar gratuitamente</nutri-button>
                 <nutri-button variant="outline" [href]="playStoreUrl" [external]="true">Baixar app</nutri-button>
               </div>
               <p class="hero__trust-note">

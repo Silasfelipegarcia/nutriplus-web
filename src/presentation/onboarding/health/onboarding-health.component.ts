@@ -45,7 +45,7 @@ const HEALTH_CONDITIONS = ['Diabetes', 'Hipertensão', 'Doença renal', 'Coleste
           <nutri-input label="Horário que dorme" [(ngModel)]="sleepTime" name="sleep" placeholder="22:30" />
         </div>
         <div class="onboarding__actions">
-          <nutri-button variant="ghost" routerLink="/onboarding/dieta">Voltar</nutri-button>
+          <nutri-button variant="ghost" to="/onboarding/dieta">Voltar</nutri-button>
           <nutri-button variant="primary" [disabled]="saving" (click)="save()">
             {{ saving ? 'Salvando...' : 'Continuar' }}
           </nutri-button>

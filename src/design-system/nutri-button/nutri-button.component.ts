@@ -17,16 +17,16 @@ import { RouterLink } from '@angular/router';
       >
         <span class="nutri-btn__label"><ng-content /></span>
       </a>
-    } @else if (routerLink) {
-      <button
+    } @else if (to) {
+      <a
         [class]="classes"
-        [routerLink]="routerLink"
-        type="button"
-        [disabled]="disabled"
+        [routerLink]="to"
         [attr.aria-disabled]="disabled || null"
+        [class.nutri-btn--disabled]="disabled"
+        (click)="disabled ? $event.preventDefault() : null"
       >
         <span class="nutri-btn__label"><ng-content /></span>
-      </button>
+      </a>
     } @else {
       <button [class]="classes" [type]="type" [disabled]="disabled">
         <span class="nutri-btn__label"><ng-content /></span>
@@ -40,7 +40,7 @@ export class NutriButtonComponent {
   @Input() block = false;
   @Input() type: 'button' | 'submit' = 'button';
   @Input() disabled = false;
-  @Input() routerLink?: string | string[];
+  @Input() to?: string | string[];
   @Input() href?: string;
   @Input() external = false;
 

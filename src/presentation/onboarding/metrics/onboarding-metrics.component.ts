@@ -50,8 +50,8 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
           </div>
         </div>
         <div class="onboarding__actions">
-          <nutri-button variant="ghost" routerLink="/onboarding/preferencias">Voltar</nutri-button>
-          <nutri-button variant="primary" routerLink="/onboarding/dieta" (click)="save()">Continuar</nutri-button>
+          <nutri-button variant="ghost" to="/onboarding/preferencias">Voltar</nutri-button>
+          <nutri-button variant="primary" to="/onboarding/dieta" (click)="save()">Continuar</nutri-button>
         </div>
       </div>
     </div>

@@ -1,12 +1,11 @@
 import { Component, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { OnboardingDraftService } from '../onboarding-draft.service';
 
 @Component({
   selector: 'app-onboarding-agent',
   standalone: true,
-  imports: [RouterLink, NutriButtonComponent],
+  imports: [NutriButtonComponent],
   template: `
     <div class="onboarding">
       <div class="onboarding__card">
@@ -33,7 +32,7 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
           </button>
         </div>
         <div class="onboarding__actions">
-          <nutri-button variant="primary" routerLink="/onboarding/tipo">Continuar</nutri-button>
+          <nutri-button variant="primary" to="/onboarding/tipo">Continuar</nutri-button>
         </div>
       </div>
     </div>
