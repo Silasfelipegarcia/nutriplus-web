@@ -1,8 +1,8 @@
-import { Component, inject, computed, signal, OnInit } from '@angular/core';
+import { Component, inject, computed, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
 import { agentDisplayName } from '../../../domain/entities';
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
+import { PortalDataStore } from '../../core/portal-data.store';
 import { LUNA_TIPS, BRUNO_TIPS } from '../../core/constants';
 import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-banner/disclaimer-banner.component';
 
@@ -61,12 +61,12 @@ import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-ban
   styleUrl: './assistant-panel.component.scss',
 })
 export class AssistantPanelComponent implements OnInit {
-  private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
   readonly generation = inject(MealPlanGenerationFacade);
+  readonly portalData = inject(PortalDataStore);
   private readonly router = inject(Router);
 
-  readonly persona = signal('LUNA');
-  readonly adherence = signal(0);
+  readonly persona = computed(() => this.portalData.nutritionProfile()?.agentPersona ?? 'LUNA');
+  readonly adherence = computed(() => this.portalData.checkinStats()?.weekAdherencePercent ?? 0);
 
   readonly displayName = computed(() => agentDisplayName(this.persona()));
   readonly greeting = computed(() => {
@@ -87,18 +87,7 @@ export class AssistantPanelComponent implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
-    try {
-      const profile = await this.nutritionRepo.getNutritionProfile();
-      this.persona.set(profile.agentPersona);
-    } catch {
-      // profile may not exist yet
-    }
-    try {
-      const stats = await this.nutritionRepo.getCheckinStats();
-      this.adherence.set(stats.weekAdherencePercent);
-    } catch {
-      // ignore
-    }
+    await this.portalData.prefetchPortalCore();
   }
 
   async generatePlan(): Promise<void> {

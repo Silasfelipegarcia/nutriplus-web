@@ -3,10 +3,8 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { TraceService } from '../tracing/trace.service';
-import { TokenStorage } from '../auth/token-storage';
 import { ApiError } from './api-error';
 import { newIdempotencyKey, withIdempotencyKey } from './idempotency';
-import { HttpAuthRepository } from './http-auth.repository';
 import { CareRelationship, NutritionistPublic } from '../../domain/entities';
 import { CareRepository } from '../../domain/repositories/pro.repository';
 
@@ -14,8 +12,6 @@ import { CareRepository } from '../../domain/repositories/pro.repository';
 export class HttpCareRepository implements CareRepository {
   private readonly http = inject(HttpClient);
   private readonly trace = inject(TraceService);
-  private readonly tokens = inject(TokenStorage);
-  private readonly authRepo = inject(HttpAuthRepository);
 
   listNutritionists(): Promise<NutritionistPublic[]> {
     return this.get('/nutritionists', 'marketplace-list');
@@ -45,25 +41,12 @@ export class HttpCareRepository implements CareRepository {
     const url = `${environment.apiBaseUrl}${path}`;
     const idempotencyKey = method === 'GET' ? undefined : newIdempotencyKey();
     const headers = this.authHeaders(flowId, idempotencyKey);
-    try {
-      return await this.request<T>(method, url, headers, body);
-    } catch (e) {
-      if (e instanceof ApiError && e.statusCode === 401) {
-        const refresh = this.tokens.getRefreshToken();
-        if (refresh) {
-          await this.authRepo.refreshToken(refresh);
-          return this.request<T>(method, url, this.authHeaders(flowId, idempotencyKey), body);
-        }
-      }
-      throw e;
-    }
+    return this.request<T>(method, url, headers, body);
   }
 
   private authHeaders(flowId: string, idempotencyKey?: string): Record<string, string> {
-    const token = this.tokens.getAccessToken();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...this.trace.headers(flowId),
     };
     return idempotencyKey ? withIdempotencyKey(headers, idempotencyKey) : headers;

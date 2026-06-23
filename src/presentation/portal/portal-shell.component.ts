@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NutriLogoComponent } from '../../design-system/nutri-logo/nutri-logo.component';
 import { NutriButtonComponent } from '../../design-system/nutri-button/nutri-button.component';
 import { AssistantPanelComponent } from './assistant/assistant-panel.component';
 import { AuthFacade } from '../core/auth.facade';
-import { inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { MealPlanGenerationFacade } from '../core/meal-plan-generation.facade';
+import { PortalDataStore } from '../core/portal-data.store';
 
 @Component({
   selector: 'app-portal-shell',
@@ -41,9 +42,12 @@ import { Router } from '@angular/router';
   `,
   styleUrl: './portal.scss',
 })
-export class PortalShellComponent {
+export class PortalShellComponent implements OnInit {
   private readonly auth = inject(AuthFacade);
   private readonly router = inject(Router);
+  private readonly generation = inject(MealPlanGenerationFacade);
+  private readonly portalData = inject(PortalDataStore);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly navItems = [
     { path: '/app/dashboard', label: 'Dashboard', icon: '📊' },
@@ -56,7 +60,20 @@ export class PortalShellComponent {
     { path: '/app/nutricionistas', label: 'Nutricionista', icon: '🩺' },
   ];
 
+  ngOnInit(): void {
+    void this.generation.bootstrap(this.destroyRef);
+    void this.portalData.prefetchPortalCore();
+  }
+
   logout(): void {
+    this.generation.stopPolling();
+    this.portalData.invalidate(
+      'nutritionProfile',
+      'checkinStats',
+      'todayCheckins',
+      'trainingProfile',
+      'sportCatalog',
+    );
     this.auth.logout();
     this.router.navigate(['/']);
   }

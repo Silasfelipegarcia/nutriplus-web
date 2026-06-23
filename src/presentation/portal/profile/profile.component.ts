@@ -1,15 +1,15 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
-import { Router, RouterLink, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { RouterLink } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { AuthFacade } from '../../core/auth.facade';
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
-import { NutritionProfile, TrainingProfile, agentDisplayName, profileTypeLabel } from '../../../domain/entities';
+import { PortalDataStore } from '../../core/portal-data.store';
+import { agentDisplayName, profileTypeLabel } from '../../../domain/entities';
 import { TokenStorage } from '../../../infrastructure/auth/token-storage';
 import { jwtRoles } from '../../core/jwt.util';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
@@ -135,31 +135,20 @@ const DIET_LABELS: Record<string, string> = {
 export class ProfileComponent implements OnInit {
   readonly auth = inject(AuthFacade);
   private readonly authRepo = inject(AUTH_REPOSITORY);
-  private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
+  private readonly portalData = inject(PortalDataStore);
   private readonly tokens = inject(TokenStorage);
-  private readonly router = inject(Router);
   private readonly toast = inject(NutriToastService);
 
-  readonly profile = signal<NutritionProfile | null>(null);
-  readonly training = signal<TrainingProfile | null>(null);
+  readonly profile = this.portalData.nutritionProfile;
+  readonly training = this.portalData.trainingProfile;
   name = this.auth.user()?.name ?? '';
   currentPassword = '';
   newPassword = '';
   savingName = false;
   changingPassword = false;
 
-  constructor() {
-    void this.loadProfile();
-  }
-
-  ngOnInit(): void {
-    this.router.events
-      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-      .subscribe((e) => {
-        if (e.urlAfterRedirects.includes('/app/perfil')) {
-          void this.loadProfile();
-        }
-      });
+  async ngOnInit(): Promise<void> {
+    await this.loadProfile();
   }
 
   typeLabel(): string {
@@ -186,19 +175,10 @@ export class ProfileComponent implements OnInit {
   }
 
   async loadProfile(): Promise<void> {
-    try {
-      this.profile.set(await this.nutritionRepo.getNutritionProfile());
-      if (this.profile()?.athleteModeEnabled) {
-        try {
-          this.training.set(await this.nutritionRepo.getTrainingProfile());
-        } catch {
-          this.training.set(null);
-        }
-      } else {
-        this.training.set(null);
-      }
-    } catch {
-      // ignore
+    await this.portalData.loadNutritionProfile();
+    const p = this.portalData.nutritionProfile();
+    if (p?.athleteModeEnabled) {
+      await this.portalData.loadTrainingProfile();
     }
   }
 

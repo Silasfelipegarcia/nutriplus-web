@@ -6,6 +6,7 @@ import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-in
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
+import { PortalDataStore } from '../../core/portal-data.store';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { parseApiError } from '../../../infrastructure/http/api-error';
 import { NutriSportPickerComponent } from '../../../design-system/nutri-sport-picker/nutri-sport-picker.component';
@@ -277,6 +278,7 @@ import {
 })
 export class TrainingComponent implements OnInit {
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
+  private readonly portalData = inject(PortalDataStore);
   private readonly toast = inject(NutriToastService);
   readonly generation = inject(MealPlanGenerationFacade);
 
@@ -325,10 +327,14 @@ export class TrainingComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     try {
-      this.sports.set(await this.nutritionRepo.getSportCatalog());
-      this.nutrition.set(await this.nutritionRepo.getNutritionProfile());
-      const p = await this.nutritionRepo.getTrainingProfile();
-      this.savedProfile.set(p);
+      const [sports, nutrition, profile] = await Promise.all([
+        this.portalData.loadSportCatalog(),
+        this.portalData.loadNutritionProfile(),
+        this.portalData.loadTrainingProfile(),
+      ]);
+      this.sports.set(sports);
+      this.nutrition.set(nutrition);
+      this.savedProfile.set(profile);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Erro ao carregar perfil de treino');
     } finally {
@@ -371,7 +377,8 @@ export class TrainingComponent implements OnInit {
       this.editing.set(false);
       this.activating.set(false);
       this.draftActivities.set([]);
-      this.nutrition.set(await this.nutritionRepo.getNutritionProfile());
+      this.portalData.invalidate('nutritionProfile', 'trainingProfile');
+      this.nutrition.set(await this.portalData.loadNutritionProfile(true));
       this.toast.success('Modo atleta desativado');
     } catch (e) {
       const message = parseApiError(e).message;
@@ -530,9 +537,10 @@ export class TrainingComponent implements OnInit {
   }
 
   private async afterApply(): Promise<void> {
-    const p = await this.nutritionRepo.getTrainingProfile();
+    this.portalData.invalidate('nutritionProfile', 'trainingProfile');
+    const p = await this.portalData.loadTrainingProfile(true);
     this.savedProfile.set(p);
-    this.nutrition.set(await this.nutritionRepo.getNutritionProfile());
+    this.nutrition.set(await this.portalData.loadNutritionProfile(true));
     this.showRegenerateDialog.set(true);
   }
 

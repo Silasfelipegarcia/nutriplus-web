@@ -96,26 +96,12 @@ export class HttpAuthRepository implements AuthRepository {
     const url = `${environment.apiBaseUrl}${path}`;
     const idempotencyKey = method === 'GET' ? undefined : newIdempotencyKey();
     const headers = this.authHeaders(flowId, idempotencyKey);
-
-    try {
-      return await this.request<T>(method, url, headers, body);
-    } catch (e) {
-      if (e instanceof ApiError && e.statusCode === 401) {
-        const refresh = this.tokens.getRefreshToken();
-        if (refresh) {
-          await this.refreshToken(refresh);
-          return this.request<T>(method, url, this.authHeaders(flowId, idempotencyKey), body);
-        }
-      }
-      throw e;
-    }
+    return this.request<T>(method, url, headers, body);
   }
 
   private authHeaders(flowId: string, idempotencyKey?: string): Record<string, string> {
-    const token = this.tokens.getAccessToken();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...this.trace.headers(flowId),
     };
     return idempotencyKey ? withIdempotencyKey(headers, idempotencyKey) : headers;

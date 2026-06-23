@@ -3,7 +3,6 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { TraceService } from '../tracing/trace.service';
-import { TokenStorage } from '../auth/token-storage';
 import { ApiError } from './api-error';
 import { newIdempotencyKey, withIdempotencyKey } from './idempotency';
 import {
@@ -22,7 +21,6 @@ import {
 } from '../../domain/entities';
 import { NutritionRepository } from '../../domain/repositories/nutrition.repository';
 import { defaultSportCatalog, mergeSportCatalog } from '../../presentation/core/sport-catalog';
-import { HttpAuthRepository } from './http-auth.repository';
 
 function toNutritionProfileRequest(profile: Partial<NutritionProfile>): Record<string, unknown> {
   const goalAliases: Record<string, string> = {
@@ -74,8 +72,6 @@ function toNutritionProfileRequest(profile: Partial<NutritionProfile>): Record<s
 export class HttpNutritionRepository implements NutritionRepository {
   private readonly http = inject(HttpClient);
   private readonly trace = inject(TraceService);
-  private readonly tokens = inject(TokenStorage);
-  private readonly authRepo = inject(HttpAuthRepository);
 
   getNutritionProfile(): Promise<NutritionProfile> {
     return this.get('/nutrition-profile', 'nutrition-profile');
@@ -167,6 +163,9 @@ export class HttpNutritionRepository implements NutritionRepository {
   }
 
   async getSportCatalog(): Promise<SportCatalogItem[]> {
+    if (this.sportCatalogCache) {
+      return this.sportCatalogCache;
+    }
     try {
       const fromApi = await firstValueFrom(
         this.http.get<SportCatalogItem[]>(`${environment.apiBaseUrl}/training/sports`, {
@@ -174,11 +173,15 @@ export class HttpNutritionRepository implements NutritionRepository {
         }),
       );
       const { mergeSportCatalog } = await import('../../presentation/core/sport-catalog');
-      return mergeSportCatalog(fromApi);
+      this.sportCatalogCache = mergeSportCatalog(fromApi);
+      return this.sportCatalogCache;
     } catch {
-      return defaultSportCatalog();
+      this.sportCatalogCache = defaultSportCatalog();
+      return this.sportCatalogCache;
     }
   }
+
+  private sportCatalogCache: SportCatalogItem[] | null = null;
 
   getTrainingProfile(): Promise<TrainingProfile> {
     return this.get('/training/profile', 'training-profile');
@@ -220,25 +223,12 @@ export class HttpNutritionRepository implements NutritionRepository {
     const url = `${environment.apiBaseUrl}${path}`;
     const idempotencyKey = method === 'GET' ? undefined : newIdempotencyKey();
     const headers = this.authHeaders(flowId, idempotencyKey);
-    try {
-      return await this.request<T>(method, url, headers, body);
-    } catch (e) {
-      if (e instanceof ApiError && e.statusCode === 401) {
-        const refresh = this.tokens.getRefreshToken();
-        if (refresh) {
-          await this.authRepo.refreshToken(refresh);
-          return this.request<T>(method, url, this.authHeaders(flowId, idempotencyKey), body);
-        }
-      }
-      throw e;
-    }
+    return this.request<T>(method, url, headers, body);
   }
 
   private authHeaders(flowId: string, idempotencyKey?: string): Record<string, string> {
-    const token = this.tokens.getAccessToken();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...this.trace.headers(flowId),
     };
     return idempotencyKey ? withIdempotencyKey(headers, idempotencyKey) : headers;

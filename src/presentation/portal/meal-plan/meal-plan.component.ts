@@ -81,7 +81,6 @@ export class MealPlanComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    await this.generation.bootstrap();
     await this.load();
   }
 

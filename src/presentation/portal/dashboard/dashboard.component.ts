@@ -4,9 +4,8 @@ import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-
 import { NutriEmptyStateComponent } from '../../../design-system/nutri-empty-state/nutri-empty-state.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
-import { NutritionProfile, TodayCheckins, CheckinStats } from '../../../domain/entities';
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
-import { isNotFound } from '../../../infrastructure/http/api-error';
+import { PortalDataStore } from '../../core/portal-data.store';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { withActionFeedback } from '../../core/action-feedback';
 
@@ -31,38 +30,38 @@ import { withActionFeedback } from '../../core/action-feedback';
       <div class="auth-card__error">{{ generation.error() }}</div>
     }
 
-    @if (!checkins() && !loading() && profile()) {
+    @if (!portalData.todayCheckins() && !loading() && portalData.nutritionProfile()) {
       <nutri-info-tip
         message="Próximo passo: gere seu primeiro plano alimentar para começar os check-ins diários."
       />
     }
 
-    @if (profile()) {
+    @if (portalData.nutritionProfile(); as profile) {
       <div class="macro-grid">
-        <div class="macro-card"><strong>{{ profile()!.targetCalories | number:'1.0-0' }}</strong><span>kcal/dia</span></div>
-        <div class="macro-card"><strong>{{ profile()!.targetProteinG | number:'1.0-0' }}g</strong><span>proteína</span></div>
-        <div class="macro-card"><strong>{{ profile()!.targetCarbsG | number:'1.0-0' }}g</strong><span>carbos</span></div>
-        <div class="macro-card"><strong>{{ profile()!.targetFatG | number:'1.0-0' }}g</strong><span>gordura</span></div>
+        <div class="macro-card"><strong>{{ profile.targetCalories | number:'1.0-0' }}</strong><span>kcal/dia</span></div>
+        <div class="macro-card"><strong>{{ profile.targetProteinG | number:'1.0-0' }}g</strong><span>proteína</span></div>
+        <div class="macro-card"><strong>{{ profile.targetCarbsG | number:'1.0-0' }}g</strong><span>carbos</span></div>
+        <div class="macro-card"><strong>{{ profile.targetFatG | number:'1.0-0' }}g</strong><span>gordura</span></div>
       </div>
-      @if (profile()!.athleteModeEnabled && profile()!.trainingDailyExtraKcal) {
+      @if (profile.athleteModeEnabled && profile.trainingDailyExtraKcal) {
         <p class="portal-card__lead" style="margin-top: 0.75rem">
-          +{{ profile()!.trainingDailyExtraKcal | number:'1.0-0' }} kcal/dia de treino incluídas na meta.
+          +{{ profile.trainingDailyExtraKcal | number:'1.0-0' }} kcal/dia de treino incluídas na meta.
         </p>
       }
     }
 
-    @if (stats()) {
+    @if (portalData.checkinStats(); as stats) {
       <div class="stat-row">
-        <div class="stat-card"><strong>{{ stats()!.weekAdherencePercent }}%</strong><span>Aderência semanal</span></div>
-        <div class="stat-card"><strong>{{ stats()!.currentStreak ?? 0 }}</strong><span>Dias seguidos</span></div>
+        <div class="stat-card"><strong>{{ stats.weekAdherencePercent }}%</strong><span>Aderência semanal</span></div>
+        <div class="stat-card"><strong>{{ stats.currentStreak }}</strong><span>Dias seguidos</span></div>
       </div>
     }
 
-    @if (checkins()) {
+    @if (portalData.todayCheckins(); as checkins) {
       <section class="portal-section">
         <h2 class="portal-section__title">Check-ins de hoje</h2>
         <div class="checkin-list">
-        @for (meal of checkins()!.meals; track meal.mealId) {
+        @for (meal of checkins.meals; track meal.mealId) {
           <div class="checkin-item">
             <span>{{ meal.mealName }}</span>
             <div class="checkin-actions">
@@ -106,54 +105,42 @@ export class DashboardComponent implements OnInit {
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
   private readonly toast = inject(NutriToastService);
   readonly generation = inject(MealPlanGenerationFacade);
+  readonly portalData = inject(PortalDataStore);
 
-  readonly profile = signal<NutritionProfile | null>(null);
-  readonly checkins = signal<TodayCheckins | null>(null);
-  readonly stats = signal<CheckinStats | null>(null);
   readonly loading = signal(true);
 
   constructor() {
     effect(() => {
       if (this.generation.phase() === 'ready') {
-        void this.load();
+        void this.refreshFromStore(true);
       }
     });
   }
 
   async ngOnInit(): Promise<void> {
-    await this.generation.bootstrap();
-    await this.load();
+    await this.refreshFromStore(false);
   }
 
-  async load(): Promise<void> {
+  private async refreshFromStore(force: boolean): Promise<void> {
     this.loading.set(true);
-    try {
-      this.profile.set(await this.nutritionRepo.getNutritionProfile());
-    } catch {
-      // no profile
-    }
-    try {
-      this.checkins.set(await this.nutritionRepo.getTodayCheckins());
-    } catch (e) {
-      if (!isNotFound(e)) throw e;
-    }
-    try {
-      this.stats.set(await this.nutritionRepo.getCheckinStats());
-    } catch {
-      // ignore
-    }
+    await Promise.all([
+      this.portalData.loadNutritionProfile(force),
+      this.portalData.loadTodayCheckins(force),
+      this.portalData.loadCheckinStats(force),
+    ]);
     this.loading.set(false);
   }
 
   async markCheckin(mealId: number, status: string): Promise<void> {
-    const meal = this.checkins()?.meals.find((m) => m.mealId === mealId);
+    const meal = this.portalData.todayCheckins()?.meals.find((m) => m.mealId === mealId);
     const mealName = meal?.mealName ?? 'Refeição';
     const label = status === 'DONE' ? 'feita' : 'pulada';
     await withActionFeedback(
       this.toast,
       async () => {
         await this.nutritionRepo.saveCheckin(mealId, status);
-        await this.load();
+        this.portalData.invalidateCheckins();
+        await this.refreshFromStore(true);
       },
       { success: `${mealName} marcada como ${label}` },
     );
