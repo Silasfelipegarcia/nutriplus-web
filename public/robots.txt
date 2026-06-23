@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /app/
+Disallow: /auth/
+Disallow: /onboarding/
+
+Sitemap: https://nutriplus.com.br/sitemap.xml

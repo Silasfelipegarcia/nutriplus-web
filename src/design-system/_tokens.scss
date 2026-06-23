@@ -1,0 +1,93 @@
+:root {
+  --nutri-brand: #3d8b5f;
+  --nutri-brand-dark: #2a6b47;
+  --nutri-brand-light: #e8f5ec;
+  --nutri-accent: #5baf7a;
+  --nutri-sage: #7aab8a;
+  --nutri-luna: #e8a87c;
+  --nutri-bruno: #6b9ac4;
+  --nutri-surface: #faf8f4;
+  --nutri-surface-green: #f2f9f4;
+  --nutri-cream: #fffdf9;
+  --nutri-ink: #1a2e24;
+  --nutri-ink-muted: #5c6b62;
+  --nutri-border: #dce8df;
+  --nutri-white: #ffffff;
+  --nutri-radius: 20px;
+  --nutri-radius-sm: 12px;
+  --nutri-shadow: 0 4px 24px rgba(26, 46, 36, 0.06);
+  --nutri-shadow-soft: 0 12px 40px rgba(42, 107, 71, 0.08);
+  --nutri-font: 'Nunito', system-ui, sans-serif;
+  --nutri-header-h: 72px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--nutri-font);
+  color: var(--nutri-ink);
+  background: var(--nutri-surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+a:not(.nutri-btn):not(.header-btn):not(.logo) {
+  color: var(--nutri-brand);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+a.nutri-btn,
+button.nutri-btn {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.container {
+  width: min(1120px, 100% - 2rem);
+  margin-inline: auto;
+}
+
+.section {
+  padding: 5rem 0;
+}
+
+.section-title {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.75rem;
+}
+
+.section-subtitle {
+  color: var(--nutri-ink-muted);
+  font-size: 1.05rem;
+  margin: 0 0 2.5rem;
+  max-width: 560px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}

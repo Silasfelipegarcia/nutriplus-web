@@ -1,0 +1,29 @@
+.nutri-card {
+  background: var(--nutri-white);
+  border: 1px solid rgba(232, 223, 214, 0.65);
+  border-radius: var(--nutri-radius);
+  padding: 1.5rem;
+  box-shadow: 0 2px 16px rgba(31, 41, 55, 0.04);
+  height: 100%;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s, border-color 0.25s;
+}
+
+.nutri-card--hover {
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(31, 41, 55, 0.1);
+    border-color: rgba(61, 139, 95, 0.25);
+  }
+}
+
+.nutri-card__title {
+  font-weight: 800;
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem;
+}
+
+.nutri-card__body {
+  color: var(--nutri-ink-muted);
+  margin: 0;
+  line-height: 1.6;
+}

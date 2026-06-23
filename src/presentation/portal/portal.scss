@@ -1,0 +1,399 @@
+.portal-shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 260px 1fr 320px;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 220px 1fr;
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.portal-sidebar {
+  background: white;
+  border-right: 1px solid var(--nutri-border);
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+}
+
+.portal-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  margin-top: 2rem;
+}
+
+.portal-sidebar__footer {
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
+.portal-sidebar__nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--nutri-radius-sm);
+  color: var(--nutri-ink-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover,
+  &.active {
+    background: rgba(61, 139, 95, 0.1);
+    color: var(--nutri-brand);
+    text-decoration: none;
+  }
+}
+
+.portal-main {
+  padding: 2rem 2.5rem;
+  overflow-y: auto;
+  background: var(--nutri-surface);
+}
+
+.portal-page {
+  max-width: 880px;
+}
+
+.portal-main__header {
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: clamp(1.5rem, 2.5vw, 1.85rem);
+    font-weight: 800;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    color: var(--nutri-ink-muted);
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+}
+
+.portal-section {
+  margin-bottom: 2rem;
+
+  &__title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin: 0 0 1rem;
+    color: var(--nutri-ink);
+  }
+}
+
+.portal-card {
+  background: white;
+  border: 1px solid var(--nutri-border);
+  border-radius: var(--nutri-radius-sm);
+  padding: 1.5rem;
+  box-shadow: var(--nutri-shadow);
+  margin-bottom: 1rem;
+
+  &__title {
+    font-size: 1rem;
+    font-weight: 800;
+    margin: 0 0 0.75rem;
+  }
+
+  &__lead {
+    margin: 0 0 1rem;
+    color: var(--nutri-ink-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  p {
+    margin: 0 0 0.5rem;
+    line-height: 1.55;
+    color: var(--nutri-ink-muted);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    strong {
+      color: var(--nutri-ink);
+    }
+  }
+
+  ul {
+    margin: 0.75rem 0 0;
+    padding-left: 1.25rem;
+    color: var(--nutri-ink-muted);
+    line-height: 1.6;
+  }
+}
+
+.portal-card--highlight {
+  background: linear-gradient(135deg, rgba(61, 139, 95, 0.08) 0%, white 100%);
+  border-color: rgba(61, 139, 95, 0.25);
+}
+
+.portal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--nutri-border);
+}
+
+.portal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.portal-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: white;
+  border: 1px solid var(--nutri-border);
+  border-radius: var(--nutri-radius-sm);
+  box-shadow: var(--nutri-shadow);
+
+  &__main strong {
+    display: block;
+    font-weight: 800;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+  }
+
+  &__main span {
+    font-size: 0.85rem;
+    color: var(--nutri-ink-muted);
+  }
+
+  &__meta {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--nutri-brand);
+    white-space: nowrap;
+  }
+
+  &__aside {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+}
+
+.portal-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: rgba(61, 139, 95, 0.12);
+  color: var(--nutri-brand-dark);
+
+  &--due {
+    background: rgba(196, 92, 74, 0.12);
+    color: #c45c4a;
+  }
+}
+
+.portal-assistant {
+  border-left: 1px solid var(--nutri-border);
+  background: white;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+
+  @media (max-width: 1100px) {
+    display: none;
+  }
+}
+
+.macro-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.macro-card {
+  text-align: center;
+  padding: 1.35rem 0.75rem;
+  background: white;
+  border-radius: var(--nutri-radius-sm);
+  border: 1px solid var(--nutri-border);
+  box-shadow: var(--nutri-shadow);
+  transition: transform 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--nutri-shadow-soft);
+  }
+
+  strong {
+    display: block;
+    font-size: 1.4rem;
+    color: var(--nutri-brand);
+    font-weight: 800;
+  }
+
+  span {
+    font-size: 0.8rem;
+    color: var(--nutri-ink-muted);
+    font-weight: 600;
+  }
+}
+
+.checkin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.checkin-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: white;
+  border: 1px solid var(--nutri-border);
+  border-radius: var(--nutri-radius-sm);
+  box-shadow: var(--nutri-shadow);
+
+  > span:first-child {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+}
+
+.checkin-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.checkin-btn {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--nutri-border);
+  background: white;
+  font-family: var(--nutri-font);
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+
+  &--done {
+    background: var(--nutri-brand);
+    color: white;
+    border-color: var(--nutri-brand);
+  }
+}
+
+.meal-section {
+  margin-bottom: 1.25rem;
+  background: white;
+  border: 1px solid var(--nutri-border);
+  border-radius: var(--nutri-radius-sm);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--nutri-shadow);
+
+  h3 {
+    font-weight: 800;
+    margin: 0 0 0.75rem;
+    color: var(--nutri-brand);
+    font-size: 1rem;
+  }
+}
+
+.meal-item-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--nutri-border);
+  font-size: 0.9rem;
+}
+
+.shopping-category {
+  margin-bottom: 1.25rem;
+  background: white;
+  border: 1px solid var(--nutri-border);
+  border-radius: var(--nutri-radius-sm);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--nutri-shadow);
+
+  h3 {
+    font-weight: 800;
+    font-size: 0.9rem;
+    margin: 0 0 0.75rem;
+    color: var(--nutri-brand);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  padding: 1.35rem;
+  background: white;
+  border-radius: var(--nutri-radius-sm);
+  border: 1px solid var(--nutri-border);
+  text-align: center;
+  box-shadow: var(--nutri-shadow);
+
+  strong {
+    display: block;
+    font-size: 1.6rem;
+    color: var(--nutri-brand);
+    font-weight: 800;
+  }
+
+  span {
+    font-size: 0.82rem;
+    color: var(--nutri-ink-muted);
+    font-weight: 600;
+  }
+}
+
+.loading-text {
+  color: var(--nutri-ink-muted);
+  padding: 2rem;
+  text-align: center;
+}
+
+.generating-banner {
+  background: rgba(61, 139, 95, 0.1);
+  border: 1px solid rgba(61, 139, 95, 0.3);
+  border-radius: var(--nutri-radius-sm);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  color: var(--nutri-brand);
+}

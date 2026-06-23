@@ -1,0 +1,21 @@
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--nutri-ink-muted);
+}
+
+.empty-state__icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state__title {
+  font-weight: 800;
+  color: var(--nutri-ink);
+  margin: 0 0 0.5rem;
+}
+
+.empty-state__text {
+  margin: 0 0 1.5rem;
+  line-height: 1.6;
+}

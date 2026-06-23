@@ -1,0 +1,35 @@
+.cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  border-top: 1px solid var(--nutri-border);
+  padding: 1rem 1.5rem;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.cookie-banner__inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.cookie-banner__text {
+  flex: 1;
+  min-width: 240px;
+  font-size: 0.9rem;
+  color: var(--nutri-ink-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cookie-banner__actions {
+  display: flex;
+  gap: 0.75rem;
+}

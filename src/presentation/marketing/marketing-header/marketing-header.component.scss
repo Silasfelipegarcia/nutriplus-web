@@ -1,0 +1,116 @@
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: var(--nutri-header-h);
+  background: rgba(255, 251, 247, 0.72);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid transparent;
+  transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+
+  &--scrolled {
+    background: rgba(255, 255, 255, 0.88);
+    border-bottom-color: rgba(232, 223, 214, 0.7);
+    box-shadow: 0 8px 32px rgba(31, 41, 55, 0.06);
+  }
+}
+
+.site-header__inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.site-header__nav {
+  display: none;
+  gap: 2.25rem;
+
+  @media (min-width: 900px) {
+    display: flex;
+  }
+
+  a {
+    color: var(--nutri-ink-muted);
+    font-weight: 700;
+    font-size: 0.875rem;
+    text-decoration: none;
+    letter-spacing: -0.01em;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--nutri-brand-dark);
+      text-decoration: none;
+    }
+  }
+}
+
+.site-header__actions {
+  display: none;
+  align-items: center;
+  gap: 0.625rem;
+
+  @media (min-width: 900px) {
+    display: flex;
+  }
+}
+
+.header-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.25rem;
+  border-radius: 999px;
+  font-family: var(--nutri-font);
+  font-weight: 800;
+  font-size: 0.875rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s, border-color 0.2s;
+  cursor: pointer;
+  line-height: 1.2;
+
+  &:hover {
+    text-decoration: none;
+    transform: translateY(-1px);
+  }
+}
+
+.header-btn--outline {
+  color: var(--nutri-brand-dark);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1.5px solid rgba(61, 139, 95, 0.35);
+
+  &:hover {
+    background: rgba(61, 139, 95, 0.06);
+    border-color: var(--nutri-brand);
+    color: var(--nutri-brand-dark);
+  }
+}
+
+.header-btn--primary,
+a.header-btn--primary {
+  color: #fff;
+  background: linear-gradient(135deg, var(--nutri-brand) 0%, var(--nutri-brand-dark) 100%);
+  border: none;
+  box-shadow: 0 4px 16px rgba(47, 111, 74, 0.35);
+
+  &:hover {
+    color: #fff;
+    box-shadow: 0 6px 22px rgba(47, 111, 74, 0.45);
+  }
+}
+
+.header-btn--sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+}
+
+.site-header__mobile-cta {
+  @media (min-width: 900px) {
+    display: none;
+  }
+}

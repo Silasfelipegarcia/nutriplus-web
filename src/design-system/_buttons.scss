@@ -1,0 +1,143 @@
+a.nutri-btn,
+button.nutri-btn {
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.nutri-btn__label {
+  color: inherit;
+}
+
+.nutri-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  font-family: var(--nutri-font);
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+  text-decoration: none;
+  -webkit-appearance: none;
+  appearance: none;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+}
+
+.nutri-btn--primary,
+a.nutri-btn--primary,
+button.nutri-btn--primary {
+  background: var(--nutri-brand);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(61, 139, 95, 0.35);
+
+  .nutri-btn__label {
+    color: #fff;
+  }
+
+  &:not(:disabled):hover,
+  &:hover {
+    background: var(--nutri-brand-dark);
+    text-decoration: none;
+    color: #fff;
+
+    .nutri-btn__label {
+      color: #fff;
+    }
+  }
+}
+
+.nutri-btn--secondary,
+a.nutri-btn--secondary,
+button.nutri-btn--secondary {
+  background: white;
+  color: var(--nutri-brand);
+  border: 1.5px solid var(--nutri-border);
+
+  .nutri-btn__label {
+    color: var(--nutri-brand);
+  }
+
+  &:not(:disabled):hover,
+  &:hover {
+    border-color: var(--nutri-brand);
+    text-decoration: none;
+    color: var(--nutri-brand);
+
+    .nutri-btn__label {
+      color: var(--nutri-brand);
+    }
+  }
+}
+
+.nutri-btn--ghost,
+a.nutri-btn--ghost,
+button.nutri-btn--ghost {
+  background: transparent;
+  color: var(--nutri-ink);
+
+  .nutri-btn__label {
+    color: var(--nutri-ink);
+  }
+
+  &:not(:disabled):hover,
+  &:hover {
+    background: rgba(61, 139, 95, 0.08);
+    text-decoration: none;
+    color: var(--nutri-ink);
+
+    .nutri-btn__label {
+      color: var(--nutri-ink);
+    }
+  }
+}
+
+.nutri-btn--outline,
+a.nutri-btn--outline,
+button.nutri-btn--outline {
+  background: transparent;
+  color: var(--nutri-brand-dark);
+  border: 1.5px solid rgba(61, 139, 95, 0.45);
+  box-shadow: none;
+
+  .nutri-btn__label {
+    color: var(--nutri-brand-dark);
+  }
+
+  &:not(:disabled):hover,
+  &:hover {
+    background: rgba(61, 139, 95, 0.08);
+    border-color: var(--nutri-brand);
+    text-decoration: none;
+    color: var(--nutri-brand-dark);
+
+    .nutri-btn__label {
+      color: var(--nutri-brand-dark);
+    }
+  }
+}
+
+.nutri-btn--sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.nutri-btn--block {
+  width: 100%;
+}

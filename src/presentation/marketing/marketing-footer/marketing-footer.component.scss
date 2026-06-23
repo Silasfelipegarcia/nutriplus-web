@@ -1,0 +1,65 @@
+.site-footer {
+  background: var(--nutri-brand-dark);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 3.5rem 0 2rem;
+}
+
+.site-footer__grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+}
+
+.site-footer__brand p {
+  margin: 1rem 0 0;
+  line-height: 1.6;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.site-footer__trust {
+  margin-top: 0.75rem !important;
+  font-size: 0.8125rem !important;
+  opacity: 0.65 !important;
+  font-weight: 600;
+}
+
+.site-footer h4 {
+  color: white;
+  font-weight: 800;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+}
+
+.site-footer ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.site-footer li {
+  margin-bottom: 0.5rem;
+}
+
+.site-footer a {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+  text-decoration: none;
+
+  &:hover {
+    color: white;
+  }
+}
+
+.site-footer__bottom {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.82rem;
+  opacity: 0.7;
+  text-align: center;
+}

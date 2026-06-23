@@ -1,0 +1,35 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.logo__mark {
+  flex-shrink: 0;
+}
+
+.logo__wordmark {
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+  color: var(--nutri-brand-dark);
+}
+
+.logo--light .logo__wordmark {
+  color: white;
+}
+
+.logo--sm .logo__wordmark {
+  font-size: 1.1rem;
+}
+
+.logo--sm .logo__mark {
+  width: 28px;
+  height: 28px;
+}
