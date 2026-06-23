@@ -30,7 +30,7 @@ Output: `dist/nutriplus-web/browser`
 
 1. Conecte o repositório ao Vercel
 2. Configure no Vercel → **Environment Variables** (Production):
-   - `API_BASE_URL` = URL pública da API no Railway (ex.: `https://nutriplus-api-xxxx.up.railway.app`, sem barra no final)
+   - `API_BASE_URL` = `https://nutriplus-api-production.up.railway.app` (opcional — já é o padrão no build)
    - O build gera `environment.prod.ts` automaticamente via `scripts/generate-environment.mjs`
 3. Domínio: `nutriplus.com.br`
 

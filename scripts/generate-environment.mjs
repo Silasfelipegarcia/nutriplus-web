@@ -12,17 +12,19 @@ const apiBaseUrl = (process.env.API_BASE_URL || process.env.NG_APP_API_BASE_URL 
   .trim()
   .replace(/\/$/, '');
 
+const productionDefault = 'https://nutriplus-api-production.up.railway.app';
+
 if (!apiBaseUrl) {
   if (process.env.VERCEL) {
-    console.error(
-      'API_BASE_URL não definida. Configure em Vercel → Project → Settings → Environment Variables.',
+    console.warn(
+      `API_BASE_URL não definida no Vercel; usando padrão de produção: ${productionDefault}`,
     );
-    process.exit(1);
+  } else {
+    console.warn(`API_BASE_URL ausente; usando padrão de produção: ${productionDefault}`);
   }
-  console.warn('API_BASE_URL ausente; mantendo https://api.nutriplus.com.br para build local.');
 }
 
-const resolved = apiBaseUrl || 'https://api.nutriplus.com.br';
+const resolved = apiBaseUrl || productionDefault;
 
 const content = `// Gerado por scripts/generate-environment.mjs — não edite manualmente em CI.
 export const environment = {
