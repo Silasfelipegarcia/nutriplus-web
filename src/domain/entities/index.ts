@@ -172,6 +172,7 @@ export interface TrainingActivityItem {
   id?: number;
   sportType: string;
   label: string;
+  customLabel?: string;
   daysPerWeek: number;
   minutesPerSession: number;
   caloriesPerSession: number;

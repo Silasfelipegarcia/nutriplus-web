@@ -21,6 +21,7 @@ import {
   TrainingProfile,
 } from '../../domain/entities';
 import { NutritionRepository } from '../../domain/repositories/nutrition.repository';
+import { defaultSportCatalog, mergeSportCatalog } from '../../presentation/core/sport-catalog';
 import { HttpAuthRepository } from './http-auth.repository';
 
 function toNutritionProfileRequest(profile: Partial<NutritionProfile>): Record<string, unknown> {
@@ -98,6 +99,7 @@ export class HttpNutritionRepository implements NutritionRepository {
           sportType: a.sportType,
           daysPerWeek: a.daysPerWeek,
           minutesPerSession: a.minutesPerSession,
+          ...(a.customLabel ? { customLabel: a.customLabel } : {}),
         })),
       },
       'onboarding-complete',
@@ -164,8 +166,18 @@ export class HttpNutritionRepository implements NutritionRepository {
     return this.get('/progress/evolution', 'progress-evolution');
   }
 
-  getSportCatalog(): Promise<SportCatalogItem[]> {
-    return this.get('/training/sports', 'training-sports');
+  async getSportCatalog(): Promise<SportCatalogItem[]> {
+    try {
+      const fromApi = await firstValueFrom(
+        this.http.get<SportCatalogItem[]>(`${environment.apiBaseUrl}/training/sports`, {
+          headers: this.trace.headers('training-sports'),
+        }),
+      );
+      const { mergeSportCatalog } = await import('../../presentation/core/sport-catalog');
+      return mergeSportCatalog(fromApi);
+    } catch {
+      return defaultSportCatalog();
+    }
   }
 
   getTrainingProfile(): Promise<TrainingProfile> {

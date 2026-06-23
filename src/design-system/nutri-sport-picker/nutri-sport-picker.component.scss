@@ -1,0 +1,67 @@
+.sport-picker {
+  position: relative;
+}
+
+.sport-picker__input {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  border: 1.5px solid var(--nutri-border);
+  border-radius: var(--nutri-radius-sm);
+  font-family: var(--nutri-font);
+  font-size: 0.95rem;
+  background: white;
+  color: var(--nutri-ink);
+
+  &:focus {
+    outline: none;
+    border-color: var(--nutri-brand);
+    box-shadow: 0 0 0 3px rgba(61, 139, 95, 0.15);
+  }
+}
+
+.sport-picker__list {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  margin: 0;
+  padding: 0.35rem 0;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+  background: white;
+  border: 1.5px solid var(--nutri-border);
+  border-radius: var(--nutri-radius-sm);
+  box-shadow: var(--nutri-shadow);
+}
+
+.sport-picker__option {
+  padding: 0.65rem 0.875rem;
+  cursor: pointer;
+  font-size: 0.92rem;
+
+  &:hover,
+  &--active {
+    background: rgba(61, 139, 95, 0.08);
+  }
+
+  &--custom {
+    color: var(--nutri-brand-dark);
+    font-weight: 700;
+    border-top: 1px solid var(--nutri-border);
+  }
+
+  small {
+    display: block;
+    color: var(--nutri-ink-muted);
+    font-weight: 400;
+    margin-top: 0.15rem;
+  }
+}
+
+.sport-picker__hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--nutri-ink-muted);
+}

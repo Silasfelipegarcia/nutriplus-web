@@ -8,6 +8,8 @@ import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.rep
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { parseApiError } from '../../../infrastructure/http/api-error';
+import { NutriSportPickerComponent } from '../../../design-system/nutri-sport-picker/nutri-sport-picker.component';
+import { SportSelection } from '../../core/sport-catalog';
 import {
   NutritionProfile,
   SportCatalogItem,
@@ -19,7 +21,15 @@ import {
 @Component({
   selector: 'app-training',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, NgTemplateOutlet, NutriButtonComponent, NutriInputComponent, NutriInfoTipComponent],
+  imports: [
+    FormsModule,
+    DecimalPipe,
+    NgTemplateOutlet,
+    NutriButtonComponent,
+    NutriInputComponent,
+    NutriInfoTipComponent,
+    NutriSportPickerComponent,
+  ],
   template: `
     <div class="portal-page">
       <div class="portal-main__header">
@@ -150,7 +160,7 @@ import {
                 @for (a of savedProfile()!.activities; track a.sportType) {
                   <div class="portal-list-item">
                     <div class="portal-list-item__main">
-                      <strong>{{ a.label }}</strong>
+                      <strong>{{ activityLabel(a) }}</strong>
                       <span>{{ a.daysPerWeek }}x/semana · {{ a.minutesPerSession }} min/sessão</span>
                     </div>
                     <div class="portal-list-item__aside">
@@ -195,11 +205,12 @@ import {
             <div class="form-grid">
               <div class="form-grid--full">
                 <label class="field-label" for="sport">Esporte</label>
-                <select id="sport" class="nutri-select" [(ngModel)]="selectedSport">
-                  @for (s of sports(); track s.sportType) {
-                    <option [value]="s.sportType">{{ s.label }}</option>
-                  }
-                </select>
+                <nutri-sport-picker
+                  id="sport"
+                  [catalog]="sports()"
+                  [(ngModel)]="sportSelection"
+                  name="sport"
+                />
               </div>
               <nutri-input label="Dias por semana" type="number" [(ngModel)]="daysPerWeekStr" name="days" />
               <nutri-input label="Minutos por sessão" type="number" [(ngModel)]="minutesPerSessionStr" name="minutes" />
@@ -214,15 +225,15 @@ import {
           <section class="portal-section">
             <h2 class="portal-section__title">Atividades no rascunho</h2>
             <div class="portal-list">
-              @for (a of draftActivities(); track a.sportType) {
+              @for (a of draftActivities(); track activityKey(a)) {
                 <div class="portal-list-item">
                   <div class="portal-list-item__main">
-                    <strong>{{ a.label }}</strong>
+                    <strong>{{ activityLabel(a) }}</strong>
                     <span>{{ a.daysPerWeek }}x/semana · {{ a.minutesPerSession }} min/sessão</span>
                   </div>
                   <div class="portal-list-item__aside">
                     <span class="portal-list-item__meta">+{{ a.caloriesPerWeek }} kcal/sem</span>
-                    <nutri-button variant="ghost" size="sm" (click)="removeActivity(a.sportType)">Remover</nutri-button>
+                    <nutri-button variant="ghost" size="sm" (click)="removeActivity(a)">Remover</nutri-button>
                   </div>
                 </div>
               }
@@ -282,7 +293,7 @@ export class TrainingComponent implements OnInit {
   readonly showDeactivateDialog = signal(false);
   readonly showRegenerateDialog = signal(false);
 
-  selectedSport = '';
+  sportSelection: SportSelection | null = null;
   daysPerWeekStr = '3';
   minutesPerSessionStr = '60';
   saving = false;
@@ -315,7 +326,6 @@ export class TrainingComponent implements OnInit {
     this.error.set(null);
     try {
       this.sports.set(await this.nutritionRepo.getSportCatalog());
-      if (this.sports().length) this.selectedSport = this.sports()[0].sportType;
       this.nutrition.set(await this.nutritionRepo.getNutritionProfile());
       const p = await this.nutritionRepo.getTrainingProfile();
       this.savedProfile.set(p);
@@ -383,11 +393,40 @@ export class TrainingComponent implements OnInit {
     this.draftActivities.set([]);
   }
 
-  addActivity(): void {
-    const sport = this.sports().find((s) => s.sportType === this.selectedSport);
-    if (!sport) return;
-    if (this.draftActivities().some((a) => a.sportType === sport.sportType)) return;
+  activityLabel(a: TrainingActivityItem): string {
+    return a.customLabel?.trim() || a.label;
+  }
 
+  activityKey(a: TrainingActivityItem): string {
+    return a.customLabel ? `${a.sportType}:${a.customLabel}` : a.sportType;
+  }
+
+  addActivity(): void {
+    const sel = this.sportSelection;
+    if (!sel) {
+      this.toast.error('Selecione ou digite um esporte.');
+      return;
+    }
+    const draft: TrainingActivityItem = {
+      sportType: sel.sportType,
+      label: sel.label,
+      customLabel: sel.customLabel,
+      daysPerWeek: 0,
+      minutesPerSession: 0,
+      caloriesPerSession: 0,
+      caloriesPerWeek: 0,
+    };
+    if (this.draftActivities().some((a) => this.activityKey(a) === this.activityKey(draft))) {
+      this.toast.error('Esta atividade já foi adicionada.');
+      return;
+    }
+
+    const sport = this.sports().find((s) => s.sportType === sel.sportType) ?? {
+      sportType: sel.sportType,
+      label: sel.label,
+      met: sel.met,
+      intensityHint: '',
+    };
     const days = Math.min(7, Math.max(1, Number(this.daysPerWeekStr) || 3));
     const minutes = Math.max(15, Number(this.minutesPerSessionStr) || 60);
     const weight = this.nutrition()?.currentWeightKg ?? 70;
@@ -397,18 +436,21 @@ export class TrainingComponent implements OnInit {
     this.draftActivities.update((list) => [
       ...list,
       {
-        sportType: sport.sportType,
-        label: sport.label,
+        sportType: sel.sportType,
+        label: sel.customLabel?.trim() || sel.label,
+        customLabel: sel.customLabel,
         daysPerWeek: days,
         minutesPerSession: minutes,
         caloriesPerSession: kcalSession,
         caloriesPerWeek: kcalSession * days,
       },
     ]);
+    this.sportSelection = null;
   }
 
-  removeActivity(sportType: string): void {
-    this.draftActivities.update((list) => list.filter((a) => a.sportType !== sportType));
+  removeActivity(activity: TrainingActivityItem): void {
+    const key = this.activityKey(activity);
+    this.draftActivities.update((list) => list.filter((a) => this.activityKey(a) !== key));
   }
 
   async saveAndActivate(): Promise<void> {

@@ -52,7 +52,8 @@ export class OnboardingSubmitService {
   private toTrainingActivities(draft: OnboardingDraft): TrainingActivityItem[] {
     return draft.activities.map((a) => ({
       sportType: a.sportType,
-      label: a.label,
+      label: a.customLabel?.trim() || a.label,
+      customLabel: a.customLabel,
       daysPerWeek: a.daysPerWeek,
       minutesPerSession: a.minutesPerSession,
       caloriesPerSession: 0,

@@ -1,17 +1,25 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
+import { NutriSportPickerComponent } from '../../../design-system/nutri-sport-picker/nutri-sport-picker.component';
 import { OnboardingDraftService } from '../onboarding-draft.service';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
 import { OnboardingActivityDraft, SportCatalogItem } from '../../../domain/entities';
+import { SportSelection } from '../../core/sport-catalog';
 
 @Component({
   selector: 'app-onboarding-training',
   standalone: true,
-  imports: [FormsModule, RouterLink, NutriButtonComponent, NutriInputComponent, NutriInfoTipComponent],
+  imports: [
+    FormsModule,
+    NutriButtonComponent,
+    NutriInputComponent,
+    NutriInfoTipComponent,
+    NutriSportPickerComponent,
+  ],
   template: `
     <div class="onboarding">
       <div class="onboarding__card onboarding__card--wide">
@@ -27,11 +35,12 @@ import { OnboardingActivityDraft, SportCatalogItem } from '../../../domain/entit
         <div class="form-grid">
           <div class="form-grid--full">
             <label class="field-label" for="sport">Esporte</label>
-            <select id="sport" class="nutri-select" [(ngModel)]="selectedSport" name="sport">
-              @for (s of sports(); track s.sportType) {
-                <option [value]="s.sportType">{{ s.label }}</option>
-              }
-            </select>
+            <nutri-sport-picker
+              id="sport"
+              [catalog]="sports()"
+              [(ngModel)]="sportSelection"
+              name="sport"
+            />
           </div>
           <nutri-input label="Dias por semana" type="number" [(ngModel)]="daysPerWeekStr" name="days" />
           <nutri-input label="Minutos por sessão" type="number" [(ngModel)]="minutesPerSessionStr" name="minutes" />
@@ -41,13 +50,13 @@ import { OnboardingActivityDraft, SportCatalogItem } from '../../../domain/entit
         </div>
         @if (activities.length) {
           <div class="onboarding-activity-list">
-            @for (a of activities; track a.sportType) {
+            @for (a of activities; track activityKey(a)) {
               <div class="onboarding-activity-item">
                 <div>
-                  <strong>{{ a.label }}</strong>
+                  <strong>{{ activityLabel(a) }}</strong>
                   <span>{{ a.daysPerWeek }}x/semana · {{ a.minutesPerSession }} min</span>
                 </div>
-                <nutri-button variant="ghost" size="sm" (click)="removeActivity(a.sportType)">Remover</nutri-button>
+                <nutri-button variant="ghost" size="sm" (click)="removeActivity(a)">Remover</nutri-button>
               </div>
             }
           </div>
@@ -67,41 +76,49 @@ export class OnboardingTrainingComponent implements OnInit {
   private readonly router = inject(Router);
 
   readonly sports = signal<SportCatalogItem[]>([]);
-  selectedSport = '';
+  sportSelection: SportSelection | null = null;
   daysPerWeekStr = '3';
   minutesPerSessionStr = '60';
   activities: OnboardingActivityDraft[] = [...this.draft.draft().activities];
   error: string | null = null;
 
   async ngOnInit(): Promise<void> {
-    try {
-      this.sports.set(await this.nutritionRepo.getSportCatalog());
-      if (this.sports().length) this.selectedSport = this.sports()[0].sportType;
-    } catch {
-      this.sports.set([
-        { sportType: 'RUNNING', label: 'Corrida', met: 9, intensityHint: 'Alta' },
-        { sportType: 'WEIGHT_TRAINING', label: 'Musculação', met: 6, intensityHint: 'Moderada' },
-      ]);
-      this.selectedSport = 'RUNNING';
-    }
+    this.sports.set(await this.nutritionRepo.getSportCatalog());
+  }
+
+  activityLabel(a: OnboardingActivityDraft): string {
+    return a.customLabel?.trim() || a.label;
+  }
+
+  activityKey(a: OnboardingActivityDraft): string {
+    return a.customLabel ? `${a.sportType}:${a.customLabel}` : a.sportType;
   }
 
   addActivity(): void {
-    const sport = this.sports().find((s) => s.sportType === this.selectedSport);
-    if (!sport || this.activities.some((a) => a.sportType === sport.sportType)) return;
-    const days = Math.min(7, Math.max(1, Number(this.daysPerWeekStr) || 3));
-    const minutes = Math.max(15, Number(this.minutesPerSessionStr) || 60);
-    this.activities.push({
-      sportType: sport.sportType,
-      label: sport.label,
-      daysPerWeek: days,
-      minutesPerSession: minutes,
-    });
+    const sel = this.sportSelection;
+    if (!sel) {
+      this.error = 'Selecione ou digite um esporte.';
+      return;
+    }
+    const draft: OnboardingActivityDraft = {
+      sportType: sel.sportType,
+      label: sel.label,
+      customLabel: sel.customLabel,
+      daysPerWeek: Math.min(7, Math.max(1, Number(this.daysPerWeekStr) || 3)),
+      minutesPerSession: Math.max(15, Number(this.minutesPerSessionStr) || 60),
+    };
+    if (this.activities.some((a) => this.activityKey(a) === this.activityKey(draft))) {
+      this.error = 'Esta atividade já foi adicionada.';
+      return;
+    }
+    this.activities.push(draft);
+    this.sportSelection = null;
     this.error = null;
   }
 
-  removeActivity(sportType: string): void {
-    this.activities = this.activities.filter((a) => a.sportType !== sportType);
+  removeActivity(activity: OnboardingActivityDraft): void {
+    const key = this.activityKey(activity);
+    this.activities = this.activities.filter((a) => this.activityKey(a) !== key);
   }
 
   continue(): void {
