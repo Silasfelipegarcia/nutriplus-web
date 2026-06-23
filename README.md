@@ -29,8 +29,9 @@ Output: `dist/nutriplus-web/browser`
 ## Deploy Vercel
 
 1. Conecte o repositório ao Vercel
-2. Configure variáveis de ambiente (opcional — edite `environment.prod.ts` ou use file replacement customizado):
-   - API URL em `src/environments/environment.prod.ts`
+2. Configure no Vercel → **Environment Variables** (Production):
+   - `API_BASE_URL` = URL pública da API no Railway (ex.: `https://nutriplus-api-xxxx.up.railway.app`, sem barra no final)
+   - O build gera `environment.prod.ts` automaticamente via `scripts/generate-environment.mjs`
 3. Domínio: `nutriplus.com.br`
 
 ## Rotas
@@ -49,7 +50,7 @@ Output: `dist/nutriplus-web/browser`
 Adicione ao `CORS_ALLOWED_ORIGINS` em produção:
 
 ```
-https://nutriplus.com.br,https://www.nutriplus.com.br,https://nutriplus-web.vercel.app
+https://nutriplus.com.br,https://www.nutriplus.com.br,https://nutriplus-web-ten.vercel.app,https://nutriplus-web.vercel.app
 ```
 
 ## Estrutura
