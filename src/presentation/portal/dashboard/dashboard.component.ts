@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriEmptyStateComponent } from '../../../design-system/nutri-empty-state/nutri-empty-state.component';
@@ -7,6 +7,8 @@ import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.rep
 import { NutritionProfile, TodayCheckins, CheckinStats } from '../../../domain/entities';
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
 import { isNotFound } from '../../../infrastructure/http/api-error';
+import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
+import { withActionFeedback } from '../../core/action-feedback';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,6 +25,10 @@ import { isNotFound } from '../../../infrastructure/http/api-error';
       <div class="generating-banner">
         {{ generation.status()?.progressHint ?? 'Gerando seu plano alimentar...' }}
       </div>
+    }
+
+    @if (generation.phase() === 'failed' && generation.error()) {
+      <div class="auth-card__error">{{ generation.error() }}</div>
     }
 
     @if (!checkins() && !loading() && profile()) {
@@ -98,12 +104,21 @@ import { isNotFound } from '../../../infrastructure/http/api-error';
 })
 export class DashboardComponent implements OnInit {
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
+  private readonly toast = inject(NutriToastService);
   readonly generation = inject(MealPlanGenerationFacade);
 
   readonly profile = signal<NutritionProfile | null>(null);
   readonly checkins = signal<TodayCheckins | null>(null);
   readonly stats = signal<CheckinStats | null>(null);
   readonly loading = signal(true);
+
+  constructor() {
+    effect(() => {
+      if (this.generation.phase() === 'ready') {
+        void this.load();
+      }
+    });
+  }
 
   async ngOnInit(): Promise<void> {
     await this.generation.bootstrap();
@@ -131,8 +146,17 @@ export class DashboardComponent implements OnInit {
   }
 
   async markCheckin(mealId: number, status: string): Promise<void> {
-    await this.nutritionRepo.saveCheckin(mealId, status);
-    await this.load();
+    const meal = this.checkins()?.meals.find((m) => m.mealId === mealId);
+    const mealName = meal?.mealName ?? 'Refeição';
+    const label = status === 'DONE' ? 'feita' : 'pulada';
+    await withActionFeedback(
+      this.toast,
+      async () => {
+        await this.nutritionRepo.saveCheckin(mealId, status);
+        await this.load();
+      },
+      { success: `${mealName} marcada como ${label}` },
+    );
   }
 
   async generate(): Promise<void> {

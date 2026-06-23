@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { NutriEmptyStateComponent } from '../../../design-system/nutri-empty-state/nutri-empty-state.component';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
@@ -18,6 +18,16 @@ import { isNotFound } from '../../../infrastructure/http/api-error';
         <h1>Plano alimentar</h1>
         <p>Suas refeições do dia com macros detalhados.</p>
       </div>
+
+    @if (generation.phase() === 'generating') {
+      <div class="generating-banner">
+        {{ generation.status()?.progressHint ?? 'Gerando seu plano alimentar...' }}
+      </div>
+    }
+
+    @if (generation.phase() === 'failed' && generation.error()) {
+      <div class="auth-card__error">{{ generation.error() }}</div>
+    }
 
     @if (plan()) {
       <div class="macro-grid">
@@ -62,7 +72,16 @@ export class MealPlanComponent implements OnInit {
   readonly plan = signal<MealPlan | null>(null);
   readonly loading = signal(true);
 
+  constructor() {
+    effect(() => {
+      if (this.generation.phase() === 'ready') {
+        void this.load();
+      }
+    });
+  }
+
   async ngOnInit(): Promise<void> {
+    await this.generation.bootstrap();
     await this.load();
   }
 
@@ -83,6 +102,5 @@ export class MealPlanComponent implements OnInit {
 
   async generate(): Promise<void> {
     await this.generation.generate();
-    await this.load();
   }
 }

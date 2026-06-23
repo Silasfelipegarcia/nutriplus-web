@@ -6,6 +6,8 @@ import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-in
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
+import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
+import { parseApiError } from '../../../infrastructure/http/api-error';
 import {
   NutritionProfile,
   SportCatalogItem,
@@ -264,6 +266,7 @@ import {
 })
 export class TrainingComponent implements OnInit {
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
+  private readonly toast = inject(NutriToastService);
   readonly generation = inject(MealPlanGenerationFacade);
 
   readonly profileTypeLabel = profileTypeLabel;
@@ -359,8 +362,11 @@ export class TrainingComponent implements OnInit {
       this.activating.set(false);
       this.draftActivities.set([]);
       this.nutrition.set(await this.nutritionRepo.getNutritionProfile());
+      this.toast.success('Modo atleta desativado');
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'Erro ao desativar modo atleta');
+      const message = parseApiError(e).message;
+      this.error.set(message);
+      this.toast.error(message);
     } finally {
       this.saving = false;
     }
@@ -414,8 +420,11 @@ export class TrainingComponent implements OnInit {
       this.activating.set(false);
       await this.nutritionRepo.applyTrainingToPlan();
       await this.afterApply();
+      this.toast.success('Modo atleta ativado e aplicado ao plano');
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'Erro ao ativar modo atleta');
+      const message = parseApiError(e).message;
+      this.error.set(message);
+      this.toast.error(message);
     } finally {
       this.saving = false;
     }
@@ -429,8 +438,11 @@ export class TrainingComponent implements OnInit {
       this.savedProfile.set(profile);
       this.editing.set(false);
       this.draftActivities.set([]);
+      this.toast.success('Treinos salvos');
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'Erro ao salvar treinos');
+      const message = parseApiError(e).message;
+      this.error.set(message);
+      this.toast.error(message);
     } finally {
       this.saving = false;
     }
@@ -446,8 +458,11 @@ export class TrainingComponent implements OnInit {
       this.editing.set(false);
       this.draftActivities.set([]);
       await this.afterApply();
+      this.toast.success('Treinos aplicados ao plano alimentar');
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'Erro ao aplicar treinos');
+      const message = parseApiError(e).message;
+      this.error.set(message);
+      this.toast.error(message);
     } finally {
       this.applying = false;
     }
@@ -462,8 +477,11 @@ export class TrainingComponent implements OnInit {
       this.savedProfile.set(profile);
       await this.nutritionRepo.applyTrainingToPlan();
       await this.afterApply();
+      this.toast.success('Treinos aplicados ao plano alimentar');
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'Erro ao aplicar ao plano');
+      const message = parseApiError(e).message;
+      this.error.set(message);
+      this.toast.error(message);
     } finally {
       this.applying = false;
     }

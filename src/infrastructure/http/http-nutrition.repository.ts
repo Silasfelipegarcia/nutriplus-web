@@ -143,6 +143,10 @@ export class HttpNutritionRepository implements NutritionRepository {
     return this.get('/progress/schedule', 'progress-schedule');
   }
 
+  getLatestBodyMeasurement(): Promise<BodyMeasurement> {
+    return this.get('/progress/measurements/latest', 'progress-measurement-latest');
+  }
+
   saveBodyMeasurement(measurement: BodyMeasurement): Promise<BodyMeasurement> {
     return this.post('/progress/measurements', measurement, 'progress-measurement');
   }

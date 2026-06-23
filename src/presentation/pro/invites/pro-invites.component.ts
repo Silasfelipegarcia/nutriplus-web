@@ -3,6 +3,8 @@ import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { PRO_REPOSITORY } from '../../../domain/repositories/pro.repository';
 import { ProInvite } from '../../../domain/entities';
+import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
+import { withActionFeedback } from '../../core/action-feedback';
 
 @Component({
   selector: 'app-pro-invites',
@@ -33,15 +35,19 @@ import { ProInvite } from '../../../domain/entities';
 })
 export class ProInvitesComponent {
   private readonly proRepo = inject(PRO_REPOSITORY);
+  private readonly toast = inject(NutriToastService);
   readonly invite = signal<ProInvite | null>(null);
   creating = false;
 
   async create(): Promise<void> {
     this.creating = true;
-    try {
-      this.invite.set(await this.proRepo.createInvite());
-    } finally {
-      this.creating = false;
-    }
+    await withActionFeedback(
+      this.toast,
+      async () => {
+        this.invite.set(await this.proRepo.createInvite());
+      },
+      { success: 'Convite gerado' },
+    );
+    this.creating = false;
   }
 }

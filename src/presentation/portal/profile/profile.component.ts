@@ -12,6 +12,8 @@ import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.rep
 import { NutritionProfile, TrainingProfile, agentDisplayName, profileTypeLabel } from '../../../domain/entities';
 import { TokenStorage } from '../../../infrastructure/auth/token-storage';
 import { jwtRoles } from '../../core/jwt.util';
+import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
+import { withActionFeedback } from '../../core/action-feedback';
 
 const GOAL_LABELS: Record<string, string> = {
   LOSE_WEIGHT: 'Perder peso',
@@ -136,6 +138,7 @@ export class ProfileComponent implements OnInit {
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
   private readonly tokens = inject(TokenStorage);
   private readonly router = inject(Router);
+  private readonly toast = inject(NutriToastService);
 
   readonly profile = signal<NutritionProfile | null>(null);
   readonly training = signal<TrainingProfile | null>(null);
@@ -201,22 +204,29 @@ export class ProfileComponent implements OnInit {
 
   async saveName(): Promise<void> {
     this.savingName = true;
-    try {
-      await this.authRepo.updateProfile({ name: this.name });
-      await this.auth.refreshUser();
-    } finally {
-      this.savingName = false;
-    }
+    await withActionFeedback(
+      this.toast,
+      async () => {
+        await this.authRepo.updateProfile({ name: this.name });
+        await this.auth.refreshUser();
+      },
+      { success: 'Nome atualizado' },
+    );
+    this.savingName = false;
   }
 
   async changePassword(): Promise<void> {
     this.changingPassword = true;
-    try {
-      await this.authRepo.changePassword(this.currentPassword, this.newPassword);
-      this.currentPassword = '';
-      this.newPassword = '';
-    } finally {
-      this.changingPassword = false;
-    }
+    const ok = await withActionFeedback(
+      this.toast,
+      async () => {
+        await this.authRepo.changePassword(this.currentPassword, this.newPassword);
+        this.currentPassword = '';
+        this.newPassword = '';
+      },
+      { success: 'Senha alterada' },
+    );
+    this.changingPassword = false;
+    if (!ok) return;
   }
 }

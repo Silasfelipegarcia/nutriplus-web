@@ -30,6 +30,7 @@ export interface NutritionRepository {
   saveCheckin(mealId: number, status: string, notes?: string): Promise<void>;
   getCheckinStats(): Promise<CheckinStats>;
   getProgressSchedule(): Promise<ProgressSchedule>;
+  getLatestBodyMeasurement(): Promise<BodyMeasurement>;
   saveBodyMeasurement(measurement: BodyMeasurement): Promise<BodyMeasurement>;
   generateProgressReview(): Promise<ProgressReview>;
   getLatestProgressReview(): Promise<ProgressReview>;

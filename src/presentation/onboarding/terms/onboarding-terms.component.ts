@@ -6,6 +6,7 @@ import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-ban
 import { TERMS_BODY } from '../../core/constants';
 import { AuthFacade } from '../../core/auth.facade';
 import { environment } from '../../../environments/environment';
+import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 
 @Component({
   selector: 'app-onboarding-terms',
@@ -38,6 +39,7 @@ import { environment } from '../../../environments/environment';
 export class OnboardingTermsComponent {
   private readonly auth = inject(AuthFacade);
   private readonly router = inject(Router);
+  private readonly toast = inject(NutriToastService);
 
   readonly termsBody = TERMS_BODY;
   accepted = false;
@@ -49,7 +51,8 @@ export class OnboardingTermsComponent {
     this.error = null;
     try {
       await this.auth.acceptTerms(environment.termsVersion, environment.privacyVersion);
-      this.router.navigate(['/app/dashboard']);
+      this.toast.success('Perfil configurado!');
+      setTimeout(() => this.router.navigate(['/app/dashboard']), 800);
     } catch (e) {
       this.error = e instanceof Error ? e.message : 'Erro ao aceitar termos';
     } finally {

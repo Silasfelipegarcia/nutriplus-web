@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { PRO_REPOSITORY } from '../../../domain/repositories/pro.repository';
 import { Conversation } from '../../../domain/entities';
+import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
+import { withActionFeedback } from '../../core/action-feedback';
 
 @Component({
   selector: 'app-pro-chat',
@@ -61,6 +63,7 @@ import { Conversation } from '../../../domain/entities';
 export class ProChatComponent implements OnInit {
   private readonly proRepo = inject(PRO_REPOSITORY);
   private readonly route = inject(ActivatedRoute);
+  private readonly toast = inject(NutriToastService);
   readonly conversation = signal<Conversation | null>(null);
   draft = '';
   sending = false;
@@ -75,12 +78,16 @@ export class ProChatComponent implements OnInit {
     const body = this.draft.trim();
     if (!body) return;
     this.sending = true;
-    try {
-      await this.proRepo.sendMessage(threadId, body);
-      this.draft = '';
-      this.conversation.set(await this.proRepo.getConversation(threadId));
-    } finally {
-      this.sending = false;
-    }
+    const ok = await withActionFeedback(
+      this.toast,
+      async () => {
+        await this.proRepo.sendMessage(threadId, body);
+        this.draft = '';
+        this.conversation.set(await this.proRepo.getConversation(threadId));
+      },
+      { success: 'Mensagem enviada' },
+    );
+    this.sending = false;
+    if (!ok) return;
   }
 }

@@ -4,6 +4,8 @@ import { DecimalPipe } from '@angular/common';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { PRO_REPOSITORY } from '../../../domain/repositories/pro.repository';
 import { MealPlan, PatientDossier } from '../../../domain/entities';
+import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
+import { withActionFeedback } from '../../core/action-feedback';
 
 @Component({
   selector: 'app-pro-dossier',
@@ -70,6 +72,7 @@ import { MealPlan, PatientDossier } from '../../../domain/entities';
 export class ProDossierComponent implements OnInit {
   private readonly proRepo = inject(PRO_REPOSITORY);
   private readonly route = inject(ActivatedRoute);
+  private readonly toast = inject(NutriToastService);
   readonly dossier = signal<PatientDossier | null>(null);
   readonly plans = signal<MealPlan[]>([]);
   publishingId: number | null = null;
@@ -83,10 +86,13 @@ export class ProDossierComponent implements OnInit {
   async publish(mealPlanId: number): Promise<void> {
     const patientId = Number(this.route.snapshot.paramMap.get('id'));
     this.publishingId = mealPlanId;
-    try {
-      await this.proRepo.publishMealPlan(patientId, mealPlanId);
-    } finally {
-      this.publishingId = null;
-    }
+    await withActionFeedback(
+      this.toast,
+      async () => {
+        await this.proRepo.publishMealPlan(patientId, mealPlanId);
+      },
+      { success: 'Plano publicado' },
+    );
+    this.publishingId = null;
   }
 }

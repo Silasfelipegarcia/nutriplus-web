@@ -7,6 +7,8 @@ import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nut
 import { CARE_REPOSITORY } from '../../../domain/repositories/pro.repository';
 import { NutritionistPublic } from '../../../domain/entities';
 import { parseApiError } from '../../../infrastructure/http/api-error';
+import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
+import { withActionFeedback } from '../../core/action-feedback';
 
 @Component({
   selector: 'app-marketplace',
@@ -61,6 +63,7 @@ import { parseApiError } from '../../../infrastructure/http/api-error';
 })
 export class MarketplaceComponent implements OnInit {
   private readonly careRepo = inject(CARE_REPOSITORY);
+  private readonly toast = inject(NutriToastService);
   readonly nutritionists = signal<NutritionistPublic[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -84,13 +87,15 @@ export class MarketplaceComponent implements OnInit {
 
   async request(nutritionistId: number): Promise<void> {
     this.requestingId = nutritionistId;
-    try {
-      await this.careRepo.requestCare(nutritionistId);
-      alert('Solicitação enviada. Siga as instruções de pagamento quando disponíveis.');
-    } catch (e) {
-      alert(e instanceof Error ? e.message : 'Erro ao solicitar');
-    } finally {
-      this.requestingId = null;
-    }
+    await withActionFeedback(
+      this.toast,
+      async () => {
+        await this.careRepo.requestCare(nutritionistId);
+      },
+      {
+        success: 'Solicitação enviada. Siga as instruções de pagamento quando disponíveis.',
+      },
+    );
+    this.requestingId = null;
   }
 }
