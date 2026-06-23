@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import { TraceService } from '../tracing/trace.service';
 import { TokenStorage } from '../auth/token-storage';
 import { ApiError } from './api-error';
+import { newIdempotencyKey, withIdempotencyKey } from './idempotency';
 import {
   BodyMeasurement,
   CheckinStats,
@@ -205,7 +206,8 @@ export class HttpNutritionRepository implements NutritionRepository {
     body?: unknown,
   ): Promise<T> {
     const url = `${environment.apiBaseUrl}${path}`;
-    const headers = this.authHeaders(flowId);
+    const idempotencyKey = method === 'GET' ? undefined : newIdempotencyKey();
+    const headers = this.authHeaders(flowId, idempotencyKey);
     try {
       return await this.request<T>(method, url, headers, body);
     } catch (e) {
@@ -213,20 +215,21 @@ export class HttpNutritionRepository implements NutritionRepository {
         const refresh = this.tokens.getRefreshToken();
         if (refresh) {
           await this.authRepo.refreshToken(refresh);
-          return this.request<T>(method, url, this.authHeaders(flowId), body);
+          return this.request<T>(method, url, this.authHeaders(flowId, idempotencyKey), body);
         }
       }
       throw e;
     }
   }
 
-  private authHeaders(flowId: string): Record<string, string> {
+  private authHeaders(flowId: string, idempotencyKey?: string): Record<string, string> {
     const token = this.tokens.getAccessToken();
-    return {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...this.trace.headers(flowId),
     };
+    return idempotencyKey ? withIdempotencyKey(headers, idempotencyKey) : headers;
   }
 
   private async request<T>(
