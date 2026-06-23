@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
@@ -9,10 +9,10 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
 @Component({
   selector: 'app-onboarding-metrics',
   standalone: true,
-  imports: [FormsModule, RouterLink, NutriButtonComponent, NutriInputComponent, NutriInfoTipComponent],
+  imports: [FormsModule, NutriButtonComponent, NutriInputComponent, NutriInfoTipComponent],
   template: `
     <div class="onboarding">
-      <div class="onboarding__card">
+      <form class="onboarding__card" (ngSubmit)="continue()">
         <p class="onboarding__step">Passo {{ stepLabel }} de 8</p>
         <h1>Suas métricas</h1>
         <p class="onboarding__lead">Usamos esses dados para calcular seus macros e metas calóricas.</p>
@@ -50,16 +50,17 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
           </div>
         </div>
         <div class="onboarding__actions">
-          <nutri-button variant="ghost" to="/onboarding/preferencias">Voltar</nutri-button>
-          <nutri-button variant="primary" to="/onboarding/dieta" (click)="save()">Continuar</nutri-button>
+          <nutri-button variant="ghost" type="button" to="/onboarding/preferencias">Voltar</nutri-button>
+          <nutri-button variant="primary" type="submit">Continuar</nutri-button>
         </div>
-      </div>
+      </form>
     </div>
   `,
   styleUrl: '../onboarding.scss',
 })
 export class OnboardingMetricsComponent {
   private readonly draft = inject(OnboardingDraftService);
+  private readonly router = inject(Router);
 
   age = this.draft.draft().age;
   sex = this.draft.draft().sex;
@@ -73,7 +74,7 @@ export class OnboardingMetricsComponent {
     return this.draft.draft().athleteModeEnabled ? '5' : '4';
   }
 
-  save(): void {
+  continue(): void {
     this.draft.update({
       age: this.age,
       sex: this.sex,
@@ -83,5 +84,6 @@ export class OnboardingMetricsComponent {
       goal: this.goal,
       activityLevel: this.activityLevel,
     });
+    void this.router.navigate(['/onboarding/dieta']);
   }
 }

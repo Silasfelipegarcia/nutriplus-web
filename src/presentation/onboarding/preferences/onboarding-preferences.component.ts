@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
@@ -15,10 +15,10 @@ const BUDGET_OPTIONS = [
 @Component({
   selector: 'app-onboarding-preferences',
   standalone: true,
-  imports: [FormsModule, RouterLink, NutriButtonComponent, NutriInputComponent, NutriInfoTipComponent],
+  imports: [FormsModule, NutriButtonComponent, NutriInputComponent, NutriInfoTipComponent],
   template: `
     <div class="onboarding">
-      <div class="onboarding__card">
+      <form class="onboarding__card" (ngSubmit)="continue()">
         <p class="onboarding__step">Passo {{ stepLabel }} de 8</p>
         <h1>Preferências alimentares</h1>
         <p class="onboarding__lead">Ajude a IA a personalizar seu plano com o que você gosta e evita.</p>
@@ -65,16 +65,17 @@ const BUDGET_OPTIONS = [
           placeholder="Ex: prefiro café da manhã leve..."
         />
         <div class="onboarding__actions">
-          <nutri-button variant="ghost" [to]="backLink">Voltar</nutri-button>
-          <nutri-button variant="primary" to="/onboarding/metricas" (click)="save()">Continuar</nutri-button>
+          <nutri-button variant="ghost" type="button" [to]="backLink">Voltar</nutri-button>
+          <nutri-button variant="primary" type="submit">Continuar</nutri-button>
         </div>
-      </div>
+      </form>
     </div>
   `,
   styleUrl: '../onboarding.scss',
 })
 export class OnboardingPreferencesComponent {
   private readonly draft = inject(OnboardingDraftService);
+  private readonly router = inject(Router);
   readonly budgetOptions = BUDGET_OPTIONS;
   likes = this.draft.draft().foodLikes;
   dislikes = this.draft.draft().foodDislikes;
@@ -89,12 +90,13 @@ export class OnboardingPreferencesComponent {
     return this.draft.draft().athleteModeEnabled ? '/onboarding/treino' : '/onboarding/tipo';
   }
 
-  save(): void {
+  continue(): void {
     this.draft.update({
       foodLikes: this.likes,
       foodDislikes: this.dislikes,
       mealNotes: this.notes,
       foodBudgetLevel: this.budget,
     });
+    void this.router.navigate(['/onboarding/metricas']);
   }
 }

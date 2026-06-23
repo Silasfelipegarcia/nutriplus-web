@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { OnboardingDraftService } from '../onboarding-draft.service';
@@ -8,10 +8,10 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
 @Component({
   selector: 'app-onboarding-diet',
   standalone: true,
-  imports: [FormsModule, RouterLink, NutriButtonComponent, NutriInfoTipComponent],
+  imports: [FormsModule, NutriButtonComponent, NutriInfoTipComponent],
   template: `
     <div class="onboarding">
-      <div class="onboarding__card">
+      <form class="onboarding__card" (ngSubmit)="continue()">
         <p class="onboarding__step">Passo {{ stepLabel }} de 8</p>
         <h1>Dieta e restrições</h1>
         <p class="onboarding__lead">Defina o estilo alimentar que a IA deve respeitar no plano.</p>
@@ -38,16 +38,18 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
           </div>
         </div>
         <div class="onboarding__actions">
-          <nutri-button variant="ghost" to="/onboarding/metricas">Voltar</nutri-button>
-          <nutri-button variant="primary" to="/onboarding/saude" (click)="save()">Continuar</nutri-button>
+          <nutri-button variant="ghost" type="button" to="/onboarding/metricas">Voltar</nutri-button>
+          <nutri-button variant="primary" type="submit">Continuar</nutri-button>
         </div>
-      </div>
+      </form>
     </div>
   `,
   styleUrl: '../onboarding.scss',
 })
 export class OnboardingDietComponent {
   private readonly draft = inject(OnboardingDraftService);
+  private readonly router = inject(Router);
+
   dietaryPreference = this.draft.draft().dietaryPreference;
   restriction = this.draft.draft().restriction;
 
@@ -55,10 +57,11 @@ export class OnboardingDietComponent {
     return this.draft.draft().athleteModeEnabled ? '6' : '5';
   }
 
-  save(): void {
+  continue(): void {
     this.draft.update({
       dietaryPreference: this.dietaryPreference,
       restriction: this.restriction,
     });
+    void this.router.navigate(['/onboarding/saude']);
   }
 }

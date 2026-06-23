@@ -11,6 +11,7 @@ import { HttpNutritionRepository } from '../infrastructure/http/http-nutrition.r
 import { HttpProRepository } from '../infrastructure/http/http-pro.repository';
 import { HttpCareRepository } from '../infrastructure/http/http-care.repository';
 import { AuthFacade } from '../presentation/core/auth.facade';
+import { ChunkLoadRecovery, provideChunkLoadRecovery } from '../presentation/core/chunk-load-recovery';
 
 function bootstrapAuth(auth: AuthFacade): () => Promise<void> {
   return () => auth.bootstrap();
@@ -29,6 +30,8 @@ export const appConfig: ApplicationConfig = {
     HttpNutritionRepository,
     HttpProRepository,
     HttpCareRepository,
+    ChunkLoadRecovery,
+    provideChunkLoadRecovery(),
     {
       provide: APP_INITIALIZER,
       useFactory: bootstrapAuth,
