@@ -1,19 +1,27 @@
 import { Injectable, inject } from '@angular/core';
 import { OnboardingDraft, TrainingActivityItem } from '../../domain/entities';
 import { NUTRITION_REPOSITORY } from '../../domain/repositories/nutrition.repository';
+import { computeAgeFromBirthDate } from '../core/date.util';
 
 @Injectable({ providedIn: 'root' })
 export class OnboardingSubmitService {
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
 
   async submit(draft: OnboardingDraft): Promise<void> {
+    const age = draft.birthDate ? computeAgeFromBirthDate(draft.birthDate) : draft.age;
     const profilePayload = {
       agentPersona: draft.agentPersona,
       foodLikes: draft.foodLikes || undefined,
       foodDislikes: draft.foodDislikes || undefined,
       mealNotes: draft.mealNotes || undefined,
       foodBudgetLevel: draft.foodBudgetLevel,
-      age: draft.age,
+      age,
+      birthDate: draft.birthDate || undefined,
+      city: draft.city || undefined,
+      stateCode: draft.stateCode || undefined,
+      chewingDifficulty: draft.chewingDifficulty !== 'NONE' ? draft.chewingDifficulty : undefined,
+      seniorWeightLossAck: draft.seniorWeightLossAck || undefined,
+      goalTargetWeeks: draft.goalTargetWeeks,
       sex: draft.sex,
       heightCm: draft.heightCm,
       currentWeightKg: draft.currentWeightKg,

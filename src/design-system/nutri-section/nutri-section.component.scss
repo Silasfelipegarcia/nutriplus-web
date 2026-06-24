@@ -1,0 +1,30 @@
+.nutri-section {
+  margin-bottom: 2rem;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  &__title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin: 0;
+    color: var(--nutri-ink);
+    letter-spacing: -0.01em;
+  }
+
+  &__description {
+    margin: 0.35rem 0 0;
+    color: var(--nutri-ink-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  &__action:empty {
+    display: none;
+  }
+}

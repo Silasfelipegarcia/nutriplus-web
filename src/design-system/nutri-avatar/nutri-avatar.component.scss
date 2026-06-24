@@ -1,0 +1,57 @@
+.nutri-avatar {
+  position: relative;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--nutri-brand-light), rgba(61, 139, 95, 0.2));
+  border: 2px solid rgba(61, 139, 95, 0.2);
+  flex-shrink: 0;
+
+  &--sm {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 0.75rem;
+  }
+
+  &--lg {
+    width: 5rem;
+    height: 5rem;
+    font-size: 1.25rem;
+  }
+
+  &__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__initials {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    font-weight: 800;
+    color: var(--nutri-brand-dark);
+    letter-spacing: 0.02em;
+  }
+
+  &--uploadable:hover &__overlay,
+  &--uploadable:focus-within &__overlay {
+    opacity: 1;
+  }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    border: none;
+    background: rgba(26, 46, 36, 0.55);
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+}

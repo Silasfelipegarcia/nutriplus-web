@@ -27,6 +27,11 @@ export const routes: Routes = [
     loadComponent: () => import('../presentation/auth/register/register.component').then(m => m.RegisterComponent),
   },
   {
+    path: 'auth/cadastro-nutricionista',
+    canActivate: [desktopGuard, guestGuard],
+    loadComponent: () => import('../presentation/auth/register-nutritionist/register-nutritionist.component').then(m => m.RegisterNutritionistComponent),
+  },
+  {
     path: 'convite/:code',
     canActivate: [desktopGuard, authGuard],
     loadComponent: () => import('../presentation/portal/marketplace/accept-invite.component').then(m => m.AcceptInviteComponent),
@@ -85,6 +90,7 @@ export const routes: Routes = [
       { path: 'treino', loadComponent: () => import('../presentation/portal/training/training.component').then(m => m.TrainingComponent) },
       { path: 'perfil', loadComponent: () => import('../presentation/portal/profile/profile.component').then(m => m.ProfileComponent) },
       { path: 'nutricionistas', loadComponent: () => import('../presentation/portal/marketplace/marketplace.component').then(m => m.MarketplaceComponent) },
+      { path: 'nutricionistas/:id', loadComponent: () => import('../presentation/portal/marketplace/marketplace-detail.component').then(m => m.MarketplaceDetailComponent) },
     ],
   },
   {

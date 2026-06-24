@@ -4,6 +4,7 @@ export interface User {
   email: string;
   createdAt?: string;
   photoThumbnailUrl?: string;
+  cpfMasked?: string;
   hasNutritionProfile: boolean;
   termsAcceptedAt?: string;
   termsVersion?: string;
@@ -21,6 +22,13 @@ export interface AuthResponse {
 export interface NutritionProfile {
   id?: number;
   age: number;
+  birthDate?: string;
+  city?: string;
+  stateCode?: string;
+  lifeStage?: string;
+  chewingDifficulty?: string;
+  seniorWeightLossAck?: boolean;
+  goalTargetWeeks?: number;
   sex: string;
   heightCm: number;
   currentWeightKg: number;
@@ -46,6 +54,12 @@ export interface NutritionProfile {
   targetFatG?: number;
   athleteModeEnabled?: boolean;
   trainingDailyExtraKcal?: number;
+  eatsBreakfast?: boolean;
+  eatsLunch?: boolean;
+  eatsAfternoonSnack?: boolean;
+  eatsDinner?: boolean;
+  openToRoutineAdjustment?: boolean;
+  freeExtras?: string[];
   wakeTime?: string;
   sleepTime?: string;
   healthConditions?: string;
@@ -241,6 +255,12 @@ export interface OnboardingDraft {
   mealNotes: string;
   foodBudgetLevel: string;
   age: number;
+  birthDate: string;
+  city: string;
+  stateCode: string;
+  chewingDifficulty: string;
+  seniorWeightLossAck: boolean;
+  goalTargetWeeks: number;
   sex: string;
   heightCm: number;
   currentWeightKg: number;
@@ -261,6 +281,7 @@ export interface NutritionistPublic {
   id: number;
   name: string;
   crn: string;
+  crnVerified: boolean;
   bio: string;
   specialties: string;
   consultationPriceCents: number;
@@ -270,6 +291,55 @@ export interface NutritionistPublic {
   city?: string;
   stateCode?: string;
   locationLabel?: string;
+  whatsappPhone?: string;
+  averageRating: number;
+  ratingCount: number;
+}
+
+export interface CareRating {
+  id: number;
+  careRelationshipId: number;
+  stars: number;
+  comment?: string;
+  patientName?: string;
+  createdAt?: string;
+}
+
+export interface NutritionistRatingsSummary {
+  averageStars: number;
+  totalRatings: number;
+  recent: CareRating[];
+}
+
+export interface ProProfileUpdate {
+  bio?: string;
+  specialties?: string;
+  marketplaceVisible?: boolean;
+  serviceModes?: string[];
+  city?: string;
+  stateCode?: string;
+  neighborhood?: string;
+  whatsappPhone?: string;
+}
+
+export interface ProPricingUpdate {
+  consultationPriceCents: number;
+  careDurationDays?: number;
+}
+
+export interface ProPatientNutritionUpdate {
+  goal?: string;
+  dietaryPreference?: string;
+  restriction?: string;
+  agentPersona?: string;
+  mealNotes?: string;
+  healthNotes?: string;
+}
+
+export interface StripeConnectResult {
+  onboardingUrl: string;
+  onboardingComplete: boolean;
+  stripeAccountId?: string;
 }
 
 export interface CareRelationship {
@@ -298,10 +368,16 @@ export interface ProDashboard {
 export interface PatientDossier {
   patientId: number;
   patientName: string;
+  patientEmail?: string;
+  patientPhotoThumbnailUrl?: string;
+  patientBirthDate?: string;
+  cpfMasked?: string;
   care: CareRelationship;
   profile?: NutritionProfile;
   measurements: BodyMeasurement[];
+  evolution?: EvolutionReport;
   latestMealPlan?: MealPlan;
+  latestProgressReview?: ProgressReview;
   checkinStats?: CheckinStats;
 }
 
@@ -339,6 +415,23 @@ export function agentDisplayName(persona: string): string {
 
 export function profileTypeLabel(profile: Pick<NutritionProfile, 'athleteModeEnabled'>): string {
   return profile.athleteModeEnabled ? 'Perfil atleta' : 'Perfil normal';
+}
+
+export function lifeStageLabel(lifeStage?: string): string {
+  switch (lifeStage) {
+    case 'SENIOR':
+      return 'Idoso (65+)';
+    case 'PRE_SENIOR':
+      return 'Pré-idoso (60–64)';
+    case 'ADULT':
+      return 'Adulto';
+    default:
+      return lifeStage ?? '—';
+  }
+}
+
+export function isSeniorLifeStage(lifeStage?: string): boolean {
+  return lifeStage === 'SENIOR' || lifeStage === 'PRE_SENIOR';
 }
 
 export const MEAL_TYPE_LABELS: Record<string, string> = {

@@ -1,0 +1,24 @@
+.nutri-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+
+  &--verified {
+    background: rgba(61, 139, 95, 0.14);
+    color: var(--nutri-brand-dark);
+  }
+
+  &--pending {
+    background: rgba(234, 179, 8, 0.18);
+    color: #a16207;
+  }
+
+  &--active {
+    background: rgba(107, 154, 196, 0.14);
+    color: #3d6b94;
+  }
+}

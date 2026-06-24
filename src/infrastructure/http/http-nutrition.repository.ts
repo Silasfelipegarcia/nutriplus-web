@@ -46,6 +46,12 @@ function toNutritionProfileRequest(profile: Partial<NutritionProfile>): Record<s
 
   return {
     age: Number(profile.age),
+    ...(profile.birthDate ? { birthDate: profile.birthDate } : {}),
+    ...(profile.stateCode ? { stateCode: profile.stateCode } : {}),
+    ...(profile.city ? { city: profile.city } : {}),
+    ...(profile.chewingDifficulty ? { chewingDifficulty: profile.chewingDifficulty } : {}),
+    ...(profile.seniorWeightLossAck != null ? { seniorWeightLossAck: profile.seniorWeightLossAck } : {}),
+    ...(profile.goalTargetWeeks != null ? { goalTargetWeeks: profile.goalTargetWeeks } : {}),
     sex: profile.sex,
     heightCm: Number(profile.heightCm),
     currentWeightKg: Number(profile.currentWeightKg),
@@ -56,9 +62,20 @@ function toNutritionProfileRequest(profile: Partial<NutritionProfile>): Record<s
     restriction,
     agentPersona: profile.agentPersona,
     foodBudgetLevel: profile.foodBudgetLevel ?? 'MODERATE',
+    ...(profile.calculationMethod ? { calculationMethod: profile.calculationMethod } : {}),
+    ...(profile.bodyFatPercent != null ? { bodyFatPercent: profile.bodyFatPercent } : {}),
+    ...(profile.muscleMassKg != null ? { muscleMassKg: profile.muscleMassKg } : {}),
     ...(profile.foodLikes ? { foodLikes: profile.foodLikes } : {}),
     ...(profile.foodDislikes ? { foodDislikes: profile.foodDislikes } : {}),
     ...(profile.mealNotes ? { mealNotes: profile.mealNotes } : {}),
+    ...(profile.eatsBreakfast != null ? { eatsBreakfast: profile.eatsBreakfast } : {}),
+    ...(profile.eatsLunch != null ? { eatsLunch: profile.eatsLunch } : {}),
+    ...(profile.eatsAfternoonSnack != null ? { eatsAfternoonSnack: profile.eatsAfternoonSnack } : {}),
+    ...(profile.eatsDinner != null ? { eatsDinner: profile.eatsDinner } : {}),
+    ...(profile.openToRoutineAdjustment != null
+      ? { openToRoutineAdjustment: profile.openToRoutineAdjustment }
+      : {}),
+    ...(profile.freeExtras?.length ? { freeExtras: profile.freeExtras } : {}),
     ...(profile.wakeTime ? { wakeTime: profile.wakeTime } : {}),
     ...(profile.sleepTime ? { sleepTime: profile.sleepTime } : {}),
     ...(profile.healthConditions ? { healthConditions: profile.healthConditions } : {}),

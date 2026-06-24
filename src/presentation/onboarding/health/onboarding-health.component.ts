@@ -7,6 +7,7 @@ import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nut
 import { OnboardingDraftService } from '../onboarding-draft.service';
 import { OnboardingSubmitService } from '../onboarding-submit.service';
 import { AuthFacade } from '../../core/auth.facade';
+import { computeAgeFromBirthDate } from '../../core/date.util';
 
 const HEALTH_CONDITIONS = ['Diabetes', 'Hipertensão', 'Doença renal', 'Colesterol alto'] as const;
 
@@ -43,6 +44,17 @@ const HEALTH_CONDITIONS = ['Diabetes', 'Hipertensão', 'Doença renal', 'Coleste
           <nutri-input label="Observações de saúde" type="textarea" [(ngModel)]="healthNotes" name="healthNotes" />
           <nutri-input label="Horário que acorda" [(ngModel)]="wakeTime" name="wake" placeholder="07:00" />
           <nutri-input label="Horário que dorme" [(ngModel)]="sleepTime" name="sleep" placeholder="22:30" />
+          @if (isSenior) {
+            <div class="form-grid--full">
+              <label class="field-label">Dificuldade para mastigar (opcional)</label>
+              <select class="nutri-select" [(ngModel)]="chewingDifficulty" name="chewing">
+                <option value="NONE">Nenhuma</option>
+                <option value="MILD">Leve</option>
+                <option value="MODERATE">Moderada</option>
+                <option value="SEVERE">Severa</option>
+              </select>
+            </div>
+          }
         </div>
         <div class="onboarding__actions">
           <nutri-button variant="ghost" to="/onboarding/dieta">Voltar</nutri-button>
@@ -74,8 +86,14 @@ export class OnboardingHealthComponent {
   healthNotes = this.draft.draft().healthNotes;
   wakeTime = this.draft.draft().wakeTime;
   sleepTime = this.draft.draft().sleepTime;
+  chewingDifficulty = this.draft.draft().chewingDifficulty;
   saving = false;
   error: string | null = null;
+
+  get isSenior(): boolean {
+    const birthDate = this.draft.draft().birthDate;
+    return birthDate ? computeAgeFromBirthDate(birthDate) >= 65 : this.draft.draft().age >= 65;
+  }
 
   get stepLabel(): string {
     return this.draft.draft().athleteModeEnabled ? '7' : '6';
@@ -97,6 +115,7 @@ export class OnboardingHealthComponent {
       healthNotes: this.healthNotes,
       wakeTime: this.wakeTime.trim() || '07:00',
       sleepTime: this.sleepTime.trim() || '22:30',
+      chewingDifficulty: this.chewingDifficulty,
     });
     this.saving = true;
     this.error = null;

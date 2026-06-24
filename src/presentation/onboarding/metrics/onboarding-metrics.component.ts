@@ -5,6 +5,8 @@ import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { OnboardingDraftService } from '../onboarding-draft.service';
+import { BRAZIL_STATES } from '../../core/brazil-states';
+import { computeAgeFromBirthDate } from '../../core/date.util';
 
 @Component({
   selector: 'app-onboarding-metrics',
@@ -17,10 +19,10 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
         <h1>Suas métricas</h1>
         <p class="onboarding__lead">Usamos esses dados para calcular seus macros e metas calóricas.</p>
         <nutri-info-tip
-          message="Peso e altura entram no cálculo de gasto basal. O nível de atividade é o movimento do dia a dia — treinos entram no passo anterior se você é atleta."
+          message="Peso, altura e data de nascimento entram no cálculo de gasto basal. Cidade e estado ajudam a contextualizar recomendações."
         />
         <div class="form-grid">
-          <nutri-input label="Idade" type="number" [(ngModel)]="age" name="age" />
+          <nutri-input label="Data de nascimento" type="date" [(ngModel)]="birthDate" name="birthDate" />
           <div>
             <label class="field-label">Sexo</label>
             <select class="nutri-select" [(ngModel)]="sex" name="sex">
@@ -39,6 +41,17 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
               <option value="GAIN_MASS">Ganhar massa</option>
             </select>
           </div>
+          <nutri-input label="Meta em semanas" type="number" [(ngModel)]="goalTargetWeeks" name="weeks" />
+          <div>
+            <label class="field-label">Estado</label>
+            <select class="nutri-select" [(ngModel)]="stateCode" name="state">
+              <option value="">Selecione</option>
+              @for (s of states; track s.code) {
+                <option [value]="s.code">{{ s.name }}</option>
+              }
+            </select>
+          </div>
+          <nutri-input label="Cidade" [(ngModel)]="city" name="city" placeholder="Sua cidade" />
           <div class="form-grid--full">
             <label class="field-label">Nível de atividade basal</label>
             <select class="nutri-select" [(ngModel)]="activityLevel" name="activity">
@@ -49,6 +62,11 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
             </select>
           </div>
         </div>
+        @if (showSeniorTip) {
+          <nutri-info-tip
+            message="Emagrecer rápido pode não ser seguro na sua idade — consulte seu médico. Usaremos déficit moderado."
+          />
+        }
         <div class="onboarding__actions">
           <nutri-button variant="ghost" type="button" to="/onboarding/preferencias">Voltar</nutri-button>
           <nutri-button variant="primary" type="submit">Continuar</nutri-button>
@@ -62,27 +80,43 @@ export class OnboardingMetricsComponent {
   private readonly draft = inject(OnboardingDraftService);
   private readonly router = inject(Router);
 
-  age = this.draft.draft().age;
+  readonly states = BRAZIL_STATES;
+  birthDate = this.draft.draft().birthDate;
   sex = this.draft.draft().sex;
   heightCm = this.draft.draft().heightCm;
   currentWeightKg = this.draft.draft().currentWeightKg;
   targetWeightKg = this.draft.draft().targetWeightKg;
   goal = this.draft.draft().goal;
+  goalTargetWeeks = this.draft.draft().goalTargetWeeks;
   activityLevel = this.draft.draft().activityLevel;
+  city = this.draft.draft().city;
+  stateCode = this.draft.draft().stateCode;
 
   get stepLabel(): string {
     return this.draft.draft().athleteModeEnabled ? '5' : '4';
   }
 
+  get showSeniorTip(): boolean {
+    if (!this.birthDate) return false;
+    return computeAgeFromBirthDate(this.birthDate) >= 65 && this.goal === 'LOSE_WEIGHT';
+  }
+
   continue(): void {
+    const age = this.birthDate ? computeAgeFromBirthDate(this.birthDate) : this.draft.draft().age;
+    const seniorWeightLossAck = age >= 65 && this.goal === 'LOSE_WEIGHT';
     this.draft.update({
-      age: this.age,
+      birthDate: this.birthDate,
+      age,
       sex: this.sex,
       heightCm: this.heightCm,
       currentWeightKg: this.currentWeightKg,
       targetWeightKg: this.targetWeightKg,
       goal: this.goal,
+      goalTargetWeeks: Number(this.goalTargetWeeks) || 12,
       activityLevel: this.activityLevel,
+      city: this.city.trim(),
+      stateCode: this.stateCode,
+      seniorWeightLossAck,
     });
     void this.router.navigate(['/onboarding/dieta']);
   }

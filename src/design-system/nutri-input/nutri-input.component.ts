@@ -46,7 +46,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/f
 })
 export class NutriInputComponent implements ControlValueAccessor {
   @Input() label = '';
-  @Input() type: 'text' | 'email' | 'password' | 'number' | 'textarea' = 'text';
+  @Input() type: 'text' | 'email' | 'password' | 'number' | 'date' | 'textarea' = 'text';
   @Input() placeholder = '';
   @Input() error = '';
   @Input() inputId = `nutri-input-${Math.random().toString(36).slice(2, 9)}`;

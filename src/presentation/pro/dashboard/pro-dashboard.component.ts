@@ -2,27 +2,38 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PRO_REPOSITORY } from '../../../domain/repositories/pro.repository';
-import { ProDashboard } from '../../../domain/entities';
+import { NutriBadgeComponent } from '../../../design-system/nutri-badge/nutri-badge.component';
+import { NutriStatCardComponent } from '../../../design-system/nutri-stat-card/nutri-stat-card.component';
+import { ProDashboard, NutritionistPublic } from '../../../domain/entities';
 
 @Component({
   selector: 'app-pro-dashboard',
   standalone: true,
-  imports: [DecimalPipe, RouterLink],
+  imports: [DecimalPipe, RouterLink, NutriBadgeComponent, NutriStatCardComponent],
   template: `
     <div class="portal-page">
+      @if (profile() && !profile()!.crnVerified) {
+        <div class="portal-banner portal-banner--warning">
+          <strong>CRN em verificação</strong>
+          <p>Seu registro profissional está pendente de aprovação. Você pode usar o portal, mas não aparecerá no marketplace até a verificação.</p>
+          <nutri-badge variant="pending">Pendente</nutri-badge>
+        </div>
+      }
+
       <div class="portal-main__header">
         <h1>Dashboard Pro</h1>
         <p>Visão geral da sua carteira e receita do mês.</p>
       </div>
+
       @if (dashboard()) {
         <div class="macro-grid">
-          <div class="macro-card"><strong>{{ dashboard()!.activePatients }}</strong><span>Ativos</span></div>
-          <div class="macro-card"><strong>{{ dashboard()!.preEngagedPatients }}</strong><span>Pré-consulta</span></div>
-          <div class="macro-card"><strong>{{ dashboard()!.pendingPaymentPatients }}</strong><span>Pagamento pendente</span></div>
-          <div class="macro-card">
-            <strong>R$ {{ dashboard()!.monthlyNetCents / 100 | number:'1.2-2' }}</strong>
-            <span>Receita líquida</span>
-          </div>
+          <nutri-stat-card [value]="dashboard()!.activePatients" label="Ativos" />
+          <nutri-stat-card [value]="dashboard()!.preEngagedPatients" label="Pré-consulta" />
+          <nutri-stat-card [value]="dashboard()!.pendingPaymentPatients" label="Pagamento pendente" />
+          <nutri-stat-card
+            [value]="'R$ ' + (dashboard()!.monthlyNetCents / 100 | number:'1.2-2')"
+            label="Receita líquida"
+          />
         </div>
         @if (dashboard()!.recentPatients.length) {
           <section class="portal-section">
@@ -49,11 +60,17 @@ import { ProDashboard } from '../../../domain/entities';
 export class ProDashboardComponent implements OnInit {
   private readonly proRepo = inject(PRO_REPOSITORY);
   readonly dashboard = signal<ProDashboard | null>(null);
+  readonly profile = signal<NutritionistPublic | null>(null);
   readonly loading = signal(true);
 
   async ngOnInit(): Promise<void> {
     try {
-      this.dashboard.set(await this.proRepo.getDashboard());
+      const [dashboard, profile] = await Promise.all([
+        this.proRepo.getDashboard(),
+        this.proRepo.getProfile(),
+      ]);
+      this.dashboard.set(dashboard);
+      this.profile.set(profile);
     } finally {
       this.loading.set(false);
     }

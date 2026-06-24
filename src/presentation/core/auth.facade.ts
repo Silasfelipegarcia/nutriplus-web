@@ -51,11 +51,33 @@ export class AuthFacade {
     }
   }
 
-  async register(name: string, email: string, password: string): Promise<void> {
+  async register(name: string, email: string, password: string, cpf: string): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const auth = await this.authRepo.register(name, email, password);
+      const auth = await this.authRepo.register(name, email, password, cpf);
+      this.user.set(auth.user);
+    } catch (e) {
+      this.error.set(e instanceof Error ? e.message : 'Erro ao cadastrar');
+      throw e;
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async registerNutritionist(data: {
+    name: string;
+    email: string;
+    password: string;
+    cpf: string;
+    crn: string;
+    bio?: string;
+    specialties?: string;
+  }): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const auth = await this.authRepo.registerNutritionist(data);
       this.user.set(auth.user);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Erro ao cadastrar');

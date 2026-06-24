@@ -7,7 +7,7 @@ import { TokenStorage } from '../auth/token-storage';
 import { ApiError } from './api-error';
 import { newIdempotencyKey, withIdempotencyKey } from './idempotency';
 import { AuthResponse, User } from '../../domain/entities';
-import { AuthRepository } from '../../domain/repositories/auth.repository';
+import { AuthRepository, NutritionistRegisterData } from '../../domain/repositories/auth.repository';
 
 @Injectable()
 export class HttpAuthRepository implements AuthRepository {
@@ -21,8 +21,14 @@ export class HttpAuthRepository implements AuthRepository {
     return auth;
   }
 
-  async register(name: string, email: string, password: string): Promise<AuthResponse> {
-    const auth = await this.postAuth('/auth/register', { name, email, password }, 'register');
+  async register(name: string, email: string, password: string, cpf: string): Promise<AuthResponse> {
+    const auth = await this.postAuth('/auth/register', { name, email, password, cpf }, 'register');
+    this.tokens.setTokens(auth.token, auth.refreshToken);
+    return auth;
+  }
+
+  async registerNutritionist(data: NutritionistRegisterData): Promise<AuthResponse> {
+    const auth = await this.postAuth('/auth/register/nutritionist', data, 'register-nutritionist');
     this.tokens.setTokens(auth.token, auth.refreshToken);
     return auth;
   }

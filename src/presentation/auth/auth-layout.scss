@@ -13,6 +13,10 @@
   padding: 2.5rem 2rem;
   border: 1px solid var(--nutri-border);
   box-shadow: var(--nutri-shadow);
+
+  &--wide {
+    width: min(520px, 100%);
+  }
 }
 
 .auth-card h1 {

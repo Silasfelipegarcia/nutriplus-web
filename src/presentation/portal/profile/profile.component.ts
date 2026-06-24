@@ -1,15 +1,22 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
-import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
+import { NutriAvatarComponent } from '../../../design-system/nutri-avatar/nutri-avatar.component';
+import { NutriStatCardComponent } from '../../../design-system/nutri-stat-card/nutri-stat-card.component';
+import { NutriSectionComponent } from '../../../design-system/nutri-section/nutri-section.component';
+import { NutriBadgeComponent } from '../../../design-system/nutri-badge/nutri-badge.component';
 import { AuthFacade } from '../../core/auth.facade';
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository';
-import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
+import { CARE_REPOSITORY } from '../../../domain/repositories/pro.repository';
 import { PortalDataStore } from '../../core/portal-data.store';
-import { agentDisplayName, profileTypeLabel } from '../../../domain/entities';
+import {
+  agentDisplayName,
+  CareRelationship,
+  lifeStageLabel,
+  profileTypeLabel,
+} from '../../../domain/entities';
 import { TokenStorage } from '../../../infrastructure/auth/token-storage';
 import { jwtRoles } from '../../core/jwt.util';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
@@ -33,78 +40,159 @@ const DIET_LABELS: Record<string, string> = {
   imports: [
     FormsModule,
     DecimalPipe,
-    RouterLink,
+    DatePipe,
     NutriButtonComponent,
     NutriInputComponent,
-    NutriInfoTipComponent,
+    NutriAvatarComponent,
+    NutriStatCardComponent,
+    NutriSectionComponent,
+    NutriBadgeComponent,
   ],
   template: `
     <div class="portal-page">
-      <div class="portal-main__header">
-        <h1>Perfil</h1>
-        <p>Suas informações, metas e configurações da conta.</p>
-      </div>
-
-      @if (auth.user()) {
-        <section class="portal-section">
-          <div class="portal-card">
-            <h3 class="portal-card__title">Conta</h3>
-            <p><strong>Nome:</strong> {{ auth.user()!.name }}</p>
-            <p><strong>E-mail:</strong> {{ auth.user()!.email }}</p>
-          </div>
-        </section>
-
-        @if (profile()) {
-          <section class="portal-section">
-            <h2 class="portal-section__title">Resumo nutricional</h2>
-            <nutri-info-tip
-              message="Assistente, dieta e modo atleta influenciam o plano gerado pela IA. Edite pelo onboarding completo."
+      @if (auth.user(); as user) {
+        <div class="profile-hero portal-card portal-card--highlight">
+          <div class="profile-hero__main">
+            <nutri-avatar
+              [name]="user.name"
+              [photoUrl]="user.photoThumbnailUrl"
+              size="lg"
             />
-            <div class="portal-card portal-card--highlight">
-              <span class="portal-badge">{{ typeLabel() }}</span>
-              <div class="macro-grid" style="margin-top: 1rem">
-                <div class="macro-card">
-                  <strong>{{ agentName() }}</strong><span>Assistente</span>
-                </div>
-                <div class="macro-card">
-                  <strong>{{ profile()!.targetCalories | number:'1.0-0' }}</strong><span>kcal/dia</span>
-                </div>
-                <div class="macro-card">
-                  <strong>{{ goalLabel() }}</strong><span>Objetivo</span>
-                </div>
-                <div class="macro-card">
-                  <strong>{{ dietLabel() }}</strong><span>Dieta</span>
-                </div>
-              </div>
-              <p style="margin-top: 1rem">
-                <strong>Peso:</strong> {{ profile()!.currentWeightKg }} kg → meta {{ profile()!.targetWeightKg }} kg
-              </p>
-              @if (profile()!.athleteModeEnabled && profile()!.trainingDailyExtraKcal) {
-                <p>
-                  <strong>Modo atleta:</strong>
-                  +{{ profile()!.trainingDailyExtraKcal | number:'1.0-0' }} kcal/dia de treino
-                  @if (training()?.appliedToPlan) {
-                    <span style="color: var(--nutri-brand)"> · aplicado ao plano</span>
-                  }
-                </p>
+            <div>
+              <h1 class="profile-hero__name">{{ user.name }}</h1>
+              <p class="profile-hero__meta">{{ user.email }}</p>
+              @if (user.cpfMasked) {
+                <p class="profile-hero__meta">CPF: {{ user.cpfMasked }}</p>
               }
-              @if (profile()!.foodBudgetLevel) {
-                <p><strong>Orçamento:</strong> {{ profile()!.foodBudgetLevel }}</p>
+              @if (profile()) {
+                <nutri-badge [variant]="profile()!.athleteModeEnabled ? 'active' : 'verified'">
+                  {{ typeLabel() }}
+                </nutri-badge>
               }
-              <div class="portal-actions" style="margin-top: 1rem; padding-top: 1rem">
-                <nutri-button variant="secondary" to="/onboarding">Editar onboarding</nutri-button>
-                <nutri-button variant="secondary" to="/app/treino">Modo atleta</nutri-button>
-                <nutri-button variant="secondary" to="/app/nutricionistas">Buscar nutricionista</nutri-button>
-                @if (isNutritionist()) {
-                  <nutri-button variant="primary" to="/pro/dashboard">Portal Pro</nutri-button>
+            </div>
+          </div>
+          <div class="portal-actions profile-hero__actions">
+            <nutri-button variant="secondary" to="/onboarding">Editar onboarding</nutri-button>
+            <nutri-button variant="secondary" to="/app/treino">Modo atleta</nutri-button>
+            <nutri-button variant="secondary" to="/app/nutricionistas">Buscar nutricionista</nutri-button>
+            @if (isNutritionist()) {
+              <nutri-button variant="primary" to="/pro/dashboard">Portal Pro</nutri-button>
+            }
+          </div>
+        </div>
+
+        @if (profile(); as p) {
+          <nutri-section title="Metas e macros" description="Resumo do seu plano nutricional calculado.">
+            <div class="macro-grid">
+              <nutri-stat-card [value]="agentName()" label="Assistente" />
+              <nutri-stat-card [value]="(p.targetCalories | number:'1.0-0') + ' kcal'" label="Meta calórica" />
+              <nutri-stat-card [value]="(p.targetProteinG | number:'1.0-0') + 'g'" label="Proteína" />
+              <nutri-stat-card [value]="(p.targetCarbsG | number:'1.0-0') + 'g'" label="Carboidratos" />
+              <nutri-stat-card [value]="(p.targetFatG | number:'1.0-0') + 'g'" label="Gorduras" />
+              <nutri-stat-card [value]="goalLabel()" label="Objetivo" />
+            </div>
+          </nutri-section>
+
+          <nutri-section title="Dados demográficos" description="Informações usadas nos cálculos metabólicos.">
+            <div class="portal-card">
+              <div class="profile-detail-grid">
+                @if (p.birthDate) {
+                  <p><strong>Nascimento:</strong> {{ p.birthDate | date:'dd/MM/yyyy' }}</p>
+                }
+                <p><strong>Idade:</strong> {{ p.age }} anos</p>
+                <p><strong>Sexo:</strong> {{ p.sex === 'MALE' ? 'Masculino' : 'Feminino' }}</p>
+                <p><strong>Altura:</strong> {{ p.heightCm }} cm</p>
+                <p><strong>Peso atual:</strong> {{ p.currentWeightKg }} kg</p>
+                <p><strong>Peso meta:</strong> {{ p.targetWeightKg }} kg</p>
+                @if (p.city || p.stateCode) {
+                  <p><strong>Local:</strong> {{ p.city }}{{ p.city && p.stateCode ? ' — ' : '' }}{{ p.stateCode }}</p>
+                }
+                @if (p.lifeStage) {
+                  <p><strong>Faixa etária:</strong> {{ lifeStageLabel(p.lifeStage) }}</p>
+                }
+                <p><strong>Dieta:</strong> {{ dietLabel() }}</p>
+                @if (p.athleteModeEnabled && p.trainingDailyExtraKcal) {
+                  <p>
+                    <strong>Modo atleta:</strong>
+                    +{{ p.trainingDailyExtraKcal | number:'1.0-0' }} kcal/dia
+                    @if (training()?.appliedToPlan) {
+                      <span class="profile-inline-ok"> · aplicado ao plano</span>
+                    }
+                  </p>
                 }
               </div>
             </div>
-          </section>
+          </nutri-section>
+
+          @if (p.healthConditions || p.allergies || p.medications || p.healthNotes) {
+            <nutri-section title="Saúde" description="Informações compartilhadas com a IA e seu nutricionista.">
+              <div class="portal-card">
+                @if (p.healthConditions) {
+                  <p><strong>Condições:</strong> {{ p.healthConditions }}</p>
+                }
+                @if (p.allergies) {
+                  <p><strong>Alergias:</strong> {{ p.allergies }}</p>
+                }
+                @if (p.medications) {
+                  <p><strong>Medicamentos:</strong> {{ p.medications }}</p>
+                }
+                @if (p.healthNotes) {
+                  <p><strong>Observações:</strong> {{ p.healthNotes }}</p>
+                }
+              </div>
+            </nutri-section>
+          }
         }
 
-        <section class="portal-section">
-          <h2 class="portal-section__title">Editar nome</h2>
+        <nutri-section
+          title="Acompanhamento nutricional"
+          description="Relacionamentos ativos com nutricionistas."
+        >
+          @if (careLoading()) {
+            <p class="loading-text">Carregando acompanhamentos...</p>
+          } @else if (careRelationships().length === 0) {
+            <div class="portal-card">
+              <p>Você ainda não tem acompanhamento humano ativo.</p>
+              <div class="portal-actions" style="margin-top: 1rem; padding-top: 0; border: none">
+                <nutri-button variant="primary" to="/app/nutricionistas">Buscar nutricionista</nutri-button>
+              </div>
+            </div>
+          } @else {
+            <div class="portal-list">
+              @for (care of careRelationships(); track care.id) {
+                <div class="portal-list-item">
+                  <div class="portal-list-item__main">
+                    <strong>{{ care.nutritionistName }}</strong>
+                    <span>{{ care.status }} · desde {{ care.startedAt | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                  <div class="portal-list-item__aside">
+                    @if (care.status === 'ACTIVE' && !ratedCareIds().has(care.id)) {
+                      <div class="profile-rate">
+                        <select class="nutri-select nutri-select--sm" [(ngModel)]="ratingStars[care.id]" [name]="'stars-' + care.id">
+                          @for (s of [5,4,3,2,1]; track s) {
+                            <option [value]="s">{{ s }} estrelas</option>
+                          }
+                        </select>
+                        <nutri-button
+                          variant="secondary"
+                          size="sm"
+                          [disabled]="ratingCareId === care.id"
+                          (click)="rateCare(care)"
+                        >
+                          Avaliar
+                        </nutri-button>
+                      </div>
+                    } @else if (ratedCareIds().has(care.id)) {
+                      <nutri-badge variant="verified">Avaliado</nutri-badge>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </nutri-section>
+
+        <nutri-section title="Conta">
           <div class="portal-card">
             <nutri-input label="Nome" [(ngModel)]="name" name="name" />
             <div class="portal-actions" style="margin-top: 0; padding-top: 0; border: none">
@@ -113,10 +201,9 @@ const DIET_LABELS: Record<string, string> = {
               </nutri-button>
             </div>
           </div>
-        </section>
+        </nutri-section>
 
-        <section class="portal-section">
-          <h2 class="portal-section__title">Alterar senha</h2>
+        <nutri-section title="Alterar senha">
           <div class="portal-card">
             <nutri-input label="Senha atual" type="password" [(ngModel)]="currentPassword" name="cur" />
             <nutri-input label="Nova senha" type="password" [(ngModel)]="newPassword" name="new" />
@@ -126,7 +213,7 @@ const DIET_LABELS: Record<string, string> = {
               </nutri-button>
             </div>
           </div>
-        </section>
+        </nutri-section>
       }
     </div>
   `,
@@ -135,20 +222,31 @@ const DIET_LABELS: Record<string, string> = {
 export class ProfileComponent implements OnInit {
   readonly auth = inject(AuthFacade);
   private readonly authRepo = inject(AUTH_REPOSITORY);
+  private readonly careRepo = inject(CARE_REPOSITORY);
   private readonly portalData = inject(PortalDataStore);
   private readonly tokens = inject(TokenStorage);
   private readonly toast = inject(NutriToastService);
 
   readonly profile = this.portalData.nutritionProfile;
   readonly training = this.portalData.trainingProfile;
+  readonly careRelationships = signal<CareRelationship[]>([]);
+  readonly careLoading = signal(true);
+  readonly ratedCareIds = signal(new Set<number>());
+  ratingStars: Record<number, number> = {};
+  ratingCareId: number | null = null;
+
   name = this.auth.user()?.name ?? '';
   currentPassword = '';
   newPassword = '';
   savingName = false;
   changingPassword = false;
 
+  readonly lifeStageLabel = lifeStageLabel;
+
   async ngOnInit(): Promise<void> {
+    this.name = this.auth.user()?.name ?? '';
     await this.loadProfile();
+    await this.loadCare();
   }
 
   typeLabel(): string {
@@ -180,6 +278,35 @@ export class ProfileComponent implements OnInit {
     if (p?.athleteModeEnabled) {
       await this.portalData.loadTrainingProfile();
     }
+  }
+
+  async loadCare(): Promise<void> {
+    this.careLoading.set(true);
+    try {
+      const care = await this.careRepo.getMyCare();
+      this.careRelationships.set(care);
+      for (const c of care) {
+        this.ratingStars[c.id] = 5;
+      }
+    } catch {
+      this.careRelationships.set([]);
+    } finally {
+      this.careLoading.set(false);
+    }
+  }
+
+  async rateCare(care: CareRelationship): Promise<void> {
+    this.ratingCareId = care.id;
+    const stars = this.ratingStars[care.id] ?? 5;
+    await withActionFeedback(
+      this.toast,
+      async () => {
+        await this.careRepo.rateCare(care.id, stars);
+        this.ratedCareIds.update((set) => new Set(set).add(care.id));
+      },
+      { success: 'Avaliação enviada. Obrigado!' },
+    );
+    this.ratingCareId = null;
   }
 
   async saveName(): Promise<void> {

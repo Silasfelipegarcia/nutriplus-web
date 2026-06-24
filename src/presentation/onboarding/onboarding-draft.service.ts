@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { OnboardingDraft } from '../../domain/entities';
+import { defaultBirthDateForAge } from '../core/date.util';
 
 const DEFAULT_DRAFT: OnboardingDraft = {
   agentPersona: 'LUNA',
@@ -10,6 +11,12 @@ const DEFAULT_DRAFT: OnboardingDraft = {
   mealNotes: '',
   foodBudgetLevel: 'MODERATE',
   age: 30,
+  birthDate: defaultBirthDateForAge(30),
+  city: '',
+  stateCode: '',
+  chewingDifficulty: 'NONE',
+  seniorWeightLossAck: false,
+  goalTargetWeeks: 12,
   sex: 'FEMALE',
   heightCm: 165,
   currentWeightKg: 70,

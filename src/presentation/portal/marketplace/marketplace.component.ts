@@ -43,12 +43,23 @@ import { withActionFeedback } from '../../core/action-feedback';
             <div class="portal-list-item">
               <div class="portal-list-item__main">
                 <strong>{{ n.name }} · CRN {{ n.crn }}</strong>
+                @if (n.crnVerified) {
+                  <span class="portal-badge">Verificado</span>
+                }
                 <span>{{ n.specialties }} · {{ n.locationLabel || (n.city + '/' + n.stateCode) }}</span>
-                <span>R$ {{ n.consultationPriceCents / 100 | number:'1.2-2' }} · {{ n.careDurationDays }} dias de acompanhamento</span>
+                <span>
+                  R$ {{ n.consultationPriceCents / 100 | number:'1.2-2' }} · {{ n.careDurationDays }} dias
+                  @if (n.ratingCount > 0) {
+                    · ★ {{ n.averageRating | number:'1.1-1' }} ({{ n.ratingCount }})
+                  }
+                </span>
               </div>
-              <nutri-button variant="secondary" size="sm" [disabled]="requestingId === n.id" (click)="request(n.id)">
-                {{ requestingId === n.id ? 'Solicitando...' : 'Solicitar' }}
-              </nutri-button>
+              <div class="portal-list-item__aside">
+                <nutri-button variant="ghost" size="sm" [to]="['/app/nutricionistas', n.id.toString()]">Ver perfil</nutri-button>
+                <nutri-button variant="secondary" size="sm" [disabled]="requestingId === n.id" (click)="request(n.id)">
+                  {{ requestingId === n.id ? 'Solicitando...' : 'Solicitar' }}
+                </nutri-button>
+              </div>
             </div>
           }
         </div>

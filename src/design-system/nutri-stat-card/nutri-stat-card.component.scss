@@ -1,0 +1,22 @@
+.nutri-stat-card {
+  text-align: center;
+  padding: 1.35rem 0.75rem;
+  background: white;
+  border-radius: var(--nutri-radius-sm);
+  border: 1px solid var(--nutri-border);
+  box-shadow: var(--nutri-shadow-card, var(--nutri-shadow));
+
+  &__value {
+    display: block;
+    font-size: 1.4rem;
+    color: var(--nutri-brand);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  &__label {
+    font-size: 0.8rem;
+    color: var(--nutri-ink-muted);
+    font-weight: 600;
+  }
+}

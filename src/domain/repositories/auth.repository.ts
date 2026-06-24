@@ -1,9 +1,20 @@
 import { InjectionToken } from '@angular/core';
 import { AuthResponse, User } from '../entities';
 
+export interface NutritionistRegisterData {
+  name: string;
+  email: string;
+  password: string;
+  cpf: string;
+  crn: string;
+  bio?: string;
+  specialties?: string;
+}
+
 export interface AuthRepository {
   login(email: string, password: string): Promise<AuthResponse>;
-  register(name: string, email: string, password: string): Promise<AuthResponse>;
+  register(name: string, email: string, password: string, cpf: string): Promise<AuthResponse>;
+  registerNutritionist(data: NutritionistRegisterData): Promise<AuthResponse>;
   refreshToken(refreshToken: string): Promise<AuthResponse>;
   getMe(): Promise<User>;
   acceptTerms(termsVersion: string, privacyVersion: string): Promise<User>;

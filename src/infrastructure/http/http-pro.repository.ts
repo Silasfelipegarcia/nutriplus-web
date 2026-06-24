@@ -6,12 +6,21 @@ import { TraceService } from '../tracing/trace.service';
 import { ApiError } from './api-error';
 import { newIdempotencyKey, withIdempotencyKey } from './idempotency';
 import {
+  BodyMeasurement,
   CareRelationship,
   Conversation,
   MealPlan,
+  MealPlanGenerationStatus,
+  NutritionistPublic,
+  NutritionistRatingsSummary,
+  NutritionProfile,
   PatientDossier,
   ProDashboard,
   ProInvite,
+  ProPatientNutritionUpdate,
+  ProPricingUpdate,
+  ProProfileUpdate,
+  StripeConnectResult,
 } from '../../domain/entities';
 import { ProRepository } from '../../domain/repositories/pro.repository';
 
@@ -24,12 +33,63 @@ export class HttpProRepository implements ProRepository {
     return this.get('/pro/dashboard', 'pro-dashboard');
   }
 
+  getProfile(): Promise<NutritionistPublic> {
+    return this.get('/pro/profile', 'pro-profile');
+  }
+
+  updateProfile(data: ProProfileUpdate): Promise<NutritionistPublic> {
+    return this.put('/pro/profile', data, 'pro-profile-update');
+  }
+
+  updatePricing(data: ProPricingUpdate): Promise<NutritionistPublic> {
+    return this.put('/pro/pricing', data, 'pro-pricing-update');
+  }
+
+  connectStripe(): Promise<StripeConnectResult> {
+    return this.post('/pro/stripe/connect', {}, 'pro-stripe-connect');
+  }
+
+  getMyRatings(): Promise<NutritionistRatingsSummary> {
+    return this.get('/pro/ratings', 'pro-ratings');
+  }
+
   listPatients(): Promise<CareRelationship[]> {
     return this.get('/pro/patients', 'pro-patients');
   }
 
   getDossier(patientId: number): Promise<PatientDossier> {
     return this.get(`/pro/patients/${patientId}/dossier`, 'pro-dossier');
+  }
+
+  recordMeasurement(patientId: number, measurement: BodyMeasurement): Promise<BodyMeasurement> {
+    return this.post(
+      `/pro/patients/${patientId}/measurements`,
+      {
+        calculationMethod: measurement.bodyFatPercent != null ? 'SKINFOLD' : 'ESTIMATE',
+        measuredOn: measurement.measuredOn,
+        weightKg: measurement.weightKg,
+        bodyFatPercent: measurement.bodyFatPercent,
+        muscleMassKg: measurement.muscleMassKg,
+        waistCm: measurement.waistCm,
+        hipCm: measurement.hipCm,
+        chestCm: measurement.chestCm,
+        neckCm: measurement.neckCm,
+        armRightCm: measurement.armRightCm,
+        armLeftCm: measurement.armLeftCm,
+        thighRightCm: measurement.thighRightCm,
+        thighLeftCm: measurement.thighLeftCm,
+        notes: measurement.notes,
+      },
+      'pro-measurement',
+    );
+  }
+
+  updatePatientNutrition(patientId: number, data: ProPatientNutritionUpdate): Promise<NutritionProfile> {
+    return this.put(`/pro/patients/${patientId}/nutrition-profile`, data, 'pro-nutrition-update');
+  }
+
+  generatePatientMealPlan(patientId: number): Promise<MealPlanGenerationStatus> {
+    return this.post(`/pro/patients/${patientId}/meal-plans/generate`, {}, 'pro-generate-plan');
   }
 
   listPatientMealPlans(patientId: number): Promise<MealPlan[]> {
