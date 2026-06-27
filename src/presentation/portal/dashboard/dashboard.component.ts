@@ -259,17 +259,21 @@ export class DashboardComponent implements OnInit {
 
   private async refreshFromStore(force: boolean): Promise<void> {
     this.loading.set(true);
-    await Promise.all([
-      this.portalData.loadNutritionProfile(force),
-      this.portalData.loadTodayCheckins(force),
-      this.portalData.loadCheckinStats(force),
-    ]);
-    await this.loadWeekAdherence();
-    this.loading.set(false);
+    try {
+      await Promise.all([
+        this.portalData.loadNutritionProfile(force),
+        this.portalData.loadTodayCheckins(force),
+        this.portalData.loadCheckinStats(force),
+      ]);
+      await this.loadWeekAdherence();
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   private async loadWeekAdherence(): Promise<void> {
-    if (!this.portalData.todayCheckins()) {
+    const checkins = this.portalData.todayCheckins();
+    if (!checkins || (checkins.totalCount ?? checkins.meals?.length ?? 0) === 0) {
       this.weekAdherence.set(null);
       return;
     }

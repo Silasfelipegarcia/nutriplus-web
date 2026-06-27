@@ -15,10 +15,12 @@ import {
 import { isNotFound } from '../../../infrastructure/http/api-error';
 import {
   formatAdherenceDayLabel,
+  planAdherenceHasStarted,
   PLAN_DAY_STATUS_COLORS,
   PLAN_DAY_STATUS_LABELS,
   planAdherenceEstimateDisclaimer,
 } from '../../core/plan-adherence';
+import { PortalDataStore } from '../../core/portal-data.store';
 
 const STATUS_COLORS: Record<string, string> = {
   EXCELLENT: '#2e7d4f',
@@ -68,13 +70,26 @@ type EvolutionView = 'plan' | 'body';
             Veja se seus dias estão em linha com a meta calórica e com as refeições marcadas.
           </p>
 
-          @if (adherence(); as data) {
+          @if (planLoading()) {
+            <p class="loading-text">Carregando...</p>
+          } @else if (!hasMealPlan()) {
+            <nutri-empty-state
+              icon="🍽️"
+              title="Acompanhamento ainda não iniciado"
+              message="Gere seu plano alimentar para registrar refeições e acompanhar sua aderência aqui."
+            >
+              <div class="evolution-empty-cta">
+                <nutri-button variant="primary" to="/app/plano">Gerar plano alimentar</nutri-button>
+              </div>
+            </nutri-empty-state>
+          } @else if (adherence()) {
+            @if (planAdherenceHasStarted(adherence()!.daily)) {
             <div class="stat-row">
-              <div class="stat-card"><strong>{{ data.streakDays }}</strong><span>Dias seguidos</span></div>
-              <div class="stat-card"><strong>{{ data.overallAdherencePercent }}%</strong><span>No período</span></div>
+              <div class="stat-card"><strong>{{ adherence()!.streakDays }}</strong><span>Dias seguidos</span></div>
+              <div class="stat-card"><strong>{{ adherence()!.overallAdherencePercent }}%</strong><span>No período</span></div>
             </div>
-            @if (data.projection.summary) {
-              <p class="portal-card__lead">{{ data.projection.summary }}</p>
+            @if (adherence()!.projection?.summary) {
+              <p class="portal-card__lead">{{ adherence()!.projection.summary }}</p>
             }
             <div class="evolution-window-chips">
               @for (d of windowOptions; track d) {
@@ -84,8 +99,8 @@ type EvolutionView = 'plan' | 'body';
               }
             </div>
             <nutri-plan-adherence-chart
-              [daily]="data.daily"
-              [targetCalories]="data.targetCalories"
+              [daily]="adherence()!.daily"
+              [targetCalories]="adherence()!.targetCalories"
               (daySelect)="selectedDay.set($event)"
             />
             @if (selectedDay(); as day) {
@@ -104,11 +119,27 @@ type EvolutionView = 'plan' | 'body';
               </div>
             }
             <p class="plan-disclaimer">{{ disclaimer }}</p>
-          } @else if (!planLoading()) {
-            <p class="portal-card__lead">Marque refeições na aba Dashboard para ver sua evolução aqui.</p>
-          }
-          @if (planLoading()) {
-            <p class="loading-text">Carregando...</p>
+            } @else {
+              <nutri-empty-state
+                icon="📊"
+                title="Nenhum registro ainda"
+                message="Marque refeições na aba Hoje para começar a ver sua evolução."
+              >
+                <div class="evolution-empty-cta">
+                  <nutri-button variant="primary" to="/app">Ir para Hoje</nutri-button>
+                </div>
+              </nutri-empty-state>
+            }
+          } @else {
+            <nutri-empty-state
+              icon="📊"
+              title="Sem dados de aderência"
+              message="Não foi possível carregar seu histórico. Tente novamente em instantes."
+            >
+              <div class="evolution-empty-cta">
+                <nutri-button variant="outline" (click)="loadAdherence(adherenceDays())">Tentar novamente</nutri-button>
+              </div>
+            </nutri-empty-state>
           }
         </section>
       } @else {
@@ -256,6 +287,7 @@ type EvolutionView = 'plan' | 'body';
 export class EvolutionComponent implements OnInit {
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
   private readonly route = inject(ActivatedRoute);
+  private readonly portalData = inject(PortalDataStore);
 
   readonly report = signal<EvolutionReport | null>(null);
   readonly adherence = signal<PlanAdherenceHistory | null>(null);
@@ -268,6 +300,7 @@ export class EvolutionComponent implements OnInit {
   readonly windowOptions = [7, 14, 30];
   readonly disclaimer = planAdherenceEstimateDisclaimer;
   readonly formatDay = formatAdherenceDayLabel;
+  readonly planAdherenceHasStarted = planAdherenceHasStarted;
 
   readonly legendItems = [
     { status: 'EXCELLENT', label: 'Ótimo', color: STATUS_COLORS['EXCELLENT'], desc: 'Acima da meta esperada' },
@@ -280,7 +313,13 @@ export class EvolutionComponent implements OnInit {
     const qView = this.route.snapshot.queryParamMap.get('view');
     if (qView === 'body') this.view.set('body');
 
+    await this.portalData.loadTodayCheckins();
     await Promise.all([this.loadBody(), this.loadAdherence(this.adherenceDays())]);
+  }
+
+  hasMealPlan(): boolean {
+    const checkins = this.portalData.todayCheckins();
+    return !!checkins && (checkins.totalCount ?? checkins.meals?.length ?? 0) > 0;
   }
 
   setView(next: EvolutionView): void {
@@ -295,8 +334,9 @@ export class EvolutionComponent implements OnInit {
     } catch (e) {
       if (!isNotFound(e)) throw e;
       this.adherence.set(null);
+    } finally {
+      this.planLoading.set(false);
     }
-    this.planLoading.set(false);
   }
 
   private async loadBody(): Promise<void> {
@@ -304,8 +344,9 @@ export class EvolutionComponent implements OnInit {
       this.report.set(await this.nutritionRepo.getEvolutionReport());
     } catch (e) {
       if (!isNotFound(e)) throw e;
+    } finally {
+      this.loading.set(false);
     }
-    this.loading.set(false);
   }
 
   planStatusLabel(status: string): string {

@@ -2,9 +2,13 @@ import { Component, input, output } from '@angular/core';
 import { DailyAdherencePoint } from '../../domain/entities';
 import {
   formatAdherenceDayLabel,
+  planAdherenceEstimateDisclaimer,
+  planAdherenceHasStarted,
+  planAdherencePeriodLabel,
+  planAdherenceShortDateLabel,
+  planAdherenceShowDateLabel,
   PLAN_DAY_STATUS_COLORS,
   PLAN_DAY_STATUS_LABELS,
-  planAdherenceEstimateDisclaimer,
 } from '../../presentation/core/plan-adherence';
 
 @Component({
@@ -15,10 +19,13 @@ import {
       <div class="plan-chart__header">
         <h3>Calorias por dia</h3>
         <p>Barras = intake · linha = meta</p>
+        @if (periodLabel()) {
+          <p class="plan-chart__period">{{ periodLabel() }}</p>
+        }
       </div>
 
-      @if (daily().length === 0) {
-        <p class="plan-chart__empty">Marque refeições para ver sua evolução.</p>
+      @if (daily().length === 0 || !hasAdherenceData()) {
+        <p class="plan-chart__empty">{{ emptyMessage() }}</p>
       } @else {
         <div class="plan-chart__plot" [style.--target-y]="targetLinePercent() + '%'">
           @if (targetCalories()) {
@@ -27,7 +34,7 @@ import {
             </div>
           }
           <div class="plan-chart__bars">
-            @for (day of daily(); track day.date) {
+            @for (day of daily(); track day.date; let i = $index) {
               <button
                 type="button"
                 class="plan-chart__bar-wrap"
@@ -39,7 +46,9 @@ import {
                   [style.height.%]="barHeight(day)"
                   [style.background]="barColor(day.dayStatus)"
                 ></div>
-                <span class="plan-chart__label">{{ shortLabel(day.date) }}</span>
+                @if (showDateLabel(i)) {
+                  <span class="plan-chart__label">{{ dateLabel(day.date, i) }}</span>
+                }
               </button>
             }
           </div>
@@ -74,6 +83,10 @@ import {
       margin: 0;
       font-size: 0.85rem;
       color: var(--nutri-ink-muted);
+    }
+
+    .plan-chart__period {
+      font-weight: 500;
     }
 
     .plan-chart__plot {
@@ -159,10 +172,31 @@ export class NutriPlanAdherenceChartComponent {
   readonly daily = input.required<DailyAdherencePoint[]>();
   readonly targetCalories = input<number | undefined>();
   readonly showDisclaimer = input(true);
+  readonly emptyMessage = input(
+    'Acompanhamento ainda não iniciado. Marque refeições para ver sua evolução.',
+  );
   readonly daySelect = output<DailyAdherencePoint>();
 
   readonly disclaimerText = planAdherenceEstimateDisclaimer;
   readonly formatAdherenceDayLabel = formatAdherenceDayLabel;
+
+  hasAdherenceData(): boolean {
+    return planAdherenceHasStarted(this.daily());
+  }
+
+  showDateLabel(index: number): boolean {
+    return planAdherenceShowDateLabel(index, this.daily().length);
+  }
+
+  dateLabel(iso: string, index: number): string {
+    return planAdherenceShortDateLabel(iso, index, this.daily().length);
+  }
+
+  periodLabel(): string {
+    const days = this.daily();
+    if (days.length <= 7) return '';
+    return planAdherencePeriodLabel(days[0].date, days[days.length - 1].date);
+  }
 
   readonly legend = [
     { key: 'ON_TRACK', label: PLAN_DAY_STATUS_LABELS['ON_TRACK'], color: PLAN_DAY_STATUS_COLORS['ON_TRACK'] },
@@ -186,12 +220,6 @@ export class NutriPlanAdherenceChartComponent {
     const max = this.maxIntake();
     if (!target || max <= 0) return 50;
     return Math.max(8, Math.min(92, 100 - (target / max) * 100));
-  }
-
-  shortLabel(iso: string): string {
-    const d = new Date(iso + 'T12:00:00');
-    if (Number.isNaN(d.getTime())) return iso;
-    return `${d.getDate()}/${d.getMonth() + 1}`;
   }
 
   private maxIntake(): number {
