@@ -6,7 +6,7 @@ import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { AuthFacade } from '../../core/auth.facade';
-import { cpfDigitsOnly, formatCpfInput } from '../../core/date.util';
+import { cpfDigitsOnly, formatCpfInput, isValidCpf } from '../../core/date.util';
 
 @Component({
   selector: 'app-register-nutritionist',
@@ -26,6 +26,9 @@ import { cpfDigitsOnly, formatCpfInput } from '../../core/date.util';
         <h1>Cadastro Nutricionista</h1>
         <p class="auth-card__subtitle">Acesse o portal Pro do Nutri+</p>
         <nutri-info-tip message="Seu CRN será verificado pela equipe antes da publicação no marketplace." />
+        @if (validationError) {
+          <div class="auth-card__error" role="alert">{{ validationError }}</div>
+        }
         @if (auth.error()) {
           <div class="auth-card__error" role="alert">{{ auth.error() }}</div>
         }
@@ -61,12 +64,23 @@ export class RegisterNutritionistComponent {
   crn = '';
   bio = '';
   specialties = '';
+  validationError = '';
 
   onCpfChange(value: string): void {
     this.cpf = formatCpfInput(value);
+    this.validationError = '';
   }
 
   async submit(): Promise<void> {
+    this.validationError = '';
+    if (!isValidCpf(this.cpf)) {
+      this.validationError = 'CPF inválido.';
+      return;
+    }
+    if (this.password.length < 8) {
+      this.validationError = 'A senha deve ter pelo menos 8 caracteres.';
+      return;
+    }
     try {
       await this.auth.registerNutritionist({
         name: this.name,

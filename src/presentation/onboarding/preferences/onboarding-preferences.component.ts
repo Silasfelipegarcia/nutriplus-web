@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
+import { NutriMealRoutinePickerComponent } from '../../../design-system/nutri-meal-routine-picker/nutri-meal-routine-picker.component';
+import { hasAnyMealRoutine, MealRoutineState } from '../../core/meal-routine';
 import { OnboardingDraftService } from '../onboarding-draft.service';
 
 const BUDGET_OPTIONS = [
@@ -15,7 +17,13 @@ const BUDGET_OPTIONS = [
 @Component({
   selector: 'app-onboarding-preferences',
   standalone: true,
-  imports: [FormsModule, NutriButtonComponent, NutriInputComponent, NutriInfoTipComponent],
+  imports: [
+    FormsModule,
+    NutriButtonComponent,
+    NutriInputComponent,
+    NutriInfoTipComponent,
+    NutriMealRoutinePickerComponent,
+  ],
   template: `
     <div class="onboarding">
       <form class="onboarding__card" (ngSubmit)="continue()">
@@ -57,13 +65,21 @@ const BUDGET_OPTIONS = [
           name="dislikes"
           placeholder="Ex: fígado, jiló..."
         />
+
+        <nutri-meal-routine-picker [value]="mealRoutine" (valueChange)="mealRoutine = $event" />
+
         <nutri-input
-          label="Observações sobre refeições"
+          label="Algo mais? (opcional)"
           type="textarea"
           [(ngModel)]="notes"
           name="notes"
-          placeholder="Ex: prefiro café da manhã leve..."
+          placeholder="Ex.: marmita no almoço, trabalho em home office..."
         />
+
+        @if (validationError) {
+          <p class="onboarding__error">{{ validationError }}</p>
+        }
+
         <div class="onboarding__actions">
           <nutri-button variant="ghost" type="button" [to]="backLink">Voltar</nutri-button>
           <nutri-button variant="primary" type="submit">Continuar</nutri-button>
@@ -81,6 +97,8 @@ export class OnboardingPreferencesComponent {
   dislikes = this.draft.draft().foodDislikes;
   notes = this.draft.draft().mealNotes;
   budget = this.draft.draft().foodBudgetLevel;
+  mealRoutine: MealRoutineState = this.mealRoutineFromDraft();
+  validationError = '';
 
   get stepLabel(): string {
     return this.draft.draft().athleteModeEnabled ? '4' : '3';
@@ -90,12 +108,30 @@ export class OnboardingPreferencesComponent {
     return this.draft.draft().athleteModeEnabled ? '/onboarding/treino' : '/onboarding/tipo';
   }
 
+  private mealRoutineFromDraft(): MealRoutineState {
+    const d = this.draft.draft();
+    return {
+      eatsBreakfast: d.eatsBreakfast,
+      eatsLunch: d.eatsLunch,
+      eatsAfternoonSnack: d.eatsAfternoonSnack,
+      eatsDinner: d.eatsDinner,
+      openToRoutineAdjustment: d.openToRoutineAdjustment,
+      freeExtras: [...d.freeExtras],
+    };
+  }
+
   continue(): void {
+    this.validationError = '';
+    if (!hasAnyMealRoutine(this.mealRoutine)) {
+      this.validationError = 'Marque pelo menos uma refeição da sua rotina.';
+      return;
+    }
     this.draft.update({
       foodLikes: this.likes,
       foodDislikes: this.dislikes,
       mealNotes: this.notes,
       foodBudgetLevel: this.budget,
+      ...this.mealRoutine,
     });
     void this.router.navigate(['/onboarding/metricas']);
   }

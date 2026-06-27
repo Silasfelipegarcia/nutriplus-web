@@ -4,14 +4,16 @@ import { NutriEmptyStateComponent } from '../../../design-system/nutri-empty-sta
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-banner/disclaimer-banner.component';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
-import { MealPlan, MEAL_TYPE_LABELS } from '../../../domain/entities';
+import { MealPlan, MEAL_TYPE_LABELS, NutritionProfile } from '../../../domain/entities';
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
 import { isNotFound } from '../../../infrastructure/http/api-error';
+import { isPlanTargetOutOfSync, planTargetMismatchMessage } from '../../core/plan-target-sync';
+import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 
 @Component({
   selector: 'app-meal-plan',
   standalone: true,
-  imports: [DecimalPipe, NutriEmptyStateComponent, NutriButtonComponent, DisclaimerBannerComponent],
+  imports: [DecimalPipe, NutriEmptyStateComponent, NutriButtonComponent, DisclaimerBannerComponent, NutriInfoTipComponent],
   template: `
     <div class="portal-page">
       <div class="portal-main__header">
@@ -27,6 +29,15 @@ import { isNotFound } from '../../../infrastructure/http/api-error';
 
     @if (generation.phase() === 'failed' && generation.error()) {
       <div class="auth-card__error">{{ generation.error() }}</div>
+    }
+
+    @if (planTargetMismatch()) {
+      <nutri-info-tip [message]="planMismatchMessage()" />
+      <div class="portal-actions" style="margin-top: 0.75rem; padding-top: 0; border: none">
+        <nutri-button variant="primary" (click)="generate()" [disabled]="generation.phase() === 'generating'">
+          Gerar novo plano
+        </nutri-button>
+      </div>
     }
 
     @if (plan()) {
@@ -70,7 +81,17 @@ export class MealPlanComponent implements OnInit {
   readonly generation = inject(MealPlanGenerationFacade);
 
   readonly plan = signal<MealPlan | null>(null);
+  readonly profile = signal<NutritionProfile | null>(null);
   readonly loading = signal(true);
+
+  readonly planTargetMismatch = () =>
+    isPlanTargetOutOfSync(this.plan()?.totalCalories, this.profile()?.targetCalories);
+
+  readonly planMismatchMessage = () => {
+    const p = this.profile();
+    if (!p?.targetCalories) return '';
+    return planTargetMismatchMessage(p.targetCalories, p.trainingDailyExtraKcal ?? null);
+  };
 
   constructor() {
     effect(() => {
@@ -82,6 +103,9 @@ export class MealPlanComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.load();
+    this.generation.acknowledgeReady(
+      this.plan()?.id ?? this.generation.status()?.mealPlanId,
+    );
   }
 
   async load(): Promise<void> {
@@ -91,6 +115,12 @@ export class MealPlanComponent implements OnInit {
     } catch (e) {
       if (!isNotFound(e)) throw e;
       this.plan.set(null);
+    }
+    try {
+      this.profile.set(await this.nutritionRepo.getNutritionProfile());
+    } catch (e) {
+      if (!isNotFound(e)) throw e;
+      this.profile.set(null);
     }
     this.loading.set(false);
   }

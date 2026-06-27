@@ -12,6 +12,7 @@ import {
   MealPlan,
   MealPlanGenerationStatus,
   NutritionProfile,
+  PlanAdherenceHistory,
   ProgressReview,
   ProgressSchedule,
   ShoppingList,
@@ -153,6 +154,10 @@ export class HttpNutritionRepository implements NutritionRepository {
       currentStreak: raw.currentStreak ?? raw.streakDays ?? 0,
       weekAdherencePercent: raw.weekAdherencePercent ?? 0,
     };
+  }
+
+  getCheckinAdherence(days = 7): Promise<PlanAdherenceHistory> {
+    return this.get(`/checkins/adherence?days=${days}`, 'checkins-adherence');
   }
 
   getProgressSchedule(): Promise<ProgressSchedule> {

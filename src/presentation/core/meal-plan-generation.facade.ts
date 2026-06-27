@@ -4,6 +4,10 @@ import { MealPlanGenerationStatus } from '../../domain/entities';
 import { NutriToastService } from '../../design-system/nutri-toast/nutri-toast.service';
 import { parseApiError } from '../../infrastructure/http/api-error';
 import { PortalDataStore } from './portal-data.store';
+import {
+  setAcknowledgedPlanReadyId,
+  shouldNotifyPlanReady,
+} from './plan-ready-storage';
 
 export type GenerationPhase = 'idle' | 'generating' | 'ready' | 'failed';
 
@@ -15,10 +19,10 @@ export class MealPlanGenerationFacade {
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private pollAttempt = 0;
   private destroyRef: DestroyRef | null = null;
-
   readonly phase = signal<GenerationPhase>('idle');
   readonly status = signal<MealPlanGenerationStatus | null>(null);
   readonly error = signal<string | null>(null);
+  readonly showReadyNotice = signal(false);
 
   async bootstrap(destroyRef?: DestroyRef): Promise<void> {
     if (destroyRef) {
@@ -31,6 +35,9 @@ export class MealPlanGenerationFacade {
         this.phase.set('generating');
         this.status.set(s);
         this.startPolling();
+      } else if (s.status === 'COMPLETED' && shouldNotifyPlanReady(s.mealPlanId)) {
+        this.status.set(s);
+        this.showReadyNotice.set(true);
       }
     } catch {
       // no active job
@@ -40,6 +47,7 @@ export class MealPlanGenerationFacade {
   async generate(): Promise<void> {
     this.error.set(null);
     this.phase.set('generating');
+    this.showReadyNotice.set(false);
     try {
       const s = await this.nutritionRepo.requestMealPlanGeneration();
       this.status.set(s);
@@ -52,10 +60,19 @@ export class MealPlanGenerationFacade {
     }
   }
 
-  acknowledgeReady(): void {
+  acknowledgeReady(mealPlanId?: number | null): void {
+    const id = mealPlanId ?? this.status()?.mealPlanId;
+    if (id != null) {
+      setAcknowledgedPlanReadyId(id);
+    }
+    this.showReadyNotice.set(false);
     if (this.phase() === 'ready') {
       this.phase.set('idle');
     }
+  }
+
+  dismissReadyNotice(): void {
+    this.acknowledgeReady();
   }
 
   stopPolling(): void {
@@ -87,11 +104,16 @@ export class MealPlanGenerationFacade {
       const s = await this.nutritionRepo.getMealPlanGenerationStatus();
       this.status.set(s);
       if (s.status === 'COMPLETED') {
-        this.phase.set('ready');
         this.stopPolling();
         this.portalData.invalidateMealData();
-        this.toast.success('Seu plano alimentar está pronto!');
-        setTimeout(() => this.acknowledgeReady(), 150);
+        if (shouldNotifyPlanReady(s.mealPlanId)) {
+          this.phase.set('ready');
+          this.showReadyNotice.set(true);
+          this.toast.success('Seu plano alimentar está pronto!');
+        } else {
+          this.phase.set('idle');
+          this.showReadyNotice.set(false);
+        }
         return;
       }
       if (s.status === 'FAILED') {

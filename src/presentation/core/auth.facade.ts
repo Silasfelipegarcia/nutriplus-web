@@ -51,11 +51,11 @@ export class AuthFacade {
     }
   }
 
-  async register(name: string, email: string, password: string, cpf: string): Promise<void> {
+  async register(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const auth = await this.authRepo.register(name, email, password, cpf);
+      const auth = await this.authRepo.register(name, email, password, cpf, birthDate);
       this.user.set(auth.user);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Erro ao cadastrar');

@@ -13,7 +13,7 @@ export interface NutritionistRegisterData {
 
 export interface AuthRepository {
   login(email: string, password: string): Promise<AuthResponse>;
-  register(name: string, email: string, password: string, cpf: string): Promise<AuthResponse>;
+  register(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<AuthResponse>;
   registerNutritionist(data: NutritionistRegisterData): Promise<AuthResponse>;
   refreshToken(refreshToken: string): Promise<AuthResponse>;
   getMe(): Promise<User>;

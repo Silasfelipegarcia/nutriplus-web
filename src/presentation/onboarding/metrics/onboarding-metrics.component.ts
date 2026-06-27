@@ -6,7 +6,7 @@ import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-in
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { OnboardingDraftService } from '../onboarding-draft.service';
 import { BRAZIL_STATES } from '../../core/brazil-states';
-import { computeAgeFromBirthDate } from '../../core/date.util';
+import { computeAgeFromBirthDate, MAX_USER_AGE, MIN_USER_AGE } from '../../core/date.util';
 
 @Component({
   selector: 'app-onboarding-metrics',
@@ -67,6 +67,9 @@ import { computeAgeFromBirthDate } from '../../core/date.util';
             message="Emagrecer rápido pode não ser seguro na sua idade — consulte seu médico. Usaremos déficit moderado."
           />
         }
+        @if (validationError) {
+          <div class="auth-card__error" role="alert">{{ validationError }}</div>
+        }
         <div class="onboarding__actions">
           <nutri-button variant="ghost" type="button" to="/onboarding/preferencias">Voltar</nutri-button>
           <nutri-button variant="primary" type="submit">Continuar</nutri-button>
@@ -91,6 +94,7 @@ export class OnboardingMetricsComponent {
   activityLevel = this.draft.draft().activityLevel;
   city = this.draft.draft().city;
   stateCode = this.draft.draft().stateCode;
+  validationError = '';
 
   get stepLabel(): string {
     return this.draft.draft().athleteModeEnabled ? '5' : '4';
@@ -102,7 +106,20 @@ export class OnboardingMetricsComponent {
   }
 
   continue(): void {
-    const age = this.birthDate ? computeAgeFromBirthDate(this.birthDate) : this.draft.draft().age;
+    if (!this.birthDate) {
+      this.validationError = 'Informe sua data de nascimento.';
+      return;
+    }
+    const age = computeAgeFromBirthDate(this.birthDate);
+    if (age < MIN_USER_AGE) {
+      this.validationError = 'Você precisa ter pelo menos 18 anos.';
+      return;
+    }
+    if (age > MAX_USER_AGE) {
+      this.validationError = 'Informe uma data de nascimento válida.';
+      return;
+    }
+    this.validationError = '';
     const seniorWeightLossAck = age >= 65 && this.goal === 'LOSE_WEIGHT';
     this.draft.update({
       birthDate: this.birthDate,

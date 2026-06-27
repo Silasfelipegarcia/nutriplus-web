@@ -6,22 +6,22 @@
   --nutri-sage: #7aab8a;
   --nutri-luna: #e8a87c;
   --nutri-bruno: #6b9ac4;
-  --nutri-surface: #faf8f4;
+  --nutri-surface: #f7f8f9;
   --nutri-surface-green: #f2f9f4;
-  --nutri-cream: #fffdf9;
-  --nutri-ink: #1a2e24;
-  --nutri-ink-muted: #5c6b62;
-  --nutri-border: #dce8df;
+  --nutri-cream: #ffffff;
+  --nutri-ink: #111827;
+  --nutri-ink-muted: #6b7280;
+  --nutri-border: #e5e7eb;
   --nutri-white: #ffffff;
-  --nutri-radius: 20px;
+  --nutri-radius: 14px;
   --nutri-radius-sm: 12px;
-  --nutri-shadow: 0 4px 24px rgba(26, 46, 36, 0.06);
-  --nutri-shadow-soft: 0 12px 40px rgba(42, 107, 71, 0.08);
-  --nutri-shadow-card: 0 8px 32px rgba(26, 46, 36, 0.08);
-  --nutri-font: 'Nunito', system-ui, sans-serif;
+  --nutri-shadow: 0 4px 24px rgba(17, 24, 39, 0.05);
+  --nutri-shadow-soft: 0 12px 40px rgba(42, 107, 71, 0.06);
+  --nutri-shadow-card: 0 8px 32px rgba(17, 24, 39, 0.06);
+  --nutri-font: 'Plus Jakarta Sans', system-ui, sans-serif;
   --nutri-header-h: 72px;
-  --nutri-heading-weight: 800;
-  --nutri-body-leading: 1.55;
+  --nutri-heading-weight: 700;
+  --nutri-body-leading: 1.5;
 }
 
 *,
@@ -72,7 +72,7 @@ img {
 
 .section-title {
   font-size: clamp(1.75rem, 3vw, 2.25rem);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.03em;
   margin: 0 0 0.75rem;
 }

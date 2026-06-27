@@ -1,3 +1,6 @@
+export const MIN_USER_AGE = 18;
+export const MAX_USER_AGE = 120;
+
 export function computeAgeFromBirthDate(birthDate: string): number {
   const birth = new Date(`${birthDate}T12:00:00`);
   if (Number.isNaN(birth.getTime())) return 0;
@@ -25,4 +28,23 @@ export function formatCpfInput(value: string): string {
 
 export function cpfDigitsOnly(value: string): string {
   return value.replace(/\D/g, '');
+}
+
+export function isValidCpf(value: string): boolean {
+  const digits = cpfDigitsOnly(value);
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false;
+
+  const checkDigit = (base: string, factor: number): number => {
+    let sum = 0;
+    for (let i = 0; i < base.length; i++) {
+      sum += Number(base[i]) * (factor - i);
+    }
+    const mod = sum % 11;
+    return mod < 2 ? 0 : 11 - mod;
+  };
+
+  const d1 = checkDigit(digits.slice(0, 9), 10);
+  const d2 = checkDigit(digits.slice(0, 10), 11);
+  return Number(digits[9]) === d1 && Number(digits[10]) === d2;
 }

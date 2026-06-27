@@ -85,7 +85,18 @@ import {
           <div class="training-dialog-backdrop" (click)="closeRegenerateDialog()">
             <div class="training-dialog" role="dialog" (click)="$event.stopPropagation()">
               <h3>Metas atualizadas</h3>
-              <p>Suas calorias e macros foram ajustadas com base nos treinos. Deseja gerar um novo plano alimentar agora?</p>
+              <p>
+                @if (nutrition()?.targetCalories) {
+                  Suas metas foram ajustadas para
+                  <strong>{{ nutrition()!.targetCalories | number:'1.0-0' }} kcal/dia</strong>
+                  @if (nutrition()?.trainingDailyExtraKcal) {
+                    (+{{ nutrition()!.trainingDailyExtraKcal | number:'1.0-0' }} de treino)
+                  }.
+                } @else {
+                  Suas calorias e macros foram ajustadas com base nos treinos.
+                }
+                Deseja gerar um novo plano alimentar agora?
+              </p>
               <div class="portal-actions" style="margin-top: 1rem; padding-top: 0; border: none">
                 <nutri-button variant="ghost" (click)="closeRegenerateDialog()">Depois</nutri-button>
                 <nutri-button variant="primary" [disabled]="generation.phase() === 'generating'" (click)="generatePlan()">
@@ -133,7 +144,7 @@ import {
             <span class="portal-badge">{{ typeLabel() }}</span>
             @if (savedProfile()?.appliedToPlan) {
               <p style="margin: 0.75rem 0 0; color: var(--nutri-brand); font-weight: 600">
-                ✓ Já aplicado ao seu plano atual
+                ✓ Metas diárias incluem o gasto dos treinos
               </p>
             }
           </div>
@@ -173,11 +184,6 @@ import {
             </section>
 
             <div class="portal-actions">
-              @if (savedProfile()!.activities.length) {
-                <nutri-button variant="primary" [disabled]="applying" (click)="applyToPlan()">
-                  {{ applying ? 'Aplicando...' : 'Aplicar ao plano alimentar' }}
-                </nutri-button>
-              }
               <nutri-button variant="ghost" (click)="openDeactivateDialog()">Desativar modo atleta</nutri-button>
             </div>
           } @else {
@@ -185,14 +191,7 @@ import {
             <div class="portal-actions">
               <nutri-button variant="ghost" (click)="cancelEditing()">Cancelar</nutri-button>
               <nutri-button variant="primary" [disabled]="saving || !draftActivities().length" (click)="saveEdits()">
-                {{ saving ? 'Salvando...' : 'Salvar treinos' }}
-              </nutri-button>
-              <nutri-button
-                variant="secondary"
-                [disabled]="applying || !draftActivities().length"
-                (click)="saveAndApply()"
-              >
-                {{ applying ? 'Aplicando...' : 'Aplicar ao plano alimentar' }}
+                {{ saving ? 'Salvando...' : 'Salvar e aplicar ao plano' }}
               </nutri-button>
             </div>
           }
@@ -377,8 +376,7 @@ export class TrainingComponent implements OnInit {
       this.editing.set(false);
       this.activating.set(false);
       this.draftActivities.set([]);
-      this.portalData.invalidate('nutritionProfile', 'trainingProfile');
-      this.nutrition.set(await this.portalData.loadNutritionProfile(true));
+      await this.afterApply();
       this.toast.success('Modo atleta desativado');
     } catch (e) {
       const message = parseApiError(e).message;
@@ -467,9 +465,8 @@ export class TrainingComponent implements OnInit {
       const profile = await this.nutritionRepo.saveTrainingProfile(true, this.draftActivities());
       this.savedProfile.set(profile);
       this.activating.set(false);
-      await this.nutritionRepo.applyTrainingToPlan();
       await this.afterApply();
-      this.toast.success('Modo atleta ativado e aplicado ao plano');
+      this.toast.success('Modo atleta ativado e metas atualizadas');
     } catch (e) {
       const message = parseApiError(e).message;
       this.error.set(message);
@@ -487,7 +484,8 @@ export class TrainingComponent implements OnInit {
       this.savedProfile.set(profile);
       this.editing.set(false);
       this.draftActivities.set([]);
-      this.toast.success('Treinos salvos');
+      await this.afterApply();
+      this.toast.success('Treinos salvos e metas atualizadas');
     } catch (e) {
       const message = parseApiError(e).message;
       this.error.set(message);
@@ -498,23 +496,7 @@ export class TrainingComponent implements OnInit {
   }
 
   async saveAndApply(): Promise<void> {
-    this.applying = true;
-    this.error.set(null);
-    try {
-      const profile = await this.nutritionRepo.saveTrainingProfile(true, this.draftActivities());
-      this.savedProfile.set(profile);
-      await this.nutritionRepo.applyTrainingToPlan();
-      this.editing.set(false);
-      this.draftActivities.set([]);
-      await this.afterApply();
-      this.toast.success('Treinos aplicados ao plano alimentar');
-    } catch (e) {
-      const message = parseApiError(e).message;
-      this.error.set(message);
-      this.toast.error(message);
-    } finally {
-      this.applying = false;
-    }
+    await this.saveEdits();
   }
 
   async applyToPlan(): Promise<void> {
@@ -524,9 +506,8 @@ export class TrainingComponent implements OnInit {
       const activities = this.savedProfile()?.activities ?? [];
       const profile = await this.nutritionRepo.saveTrainingProfile(true, activities);
       this.savedProfile.set(profile);
-      await this.nutritionRepo.applyTrainingToPlan();
       await this.afterApply();
-      this.toast.success('Treinos aplicados ao plano alimentar');
+      this.toast.success('Metas atualizadas com base nos treinos');
     } catch (e) {
       const message = parseApiError(e).message;
       this.error.set(message);

@@ -21,8 +21,8 @@ export class HttpAuthRepository implements AuthRepository {
     return auth;
   }
 
-  async register(name: string, email: string, password: string, cpf: string): Promise<AuthResponse> {
-    const auth = await this.postAuth('/auth/register', { name, email, password, cpf }, 'register');
+  async register(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<AuthResponse> {
+    const auth = await this.postAuth('/auth/register', { name, email, password, cpf, birthDate }, 'register');
     this.tokens.setTokens(auth.token, auth.refreshToken);
     return auth;
   }

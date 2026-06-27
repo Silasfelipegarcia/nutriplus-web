@@ -243,3 +243,71 @@
 .evolution-empty-cta {
   margin-top: 1rem;
 }
+
+.evolution-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.evolution-tab {
+  flex: 1;
+  border: 1px solid var(--nutri-border);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.evolution-tab--active {
+  background: color-mix(in srgb, var(--nutri-brand) 12%, white);
+  border-color: var(--nutri-brand);
+  color: var(--nutri-brand);
+}
+
+.evolution-window-chips {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.evolution-window-chip {
+  border: 1px solid var(--nutri-border);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.evolution-window-chip--active {
+  border-color: var(--nutri-brand);
+  color: var(--nutri-brand);
+  font-weight: 700;
+}
+
+.plan-day-detail {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--nutri-border);
+  border-radius: var(--nutri-radius);
+}
+
+.plan-day-detail h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.plan-day-detail__extra {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: var(--nutri-ink-muted);
+}
+
+.plan-disclaimer {
+  margin-top: 0.75rem;
+  font-size: 0.78rem;
+  color: var(--nutri-ink-muted);
+  line-height: 1.35;
+}

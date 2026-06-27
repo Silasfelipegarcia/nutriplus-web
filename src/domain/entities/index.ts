@@ -124,17 +124,62 @@ export interface TodayMealCheckin {
   mealType: string;
   mealName: string;
   status?: string;
+  mealCalories?: number;
+}
+
+export interface DailyFoodExtraItem {
+  id: number;
+  description: string;
+  estimatedCalories: number;
+  impactMessage?: string;
 }
 
 export interface TodayCheckins {
   meals: TodayMealCheckin[];
   completedCount: number;
   totalCount: number;
+  targetCalories?: number;
+  consumedCalories?: number;
+  extraCalories?: number;
+  totalIntakeCalories?: number;
+  remainingCalories?: number;
+  goal?: string;
+  extras?: DailyFoodExtraItem[];
 }
 
 export interface CheckinStats {
   currentStreak: number;
   weekAdherencePercent: number;
+}
+
+export interface PlanAdherenceProjection {
+  averageDailyCalorieDelta: number;
+  estimatedWeightChangeKgPerWeek?: number;
+  summary: string;
+}
+
+export interface DailyAdherencePoint {
+  date: string;
+  mealsCompleted: number;
+  mealsSkipped: number;
+  mealsTotal: number;
+  adherencePercent: number;
+  consumedCalories: number;
+  extraCalories: number;
+  totalIntakeCalories: number;
+  targetCalories?: number;
+  dayStatus: string;
+  extras: DailyFoodExtraItem[];
+}
+
+export interface PlanAdherenceHistory {
+  windowDays: number;
+  overallAdherencePercent: number;
+  streakDays: number;
+  targetCalories?: number;
+  goal: string;
+  daily: DailyAdherencePoint[];
+  projection: PlanAdherenceProjection;
 }
 
 export interface ProgressSchedule {
@@ -253,6 +298,12 @@ export interface OnboardingDraft {
   foodLikes: string;
   foodDislikes: string;
   mealNotes: string;
+  eatsBreakfast: boolean;
+  eatsLunch: boolean;
+  eatsAfternoonSnack: boolean;
+  eatsDinner: boolean;
+  openToRoutineAdjustment: boolean;
+  freeExtras: string[];
   foodBudgetLevel: string;
   age: number;
   birthDate: string;

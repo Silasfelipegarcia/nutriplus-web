@@ -1,24 +1,56 @@
 import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriEmptyStateComponent } from '../../../design-system/nutri-empty-state/nutri-empty-state.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
+import { NutriPlanAdherenceChartComponent } from '../../../design-system/nutri-plan-adherence-chart/nutri-plan-adherence-chart.component';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
+import { PlanAdherenceHistory } from '../../../domain/entities';
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
 import { PortalDataStore } from '../../core/portal-data.store';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { withActionFeedback } from '../../core/action-feedback';
+import { isNotFound } from '../../../infrastructure/http/api-error';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DecimalPipe, NutriButtonComponent, NutriEmptyStateComponent, NutriInfoTipComponent],
+  imports: [
+    DecimalPipe,
+    RouterLink,
+    NutriButtonComponent,
+    NutriEmptyStateComponent,
+    NutriInfoTipComponent,
+    NutriPlanAdherenceChartComponent,
+  ],
   template: `
     <div class="portal-page">
-      <div class="portal-main__header">
-        <h1>Dashboard</h1>
-        <p>Visão geral do seu dia e metas nutricionais.</p>
+      <div class="portal-main__header dashboard-header">
+        <h1>Hoje</h1>
+        <p class="dashboard-header__date">{{ todayDateLabel }}</p>
+        @if (portalData.nutritionProfile(); as profile) {
+          <p class="dashboard-header__meta">
+            Meta: {{ profile.targetCalories | number:'1.0-0' }} kcal ·
+            {{ profile.targetProteinG | number:'1.0-0' }}g proteína
+          </p>
+        }
       </div>
+
+    @if (generation.showReadyNotice()) {
+      <div class="plan-ready-notice">
+        <div class="plan-ready-notice__content">
+          <p class="plan-ready-notice__title">Plano alimentar disponível</p>
+          <p class="plan-ready-notice__body">
+            Seu cardápio personalizado foi gerado e está pronto para consulta.
+          </p>
+        </div>
+        <div class="plan-ready-notice__actions">
+          <a routerLink="/app/plano" class="plan-ready-notice__link">Ver plano</a>
+          <button type="button" class="plan-ready-notice__dismiss" (click)="dismissPlanNotice()">×</button>
+        </div>
+      </div>
+    }
 
     @if (generation.phase() === 'generating') {
       <div class="generating-banner">
@@ -30,9 +62,32 @@ import { withActionFeedback } from '../../core/action-feedback';
       <div class="auth-card__error">{{ generation.error() }}</div>
     }
 
+    @if (portalData.checkinStats(); as stats) {
+      <div class="dashboard-summary-strip">
+        <div class="dashboard-summary-chip">
+          <span class="dashboard-summary-chip__label">Sequência</span>
+          <span class="dashboard-summary-chip__value">{{ stats.currentStreak }} dias</span>
+        </div>
+        <div class="dashboard-summary-chip">
+          <span class="dashboard-summary-chip__label">Aderência</span>
+          <span class="dashboard-summary-chip__value">{{ stats.weekAdherencePercent }}%</span>
+        </div>
+        @if (portalData.todayCheckins(); as checkins) {
+          @if (checkins.totalCount) {
+            <div class="dashboard-summary-chip">
+              <span class="dashboard-summary-chip__label">Refeições</span>
+              <span class="dashboard-summary-chip__value">
+                {{ checkins.completedCount }}/{{ checkins.totalCount }}
+              </span>
+            </div>
+          }
+        }
+      </div>
+    }
+
     @if (!portalData.todayCheckins() && !loading() && portalData.nutritionProfile()) {
       <nutri-info-tip
-        message="Próximo passo: gere seu primeiro plano alimentar para começar os check-ins diários."
+        message="Gere seu plano alimentar para registrar refeições e acompanhar a meta diária."
       />
     }
 
@@ -50,14 +105,26 @@ import { withActionFeedback } from '../../core/action-feedback';
       }
     }
 
-    @if (portalData.checkinStats(); as stats) {
-      <div class="stat-row">
-        <div class="stat-card"><strong>{{ stats.weekAdherencePercent }}%</strong><span>Aderência semanal</span></div>
-        <div class="stat-card"><strong>{{ stats.currentStreak }}</strong><span>Dias seguidos</span></div>
-      </div>
-    }
-
     @if (portalData.todayCheckins(); as checkins) {
+      @if (checkins.targetCalories) {
+        <section class="portal-section dashboard-calories">
+          <h2 class="portal-section__title">Calorias de hoje</h2>
+          <div class="dashboard-calories__bar">
+            <div
+              class="dashboard-calories__fill"
+              [style.width.%]="calorieProgress(checkins)"
+              [class.dashboard-calories__fill--over]="isOverTarget(checkins)"
+            ></div>
+          </div>
+          <p class="dashboard-calories__label">
+            {{ checkins.totalIntakeCalories ?? 0 }} / {{ checkins.targetCalories }} kcal
+            @if (checkins.completedCount != null && checkins.totalCount) {
+              · {{ checkins.completedCount }}/{{ checkins.totalCount }} refeições
+            }
+          </p>
+        </section>
+      }
+
       <section class="portal-section">
         <h2 class="portal-section__title">Check-ins de hoje</h2>
         <div class="checkin-list">
@@ -82,11 +149,25 @@ import { withActionFeedback } from '../../core/action-feedback';
         }
         </div>
       </section>
+
+      @if (weekAdherence(); as week) {
+        <section class="portal-section">
+          <div class="dashboard-week-header">
+            <h2 class="portal-section__title">Últimos 7 dias</h2>
+            <a routerLink="/app/evolucao" [queryParams]="{ view: 'plan' }">Ver evolução</a>
+          </div>
+          <nutri-plan-adherence-chart
+            [daily]="week.daily"
+            [targetCalories]="week.targetCalories"
+            [showDisclaimer]="false"
+          />
+        </section>
+      }
     } @else if (!loading()) {
       <nutri-empty-state
         icon="🍽️"
         title="Nenhum plano ainda"
-        message="Gere seu primeiro plano alimentar para começar os check-ins."
+        message="Gere seu plano alimentar para registrar refeições e acompanhar a meta diária."
       >
         <nutri-button variant="primary" (click)="generate()" [disabled]="generation.phase() === 'generating'">
           Gerar plano alimentar
@@ -99,6 +180,46 @@ import { withActionFeedback } from '../../core/action-feedback';
     }
     </div>
   `,
+  styles: `
+    .dashboard-calories__bar {
+      height: 10px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--nutri-brand) 12%, white);
+      overflow: hidden;
+    }
+
+    .dashboard-calories__fill {
+      height: 100%;
+      background: var(--nutri-brand);
+      border-radius: 999px;
+      max-width: 100%;
+    }
+
+    .dashboard-calories__fill--over {
+      background: #e07b39;
+    }
+
+    .dashboard-calories__label {
+      margin: 0.5rem 0 0;
+      font-size: 0.9rem;
+      color: var(--nutri-ink-muted);
+    }
+
+    .dashboard-week-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .dashboard-week-header a {
+      font-size: 0.9rem;
+      color: var(--nutri-brand);
+      text-decoration: none;
+      font-weight: 600;
+    }
+  `,
   styleUrl: '../portal.scss',
 })
 export class DashboardComponent implements OnInit {
@@ -108,10 +229,12 @@ export class DashboardComponent implements OnInit {
   readonly portalData = inject(PortalDataStore);
 
   readonly loading = signal(true);
+  readonly weekAdherence = signal<PlanAdherenceHistory | null>(null);
+  readonly todayDateLabel = this.formatTodayDate();
 
   constructor() {
     effect(() => {
-      if (this.generation.phase() === 'ready') {
+      if (this.generation.phase() === 'ready' || this.generation.showReadyNotice()) {
         void this.refreshFromStore(true);
       }
     });
@@ -121,6 +244,19 @@ export class DashboardComponent implements OnInit {
     await this.refreshFromStore(false);
   }
 
+  dismissPlanNotice(): void {
+    this.generation.dismissReadyNotice();
+  }
+
+  private formatTodayDate(): string {
+    const formatted = new Intl.DateTimeFormat('pt-BR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    }).format(new Date());
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  }
+
   private async refreshFromStore(force: boolean): Promise<void> {
     this.loading.set(true);
     await Promise.all([
@@ -128,7 +264,34 @@ export class DashboardComponent implements OnInit {
       this.portalData.loadTodayCheckins(force),
       this.portalData.loadCheckinStats(force),
     ]);
+    await this.loadWeekAdherence();
     this.loading.set(false);
+  }
+
+  private async loadWeekAdherence(): Promise<void> {
+    if (!this.portalData.todayCheckins()) {
+      this.weekAdherence.set(null);
+      return;
+    }
+    try {
+      this.weekAdherence.set(await this.nutritionRepo.getCheckinAdherence(7));
+    } catch (e) {
+      if (!isNotFound(e)) throw e;
+      this.weekAdherence.set(null);
+    }
+  }
+
+  calorieProgress(checkins: { totalIntakeCalories?: number; targetCalories?: number }): number {
+    const target = checkins.targetCalories ?? 0;
+    const intake = checkins.totalIntakeCalories ?? 0;
+    if (target <= 0) return 0;
+    return Math.min(120, Math.round((intake / target) * 100));
+  }
+
+  isOverTarget(checkins: { totalIntakeCalories?: number; targetCalories?: number }): boolean {
+    const target = checkins.targetCalories;
+    const intake = checkins.totalIntakeCalories ?? 0;
+    return target != null && intake > target;
   }
 
   async markCheckin(mealId: number, status: string): Promise<void> {
