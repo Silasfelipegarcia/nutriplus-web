@@ -11,6 +11,7 @@ import { PRO_REPOSITORY } from '../../../domain/repositories/pro.repository';
 import { MealPlan, PatientDossier, TREND_LABELS } from '../../../domain/entities';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { withActionFeedback } from '../../core/action-feedback';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 const GOAL_OPTIONS = [
   { value: 'LOSE_WEIGHT', label: 'Perder peso' },
@@ -210,6 +211,7 @@ export class ProDossierComponent implements OnInit {
   private readonly proRepo = inject(PRO_REPOSITORY);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(NutriToastService);
+  private readonly analytics = inject(AnalyticsService);
 
   readonly goalOptions = GOAL_OPTIONS;
   readonly dietOptions = DIET_OPTIONS;
@@ -280,6 +282,7 @@ export class ProDossierComponent implements OnInit {
       async () => {
         await this.proRepo.generatePatientMealPlan(patientId);
         this.plans.set(await this.proRepo.listPatientMealPlans(patientId));
+        this.analytics.trackProPlanGenerated();
       },
       { success: 'Geração de plano iniciada' },
     );

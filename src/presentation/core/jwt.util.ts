@@ -13,6 +13,12 @@ export function jwtRoles(token: string | null): string[] {
   }
 }
 
+export function resolvePrimaryRole(roles: string[]): string {
+  if (roles.includes('ADMIN')) return 'admin';
+  if (roles.includes('NUTRITIONIST')) return 'nutritionist';
+  return 'patient';
+}
+
 export const nutritionistGuard: CanActivateFn = () => {
   const tokens = inject(TokenStorage);
   const router = inject(Router);

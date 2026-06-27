@@ -9,6 +9,7 @@ import { ProgressSchedule, ProgressReview, BodyMeasurement, TREND_LABELS } from 
 import { isNotFound } from '../../../infrastructure/http/api-error';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { withActionFeedback } from '../../core/action-feedback';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 @Component({
   selector: 'app-progress',
@@ -123,6 +124,7 @@ import { withActionFeedback } from '../../core/action-feedback';
 export class ProgressComponent implements OnInit {
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
   private readonly toast = inject(NutriToastService);
+  private readonly analytics = inject(AnalyticsService);
 
   readonly schedule = signal<ProgressSchedule | null>(null);
   readonly review = signal<ProgressReview | null>(null);
@@ -217,6 +219,7 @@ export class ProgressComponent implements OnInit {
     );
     this.saving = false;
     if (!ok) return;
+    this.analytics.trackMeasurementSaved();
   }
 
   async generateReview(): Promise<void> {
@@ -235,6 +238,7 @@ export class ProgressComponent implements OnInit {
     );
     this.generatingReview = false;
     if (!ok) return;
+    this.analytics.trackReviewGenerated();
   }
 
   private async loadSchedule(): Promise<void> {

@@ -18,10 +18,24 @@ import { APP_NAME } from '../core/constants';
           baixe o app gratuito.
         </p>
         <div class="download-page__badges">
-          <nutri-button variant="primary" [block]="true" [href]="playStoreUrl" [external]="true">
+          <nutri-button
+            variant="primary"
+            [block]="true"
+            [href]="playStoreUrl"
+            [external]="true"
+            analyticsCta="baixar_app_play"
+            analyticsLocation="baixar_app"
+          >
             Google Play
           </nutri-button>
-          <nutri-button variant="secondary" [block]="true" [href]="appStoreUrl" [external]="true">
+          <nutri-button
+            variant="secondary"
+            [block]="true"
+            [href]="appStoreUrl"
+            [external]="true"
+            analyticsCta="baixar_app_ios"
+            analyticsLocation="baixar_app"
+          >
             App Store
           </nutri-button>
         </div>

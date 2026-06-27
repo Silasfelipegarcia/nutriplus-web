@@ -25,8 +25,16 @@ export class HttpAuthRepository implements AuthRepository {
     return this.postRegister('/auth/register', { name, email, password, cpf, birthDate }, 'register');
   }
 
+  async betaRequest(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<RegisterResponse> {
+    return this.postRegister('/auth/beta-request', { name, email, password, cpf, birthDate }, 'beta-request');
+  }
+
   async registerNutritionist(data: NutritionistRegisterData): Promise<RegisterResponse> {
     return this.postRegister('/auth/register/nutritionist', data, 'register-nutritionist');
+  }
+
+  async betaRequestNutritionist(data: NutritionistRegisterData): Promise<RegisterResponse> {
+    return this.postRegister('/auth/beta-request/nutritionist', data, 'beta-request-nutritionist');
   }
 
   async refreshToken(refreshToken: string): Promise<AuthResponse> {

@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AnalyticsService } from '../../infrastructure/analytics/analytics.service';
 
 @Component({
   selector: 'nutri-button',
@@ -31,7 +32,7 @@ import { RouterLink } from '@angular/router';
         <span class="nutri-btn__label">{{ labelText() }}</span>
       </a>
     } @else {
-      <button [class]="classes" [type]="type" [disabled]="disabled">
+      <button [class]="classes" [type]="type" [disabled]="disabled" (click)="onButtonClick()">
         <span class="nutri-btn__label">{{ labelText() }}</span>
       </button>
     }
@@ -39,6 +40,7 @@ import { RouterLink } from '@angular/router';
 })
 export class NutriButtonComponent implements AfterContentInit {
   private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly analytics = inject(AnalyticsService);
 
   @Input() variant: 'primary' | 'secondary' | 'ghost' | 'outline' = 'primary';
   @Input() size: 'md' | 'sm' = 'md';
@@ -50,6 +52,8 @@ export class NutriButtonComponent implements AfterContentInit {
   @Input() external = false;
   /** Texto explícito (opcional). Se omitido, usa o conteúdo projetado. */
   @Input() label?: string;
+  @Input() analyticsCta?: string;
+  @Input() analyticsLocation?: string;
 
   readonly labelText = signal('');
 
@@ -72,6 +76,18 @@ export class NutriButtonComponent implements AfterContentInit {
     if (this.disabled) {
       event.preventDefault();
       event.stopPropagation();
+      return;
+    }
+    this.trackCta();
+  }
+
+  onButtonClick(): void {
+    this.trackCta();
+  }
+
+  private trackCta(): void {
+    if (this.analyticsCta && this.analyticsLocation) {
+      this.analytics.trackCtaClick(this.analyticsCta, this.analyticsLocation);
     }
   }
 

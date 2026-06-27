@@ -1,8 +1,22 @@
-import { ApplicationConfig, APP_INITIALIZER, provideZoneChangeDetection } from '@angular/core';
+import {
+  APP_BOOTSTRAP_LISTENER,
+  APP_INITIALIZER,
+  ApplicationConfig,
+  EnvironmentInjector,
+  PLATFORM_ID,
+  afterNextRender,
+  inject,
+  provideZoneChangeDetection,
+  runInInjectionContext,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { routes } from './app.routes';
+import { AnalyticsRouterService } from '../infrastructure/analytics/analytics-router.service';
+import { AnalyticsService } from '../infrastructure/analytics/analytics.service';
+import { CookieConsentService } from '../infrastructure/analytics/cookie-consent.service';
 import { AUTH_REPOSITORY } from '../domain/repositories/auth.repository';
 import { NUTRITION_REPOSITORY } from '../domain/repositories/nutrition.repository';
 import { PRO_REPOSITORY, CARE_REPOSITORY } from '../domain/repositories/pro.repository';
@@ -16,6 +30,31 @@ import { authInterceptor } from '../infrastructure/http/auth.interceptor';
 
 function bootstrapAuth(auth: AuthFacade): () => Promise<void> {
   return () => auth.bootstrap();
+}
+
+function bootstrapAnalytics(): () => void {
+  const analytics = inject(AnalyticsService);
+  const routerAnalytics = inject(AnalyticsRouterService);
+  const consentService = inject(CookieConsentService);
+  const platformId = inject(PLATFORM_ID);
+  const injector = inject(EnvironmentInjector);
+
+  return () => {
+    if (!isPlatformBrowser(platformId)) {
+      return;
+    }
+
+    runInInjectionContext(injector, () => {
+      afterNextRender(() => {
+        consentService.syncFromStorage();
+        analytics.initIfConsented();
+        routerAnalytics.init();
+        if (consentService.hasAnalyticsConsent()) {
+          routerAnalytics.trackCurrentPage();
+        }
+      });
+    });
+  };
 }
 
 export const appConfig: ApplicationConfig = {
@@ -38,6 +77,11 @@ export const appConfig: ApplicationConfig = {
       useFactory: bootstrapAuth,
       deps: [AuthFacade],
       multi: true,
+    },
+    {
+      provide: APP_BOOTSTRAP_LISTENER,
+      multi: true,
+      useFactory: bootstrapAnalytics,
     },
   ],
 };

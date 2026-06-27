@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { NutriLogoComponent } from '../../../design-system/nutri-logo/nutri-logo.component';
@@ -8,6 +8,9 @@ import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nut
 import { AuthFacade } from '../../core/auth.facade';
 import { cpfDigitsOnly, formatCpfInput, isValidCpf } from '../../core/date.util';
 import { PRO_PRODUCT_NAME } from '../../core/constants';
+import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
+import { RegistrationMode } from '../../../domain/analytics/analytics.model';
 
 @Component({
   selector: 'app-register-nutritionist',
@@ -24,8 +27,15 @@ import { PRO_PRODUCT_NAME } from '../../core/constants';
     <div class="auth-page">
       <div class="auth-card auth-card--wide">
         <div class="auth-card__logo"><nutri-logo /></div>
-        <h1>Cadastro Nutricionista</h1>
-        <p class="auth-card__subtitle">Acesse o portal {{ proProductName }}</p>
+        @if (registrationOpen()) {
+          <h1>Cadastro Nutricionista</h1>
+          <p class="auth-card__subtitle">Acesse o portal {{ proProductName }}</p>
+        } @else {
+          <h1>Beta Nutri+ Pro</h1>
+          <p class="auth-card__subtitle">
+            Estamos selecionando nutricionistas para o teste beta. Solicite participação para validarmos seu perfil.
+          </p>
+        }
         <nutri-info-tip message="Seu CRN será verificado pela equipe antes da publicação no marketplace." />
         @if (validationError) {
           <div class="auth-card__error" role="alert">{{ validationError }}</div>
@@ -41,8 +51,14 @@ import { PRO_PRODUCT_NAME } from '../../core/constants';
           <nutri-input label="Senha" type="password" [(ngModel)]="password" name="password" />
           <nutri-input label="Especialidades" [(ngModel)]="specialties" name="specialties" placeholder="Ex: Esportiva, clínica" />
           <nutri-input label="Bio" type="textarea" [(ngModel)]="bio" name="bio" placeholder="Apresentação breve" />
-          <nutri-button variant="primary" type="submit" [block]="true" [disabled]="auth.loading()">
-            {{ auth.loading() ? 'Cadastrando...' : 'Criar conta Pro' }}
+          <nutri-button variant="primary" type="submit" [block]="true" [disabled]="auth.loading() || loadingFlags()">
+            @if (auth.loading()) {
+              Enviando...
+            } @else if (registrationOpen()) {
+              Criar conta Pro
+            } @else {
+              Solicitar participação no beta
+            }
           </nutri-button>
         </form>
         <p class="auth-card__footer">
@@ -54,10 +70,15 @@ import { PRO_PRODUCT_NAME } from '../../core/constants';
   `,
   styleUrl: '../auth-layout.scss',
 })
-export class RegisterNutritionistComponent {
+export class RegisterNutritionistComponent implements OnInit {
   readonly auth = inject(AuthFacade);
   readonly proProductName = PRO_PRODUCT_NAME;
   private readonly router = inject(Router);
+  private readonly featureFlags = inject(FeatureFlagService);
+  private readonly analytics = inject(AnalyticsService);
+
+  readonly registrationOpen = signal(true);
+  readonly loadingFlags = signal(true);
 
   name = '';
   email = '';
@@ -67,6 +88,18 @@ export class RegisterNutritionistComponent {
   bio = '';
   specialties = '';
   validationError = '';
+
+  ngOnInit(): void {
+    void this.loadFlags();
+  }
+
+  private async loadFlags(): Promise<void> {
+    try {
+      this.registrationOpen.set(await this.featureFlags.isEnabled('REGISTRATION_OPEN'));
+    } finally {
+      this.loadingFlags.set(false);
+    }
+  }
 
   onCpfChange(value: string): void {
     this.cpf = formatCpfInput(value);
@@ -83,21 +116,30 @@ export class RegisterNutritionistComponent {
       this.validationError = 'A senha deve ter pelo menos 8 caracteres.';
       return;
     }
+    const data = {
+      name: this.name,
+      email: this.email,
+      password: this.password,
+      cpf: cpfDigitsOnly(this.cpf),
+      crn: this.crn.trim(),
+      bio: this.bio.trim() || undefined,
+      specialties: this.specialties.trim() || undefined,
+    };
+    const mode: RegistrationMode = this.registrationOpen() ? 'open' : 'beta';
+    this.analytics.trackSignUpProStart(mode);
     try {
-      await this.auth.registerNutritionist({
-        name: this.name,
-        email: this.email,
-        password: this.password,
-        cpf: cpfDigitsOnly(this.cpf),
-        crn: this.crn.trim(),
-        bio: this.bio.trim() || undefined,
-        specialties: this.specialties.trim() || undefined,
-      });
+      if (this.registrationOpen()) {
+        await this.auth.registerNutritionist(data);
+      } else {
+        await this.auth.betaRequestNutritionist(data);
+      }
+      this.analytics.trackSignUpPro(mode);
       this.router.navigateByUrl('/auth/login', {
         state: { registerMessage: this.auth.registerMessage() ?? 'Cadastro recebido. Aguarde a liberação do acesso.' },
       });
     } catch {
-      // error shown via facade
+      const error = this.auth.error();
+      this.analytics.trackSignUpProError(error ?? 'signup_pro_failed', mode);
     }
   }
 }

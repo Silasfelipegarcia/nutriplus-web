@@ -5,6 +5,7 @@ import { PRO_REPOSITORY } from '../../../domain/repositories/pro.repository';
 import { ProInvite } from '../../../domain/entities';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { withActionFeedback } from '../../core/action-feedback';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 @Component({
   selector: 'app-pro-invites',
@@ -36,6 +37,7 @@ import { withActionFeedback } from '../../core/action-feedback';
 export class ProInvitesComponent {
   private readonly proRepo = inject(PRO_REPOSITORY);
   private readonly toast = inject(NutriToastService);
+  private readonly analytics = inject(AnalyticsService);
   readonly invite = signal<ProInvite | null>(null);
   creating = false;
 
@@ -45,6 +47,7 @@ export class ProInvitesComponent {
       this.toast,
       async () => {
         this.invite.set(await this.proRepo.createInvite());
+        this.analytics.trackProInviteCreated();
       },
       { success: 'Convite gerado' },
     );

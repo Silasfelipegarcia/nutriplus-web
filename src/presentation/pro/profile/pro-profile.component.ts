@@ -11,6 +11,7 @@ import { NutritionistPublic, NutritionistRatingsSummary } from '../../../domain/
 import { BRAZIL_STATES } from '../../core/brazil-states';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { withActionFeedback } from '../../core/action-feedback';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 @Component({
   selector: 'app-pro-profile',
@@ -144,6 +145,7 @@ import { withActionFeedback } from '../../core/action-feedback';
 export class ProProfileComponent implements OnInit {
   private readonly proRepo = inject(PRO_REPOSITORY);
   private readonly toast = inject(NutriToastService);
+  private readonly analytics = inject(AnalyticsService);
 
   readonly states = BRAZIL_STATES;
   readonly profile = signal<NutritionistPublic | null>(null);
@@ -219,6 +221,7 @@ export class ProProfileComponent implements OnInit {
   }
 
   async connectStripe(): Promise<void> {
+    this.analytics.trackProStripeConnectStart();
     this.connectingStripe = true;
     await withActionFeedback(
       this.toast,

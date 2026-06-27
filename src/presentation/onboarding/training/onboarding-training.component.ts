@@ -9,6 +9,7 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
 import { OnboardingActivityDraft, SportCatalogItem } from '../../../domain/entities';
 import { SportSelection } from '../../core/sport-catalog';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 @Component({
   selector: 'app-onboarding-training',
@@ -74,6 +75,7 @@ export class OnboardingTrainingComponent implements OnInit {
   private readonly draft = inject(OnboardingDraftService);
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
   private readonly router = inject(Router);
+  private readonly analytics = inject(AnalyticsService);
 
   readonly sports = signal<SportCatalogItem[]>([]);
   sportSelection: SportSelection | null = null;
@@ -127,6 +129,7 @@ export class OnboardingTrainingComponent implements OnInit {
       return;
     }
     this.draft.update({ activities: [...this.activities], athleteModeEnabled: true });
+    this.analytics.trackOnboardingStepCompleted('onboarding_training');
     this.router.navigate(['/onboarding/preferencias']);
   }
 }

@@ -8,6 +8,7 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
 import { OnboardingSubmitService } from '../onboarding-submit.service';
 import { AuthFacade } from '../../core/auth.facade';
 import { computeAgeFromBirthDate } from '../../core/date.util';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 const HEALTH_CONDITIONS = ['Diabetes', 'Hipertensão', 'Doença renal', 'Colesterol alto'] as const;
 
@@ -72,6 +73,7 @@ export class OnboardingHealthComponent {
   private readonly submit = inject(OnboardingSubmitService);
   private readonly auth = inject(AuthFacade);
   private readonly router = inject(Router);
+  private readonly analytics = inject(AnalyticsService);
 
   readonly conditions = HEALTH_CONDITIONS;
   selectedConditions = new Set(
@@ -122,6 +124,8 @@ export class OnboardingHealthComponent {
     try {
       await this.submit.submit(this.draft.draft());
       await this.auth.refreshUser();
+      this.analytics.trackOnboardingProfileSubmitted();
+      this.analytics.trackOnboardingStepCompleted('onboarding_health');
       this.router.navigate(['/onboarding/termos']);
     } catch (e) {
       this.error = e instanceof Error ? e.message : 'Erro ao salvar perfil';

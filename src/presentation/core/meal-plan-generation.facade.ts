@@ -3,6 +3,7 @@ import { NUTRITION_REPOSITORY } from '../../domain/repositories/nutrition.reposi
 import { MealPlanGenerationStatus } from '../../domain/entities';
 import { NutriToastService } from '../../design-system/nutri-toast/nutri-toast.service';
 import { parseApiError } from '../../infrastructure/http/api-error';
+import { AnalyticsService } from '../../infrastructure/analytics/analytics.service';
 import { PortalDataStore } from './portal-data.store';
 import {
   setAcknowledgedPlanReadyId,
@@ -16,6 +17,7 @@ export class MealPlanGenerationFacade {
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
   private readonly toast = inject(NutriToastService);
   private readonly portalData = inject(PortalDataStore);
+  private readonly analytics = inject(AnalyticsService);
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private pollAttempt = 0;
   private destroyRef: DestroyRef | null = null;
@@ -44,7 +46,8 @@ export class MealPlanGenerationFacade {
     }
   }
 
-  async generate(): Promise<void> {
+  async generate(source = 'unknown'): Promise<void> {
+    this.analytics.trackMealPlanGenerateStart(source);
     this.error.set(null);
     this.phase.set('generating');
     this.showReadyNotice.set(false);
@@ -109,6 +112,7 @@ export class MealPlanGenerationFacade {
         if (shouldNotifyPlanReady(s.mealPlanId)) {
           this.phase.set('ready');
           this.showReadyNotice.set(true);
+          this.analytics.trackMealPlanReady();
           this.toast.success('Seu plano alimentar está pronto!');
         } else {
           this.phase.set('idle');

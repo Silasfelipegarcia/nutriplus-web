@@ -1,12 +1,15 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository';
 import { TokenStorage } from '../../infrastructure/auth/token-storage';
+import { AnalyticsService } from '../../infrastructure/analytics/analytics.service';
 import { User, userHasAcceptedLegal } from '../../domain/entities';
+import { jwtRoles, resolvePrimaryRole } from './jwt.util';
 
 @Injectable({ providedIn: 'root' })
 export class AuthFacade {
   private readonly authRepo = inject(AUTH_REPOSITORY);
   private readonly tokens = inject(TokenStorage);
+  private readonly analytics = inject(AnalyticsService);
 
   readonly user = signal<User | null>(null);
   readonly loading = signal(false);
@@ -31,9 +34,11 @@ export class AuthFacade {
     try {
       const me = await this.authRepo.getMe();
       this.user.set(me);
+      this.syncAnalyticsUser(me);
     } catch {
       this.tokens.clear();
       this.user.set(null);
+      this.analytics.clearUser();
     } finally {
       this.loading.set(false);
     }
@@ -45,6 +50,7 @@ export class AuthFacade {
     try {
       const auth = await this.authRepo.login(email, password);
       this.user.set(auth.user);
+      this.syncAnalyticsUser(auth.user);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Erro ao entrar');
       throw e;
@@ -54,18 +60,15 @@ export class AuthFacade {
   }
 
   async register(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<void> {
-    this.loading.set(true);
-    this.error.set(null);
-    this.registerMessage.set(null);
-    try {
-      const result = await this.authRepo.register(name, email, password, cpf, birthDate);
-      this.registerMessage.set(result.message);
-    } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'Erro ao cadastrar');
-      throw e;
-    } finally {
-      this.loading.set(false);
-    }
+    await this.submitRegistration(() =>
+      this.authRepo.register(name, email, password, cpf, birthDate),
+    );
+  }
+
+  async betaRequest(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<void> {
+    await this.submitRegistration(() =>
+      this.authRepo.betaRequest(name, email, password, cpf, birthDate),
+    );
   }
 
   async registerNutritionist(data: {
@@ -77,11 +80,27 @@ export class AuthFacade {
     bio?: string;
     specialties?: string;
   }): Promise<void> {
+    await this.submitRegistration(() => this.authRepo.registerNutritionist(data));
+  }
+
+  async betaRequestNutritionist(data: {
+    name: string;
+    email: string;
+    password: string;
+    cpf: string;
+    crn: string;
+    bio?: string;
+    specialties?: string;
+  }): Promise<void> {
+    await this.submitRegistration(() => this.authRepo.betaRequestNutritionist(data));
+  }
+
+  private async submitRegistration(action: () => Promise<{ message: string }>): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     this.registerMessage.set(null);
     try {
-      const result = await this.authRepo.registerNutritionist(data);
+      const result = await action();
       this.registerMessage.set(result.message);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Erro ao cadastrar');
@@ -99,10 +118,21 @@ export class AuthFacade {
   async refreshUser(): Promise<void> {
     const me = await this.authRepo.getMe();
     this.user.set(me);
+    this.syncAnalyticsUser(me);
   }
 
   logout(): void {
+    this.analytics.trackLogout('manual');
     this.tokens.clear();
     this.user.set(null);
+  }
+
+  primaryRole(): string {
+    return resolvePrimaryRole(jwtRoles(this.tokens.getAccessToken()));
+  }
+
+  private syncAnalyticsUser(user: User): void {
+    const role = this.primaryRole();
+    this.analytics.setUser(String(user.id), role);
   }
 }

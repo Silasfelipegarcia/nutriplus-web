@@ -10,6 +10,7 @@ import { NutritionistPublic, NutritionistRatingsSummary } from '../../../domain/
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { withActionFeedback } from '../../core/action-feedback';
 import { parseApiError } from '../../../infrastructure/http/api-error';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 @Component({
   selector: 'app-marketplace-detail',
@@ -90,6 +91,7 @@ export class MarketplaceDetailComponent implements OnInit {
   private readonly careRepo = inject(CARE_REPOSITORY);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(NutriToastService);
+  private readonly analytics = inject(AnalyticsService);
 
   readonly nutritionist = signal<NutritionistPublic | null>(null);
   readonly ratings = signal<NutritionistRatingsSummary | null>(null);
@@ -121,6 +123,7 @@ export class MarketplaceDetailComponent implements OnInit {
       this.toast,
       async () => {
         await this.careRepo.requestCare(n.id);
+        this.analytics.trackCareRequestSubmitted();
       },
       { success: 'Solicitação enviada. Siga as instruções de pagamento quando disponíveis.' },
     );

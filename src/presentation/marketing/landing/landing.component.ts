@@ -6,6 +6,7 @@ import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-
 import { NutriCardComponent } from '../../../design-system/nutri-card/nutri-card.component';
 import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-banner/disclaimer-banner.component';
 import { RevealDirective } from '../directives/reveal.directive';
+import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
 import { NutriIconComponent } from './nutri-icon.component';
 import { TAGLINE, APP_NAME } from '../../core/constants';
 import { environment } from '../../../environments/environment';
@@ -21,6 +22,7 @@ import { environment } from '../../../environments/environment';
     NutriCardComponent,
     DisclaimerBannerComponent,
     RevealDirective,
+    AnalyticsCtaDirective,
     NutriIconComponent,
   ],
   template: `
@@ -52,8 +54,19 @@ import { environment } from '../../../environments/environment';
                 acompanhamento diário — para você evoluir com clareza e consistência.
               </p>
               <div class="hero__ctas">
-                <nutri-button variant="primary" to="/auth/cadastro">Começar gratuitamente</nutri-button>
-                <nutri-button variant="outline" [href]="playStoreUrl" [external]="true">Baixar app</nutri-button>
+                <nutri-button
+                  variant="primary"
+                  to="/auth/cadastro"
+                  analyticsCta="comecar_gratis"
+                  analyticsLocation="hero"
+                >Começar gratuitamente</nutri-button>
+                <nutri-button
+                  variant="outline"
+                  [href]="playStoreUrl"
+                  [external]="true"
+                  analyticsCta="baixar_app_play"
+                  analyticsLocation="hero"
+                >Baixar app</nutri-button>
               </div>
               <p class="hero__trust-note">
                 <app-nutri-icon name="shield" [size]="16" />
@@ -309,11 +322,25 @@ import { environment } from '../../../environments/environment';
               Disponível para iOS e Android. No celular, use o app para a melhor experiência.
             </p>
             <div class="download__badges">
-              <a class="store-badge" [href]="appStoreUrl" target="_blank" rel="noopener">
+              <a
+                class="store-badge"
+                [href]="appStoreUrl"
+                target="_blank"
+                rel="noopener"
+                appAnalyticsCta="baixar_app_ios"
+                appAnalyticsCtaLocation="download_section"
+              >
                 <span class="store-badge__icon">🍎</span>
                 <span><small>Disponível na</small>App Store</span>
               </a>
-              <a class="store-badge" [href]="playStoreUrl" target="_blank" rel="noopener">
+              <a
+                class="store-badge"
+                [href]="playStoreUrl"
+                target="_blank"
+                rel="noopener"
+                appAnalyticsCta="baixar_app_play"
+                appAnalyticsCtaLocation="download_section"
+              >
                 <span class="store-badge__icon">▶️</span>
                 <span><small>Disponível no</small>Google Play</span>
               </a>

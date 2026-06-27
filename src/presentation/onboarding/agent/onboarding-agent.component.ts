@@ -1,5 +1,7 @@
 import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 import { OnboardingDraftService } from '../onboarding-draft.service';
 
 @Component({
@@ -32,7 +34,7 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
           </button>
         </div>
         <div class="onboarding__actions">
-          <nutri-button variant="primary" to="/onboarding/tipo" label="Continuar">Continuar</nutri-button>
+          <nutri-button variant="primary" (click)="continue()">Continuar</nutri-button>
         </div>
       </div>
     </div>
@@ -41,8 +43,16 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
 })
 export class OnboardingAgentComponent {
   readonly draft = inject(OnboardingDraftService);
+  private readonly router = inject(Router);
+  private readonly analytics = inject(AnalyticsService);
 
   select(persona: string): void {
     this.draft.update({ agentPersona: persona });
+    this.analytics.trackOnboardingAgentSelected(persona);
+  }
+
+  continue(): void {
+    this.analytics.trackOnboardingStepCompleted('onboarding_agent');
+    void this.router.navigate(['/onboarding/tipo']);
   }
 }

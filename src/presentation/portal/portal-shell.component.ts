@@ -7,6 +7,8 @@ import { AssistantPanelComponent } from './assistant/assistant-panel.component';
 import { AuthFacade } from '../core/auth.facade';
 import { MealPlanGenerationFacade } from '../core/meal-plan-generation.facade';
 import { PortalDataStore } from '../core/portal-data.store';
+import { TokenStorage } from '../../infrastructure/auth/token-storage';
+import { jwtRoles } from '../core/jwt.util';
 
 @Component({
   selector: 'app-portal-shell',
@@ -48,6 +50,7 @@ export class PortalShellComponent implements OnInit {
   private readonly generation = inject(MealPlanGenerationFacade);
   private readonly portalData = inject(PortalDataStore);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly tokens = inject(TokenStorage);
 
   readonly navItems = [
     { path: '/app/dashboard', label: 'Dashboard', icon: '📊' },
@@ -61,6 +64,9 @@ export class PortalShellComponent implements OnInit {
   ];
 
   ngOnInit(): void {
+    if (jwtRoles(this.tokens.getAccessToken()).includes('ADMIN')) {
+      this.navItems.push({ path: '/admin', label: 'Painel Admin', icon: '⚙️' });
+    }
     void this.generation.bootstrap(this.destroyRef);
     void this.portalData.prefetchPortalCore();
   }

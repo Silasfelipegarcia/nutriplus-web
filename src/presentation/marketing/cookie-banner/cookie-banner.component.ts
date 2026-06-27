@@ -1,8 +1,9 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
-
-const COOKIE_KEY = 'nutri_cookie_consent';
+import { AnalyticsRouterService } from '../../../infrastructure/analytics/analytics-router.service';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
+import { CookieConsentService } from '../../../infrastructure/analytics/cookie-consent.service';
 
 @Component({
   selector: 'app-cookie-banner',
@@ -28,20 +29,27 @@ const COOKIE_KEY = 'nutri_cookie_consent';
   styleUrl: './cookie-banner.component.scss',
 })
 export class CookieBannerComponent implements OnInit {
+  private readonly consent = inject(CookieConsentService);
+  private readonly analytics = inject(AnalyticsService);
+  private readonly routerAnalytics = inject(AnalyticsRouterService);
+
   readonly visible = signal(false);
 
   ngOnInit(): void {
-    const consent = localStorage.getItem(COOKIE_KEY);
-    this.visible.set(!consent);
+    this.consent.syncFromStorage();
+    this.visible.set(!this.consent.hasDecided());
   }
 
   accept(): void {
-    localStorage.setItem(COOKIE_KEY, 'accepted');
+    this.consent.acceptAll();
     this.visible.set(false);
+    this.analytics.onConsentGranted();
+    this.routerAnalytics.trackCurrentPage();
   }
 
   reject(): void {
-    localStorage.setItem(COOKIE_KEY, 'rejected');
+    this.consent.rejectOptional();
     this.visible.set(false);
+    this.analytics.onConsentRevoked();
   }
 }

@@ -14,7 +14,9 @@ export interface NutritionistRegisterData {
 export interface AuthRepository {
   login(email: string, password: string): Promise<AuthResponse>;
   register(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<RegisterResponse>;
+  betaRequest(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<RegisterResponse>;
   registerNutritionist(data: NutritionistRegisterData): Promise<RegisterResponse>;
+  betaRequestNutritionist(data: NutritionistRegisterData): Promise<RegisterResponse>;
   refreshToken(refreshToken: string): Promise<AuthResponse>;
   getMe(): Promise<User>;
   acceptTerms(termsVersion: string, privacyVersion: string): Promise<User>;

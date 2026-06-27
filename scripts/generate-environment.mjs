@@ -25,6 +25,8 @@ if (!apiBaseUrl) {
 }
 
 const resolved = apiBaseUrl || productionDefault;
+const gaId = (process.env.GA_MEASUREMENT_ID || 'G-L11DG3Z3ZC').trim();
+const siteUrl = (process.env.SITE_URL || 'https://nutriplus.com.br').trim().replace(/\/$/, '');
 
 const content = `// Gerado por scripts/generate-environment.mjs — não edite manualmente em CI.
 export const environment = {
@@ -32,7 +34,8 @@ export const environment = {
   apiBaseUrl: '${resolved}',
   appStoreUrl: 'https://apps.apple.com/app/nutriplus',
   playStoreUrl: 'https://play.google.com/store/apps/details?id=br.com.nutriplus',
-  gaId: '',
+  gaId: '${gaId}',
+  siteUrl: '${siteUrl}',
   termsVersion: '1.0',
   privacyVersion: '1.0',
 };

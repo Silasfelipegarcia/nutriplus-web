@@ -92,7 +92,7 @@ export class AssistantPanelComponent implements OnInit {
   }
 
   async generatePlan(): Promise<void> {
-    await this.generation.generate();
+    await this.generation.generate('assistant');
     this.router.navigate(['/app/dashboard']);
   }
 }

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { OnboardingDraftService } from '../onboarding-draft.service';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 @Component({
   selector: 'app-onboarding-diet',
@@ -49,6 +50,7 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
 export class OnboardingDietComponent {
   private readonly draft = inject(OnboardingDraftService);
   private readonly router = inject(Router);
+  private readonly analytics = inject(AnalyticsService);
 
   dietaryPreference = this.draft.draft().dietaryPreference;
   restriction = this.draft.draft().restriction;
@@ -62,6 +64,7 @@ export class OnboardingDietComponent {
       dietaryPreference: this.dietaryPreference,
       restriction: this.restriction,
     });
+    this.analytics.trackOnboardingStepCompleted('onboarding_diet');
     void this.router.navigate(['/onboarding/saude']);
   }
 }

@@ -9,6 +9,8 @@ import { ApiError } from './api-error';
 export interface AdminAccessSummary {
   pendingApprovalCount: number;
   loginEnabledCount: number;
+  adminCount: number;
+  pendingNutritionistCount: number;
   totalUsers: number;
 }
 
@@ -21,6 +23,7 @@ export interface AdminUserAccess {
   loginEnabledAt?: string;
   createdAt?: string;
   hasNutritionProfile: boolean;
+  registrationSource: string;
 }
 
 export interface FeatureFlag {
@@ -29,6 +32,15 @@ export interface FeatureFlag {
   description?: string;
   enabled: boolean;
   updatedAt?: string;
+}
+
+export interface NutritionistPending {
+  nutritionistId: number;
+  name: string;
+  email: string;
+  crn: string;
+  cpfMasked: string;
+  marketplaceVisible: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -49,8 +61,28 @@ export class AdminApiService {
     return this.get<AdminUserAccess[]>('/admin/access/approved', 'admin-approved');
   }
 
+  admins(): Promise<AdminUserAccess[]> {
+    return this.get<AdminUserAccess[]>('/admin/access/admins', 'admin-admins');
+  }
+
   setLoginEnabled(userId: number, enabled: boolean): Promise<AdminUserAccess> {
     return this.patch<AdminUserAccess>(`/admin/access/users/${userId}/login-enabled`, { enabled }, 'admin-login-toggle');
+  }
+
+  setUserAdmin(userId: number, admin: boolean): Promise<AdminUserAccess> {
+    return this.patch<AdminUserAccess>(`/admin/access/users/${userId}/admin`, { admin }, 'admin-role-toggle');
+  }
+
+  pendingNutritionists(): Promise<NutritionistPending[]> {
+    return this.get<NutritionistPending[]>('/admin/nutritionists/pending', 'admin-nutritionists-pending');
+  }
+
+  verifyNutritionist(nutritionistId: number): Promise<void> {
+    return this.post<void>(`/admin/nutritionists/${nutritionistId}/verify`, 'admin-nutritionist-verify');
+  }
+
+  rejectNutritionist(nutritionistId: number): Promise<void> {
+    return this.post<void>(`/admin/nutritionists/${nutritionistId}/reject`, 'admin-nutritionist-reject');
   }
 
   featureFlags(): Promise<FeatureFlag[]> {
@@ -69,6 +101,10 @@ export class AdminApiService {
     return this.request<T>('PATCH', path, flowId, body);
   }
 
+  private async post<T>(path: string, flowId: string, body?: unknown): Promise<T> {
+    return this.request<T>('POST', path, flowId, body);
+  }
+
   private async request<T>(method: string, path: string, flowId: string, body?: unknown): Promise<T> {
     const token = this.tokens.getAccessToken();
     if (!token) throw new ApiError('Não autenticado');
@@ -81,6 +117,9 @@ export class AdminApiService {
     try {
       if (method === 'GET') {
         return await firstValueFrom(this.http.get<T>(url, { headers }));
+      }
+      if (method === 'POST') {
+        return await firstValueFrom(this.http.post<T>(url, body ?? {}, { headers }));
       }
       return await firstValueFrom(this.http.patch<T>(url, body, { headers }));
     } catch (e: unknown) {

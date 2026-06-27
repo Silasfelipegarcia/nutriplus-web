@@ -4,6 +4,7 @@ import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { OnboardingDraftService } from '../onboarding-draft.service';
 import { APP_NAME } from '../../core/constants';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 @Component({
   selector: 'app-onboarding-profile-type',
@@ -51,6 +52,7 @@ export class OnboardingProfileTypeComponent {
   readonly appName = APP_NAME;
   private readonly draft = inject(OnboardingDraftService);
   private readonly router = inject(Router);
+  private readonly analytics = inject(AnalyticsService);
   athlete = this.draft.draft().athleteModeEnabled;
 
   select(athlete: boolean): void {
@@ -63,6 +65,8 @@ export class OnboardingProfileTypeComponent {
 
   continue(): void {
     this.draft.update({ athleteModeEnabled: this.athlete });
+    this.analytics.trackOnboardingProfileType(this.athlete);
+    this.analytics.trackOnboardingStepCompleted('onboarding_type');
     if (this.athlete) {
       this.router.navigate(['/onboarding/treino']);
     } else {

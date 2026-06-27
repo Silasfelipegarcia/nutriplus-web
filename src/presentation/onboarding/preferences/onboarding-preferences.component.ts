@@ -7,6 +7,7 @@ import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nut
 import { NutriMealRoutinePickerComponent } from '../../../design-system/nutri-meal-routine-picker/nutri-meal-routine-picker.component';
 import { hasAnyMealRoutine, MealRoutineState } from '../../core/meal-routine';
 import { OnboardingDraftService } from '../onboarding-draft.service';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 const BUDGET_OPTIONS = [
   { value: 'ECONOMIC', label: 'Econômico', subtitle: 'Prioriza custo baixo — frango, ovos, tilápia, legumes da estação.' },
@@ -92,6 +93,7 @@ const BUDGET_OPTIONS = [
 export class OnboardingPreferencesComponent {
   private readonly draft = inject(OnboardingDraftService);
   private readonly router = inject(Router);
+  private readonly analytics = inject(AnalyticsService);
   readonly budgetOptions = BUDGET_OPTIONS;
   likes = this.draft.draft().foodLikes;
   dislikes = this.draft.draft().foodDislikes;
@@ -133,6 +135,7 @@ export class OnboardingPreferencesComponent {
       foodBudgetLevel: this.budget,
       ...this.mealRoutine,
     });
+    this.analytics.trackOnboardingStepCompleted('onboarding_preferences');
     void this.router.navigate(['/onboarding/metricas']);
   }
 }

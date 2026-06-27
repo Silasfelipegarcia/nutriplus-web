@@ -531,6 +531,6 @@ export class TrainingComponent implements OnInit {
 
   async generatePlan(): Promise<void> {
     this.showRegenerateDialog.set(false);
-    await this.generation.generate();
+    await this.generation.generate('training');
   }
 }

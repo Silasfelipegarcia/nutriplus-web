@@ -1,12 +1,13 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NutriLogoComponent } from '../../../design-system/nutri-logo/nutri-logo.component';
+import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
 import { TAGLINE, APP_NAME } from '../../core/constants';
 
 @Component({
   selector: 'app-marketing-footer',
   standalone: true,
-  imports: [RouterLink, NutriLogoComponent],
+  imports: [RouterLink, NutriLogoComponent, AnalyticsCtaDirective],
   template: `
     <footer class="site-footer">
       <div class="container">
@@ -27,10 +28,18 @@ import { TAGLINE, APP_NAME } from '../../core/constants';
           <div>
             <h4>Legal</h4>
             <ul>
-              <li><a routerLink="/privacidade">Privacidade</a></li>
-              <li><a routerLink="/termos">Termos de uso</a></li>
-              <li><a routerLink="/cookies">Cookies</a></li>
-              <li><a routerLink="/seguranca">Segurança</a></li>
+              <li>
+                <a routerLink="/privacidade" appAnalyticsCta="privacidade" appAnalyticsCtaLocation="footer">Privacidade</a>
+              </li>
+              <li>
+                <a routerLink="/termos" appAnalyticsCta="termos" appAnalyticsCtaLocation="footer">Termos de uso</a>
+              </li>
+              <li>
+                <a routerLink="/cookies" appAnalyticsCta="cookies" appAnalyticsCtaLocation="footer">Cookies</a>
+              </li>
+              <li>
+                <a routerLink="/seguranca" appAnalyticsCta="seguranca" appAnalyticsCtaLocation="footer">Segurança</a>
+              </li>
             </ul>
           </div>
         </div>

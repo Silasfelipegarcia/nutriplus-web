@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { CARE_REPOSITORY } from '../../../domain/repositories/pro.repository';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 @Component({
   selector: 'app-accept-invite',
@@ -36,6 +37,7 @@ export class AcceptInviteComponent implements OnInit {
   private readonly careRepo = inject(CARE_REPOSITORY);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly analytics = inject(AnalyticsService);
   code = '';
   loading = false;
   success = false;
@@ -51,6 +53,7 @@ export class AcceptInviteComponent implements OnInit {
     this.error = null;
     try {
       await this.careRepo.acceptInvite(this.code, '1.0');
+      this.analytics.trackInviteAccepted();
       this.success = true;
       setTimeout(() => this.router.navigate(['/app/perfil']), 1500);
     } catch (e) {

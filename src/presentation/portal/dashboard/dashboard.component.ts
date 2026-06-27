@@ -12,6 +12,7 @@ import { PortalDataStore } from '../../core/portal-data.store';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { withActionFeedback } from '../../core/action-feedback';
 import { isNotFound } from '../../../infrastructure/http/api-error';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -225,6 +226,7 @@ import { isNotFound } from '../../../infrastructure/http/api-error';
 export class DashboardComponent implements OnInit {
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
   private readonly toast = inject(NutriToastService);
+  private readonly analytics = inject(AnalyticsService);
   readonly generation = inject(MealPlanGenerationFacade);
   readonly portalData = inject(PortalDataStore);
 
@@ -308,12 +310,17 @@ export class DashboardComponent implements OnInit {
         await this.nutritionRepo.saveCheckin(mealId, status);
         this.portalData.invalidateCheckins();
         await this.refreshFromStore(true);
+        if (status === 'DONE') {
+          this.analytics.trackCheckinDone(String(mealId));
+        } else {
+          this.analytics.trackCheckinSkipped(String(mealId));
+        }
       },
       { success: `${mealName} marcada como ${label}` },
     );
   }
 
   async generate(): Promise<void> {
-    await this.generation.generate();
+    await this.generation.generate('dashboard');
   }
 }

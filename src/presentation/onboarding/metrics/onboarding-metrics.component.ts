@@ -7,6 +7,7 @@ import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nut
 import { OnboardingDraftService } from '../onboarding-draft.service';
 import { BRAZIL_STATES } from '../../core/brazil-states';
 import { computeAgeFromBirthDate, MAX_USER_AGE, MIN_USER_AGE } from '../../core/date.util';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 @Component({
   selector: 'app-onboarding-metrics',
@@ -82,6 +83,7 @@ import { computeAgeFromBirthDate, MAX_USER_AGE, MIN_USER_AGE } from '../../core/
 export class OnboardingMetricsComponent {
   private readonly draft = inject(OnboardingDraftService);
   private readonly router = inject(Router);
+  private readonly analytics = inject(AnalyticsService);
 
   readonly states = BRAZIL_STATES;
   birthDate = this.draft.draft().birthDate;
@@ -135,6 +137,7 @@ export class OnboardingMetricsComponent {
       stateCode: this.stateCode,
       seniorWeightLossAck,
     });
+    this.analytics.trackOnboardingStepCompleted('onboarding_metrics');
     void this.router.navigate(['/onboarding/dieta']);
   }
 }

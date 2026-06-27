@@ -6,12 +6,16 @@ import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
 import { AuthFacade } from '../../core/auth.facade';
 import { localizeAuthErrorMessage } from '../../core/auth-error-messages';
+import { jwtRoles } from '../../core/jwt.util';
+import { TokenStorage } from '../../../infrastructure/auth/token-storage';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
+import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
 import { APP_NAME } from '../../core/constants';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, RouterLink, NutriLogoComponent, NutriButtonComponent, NutriInputComponent],
+  imports: [FormsModule, RouterLink, NutriLogoComponent, NutriButtonComponent, NutriInputComponent, AnalyticsCtaDirective],
   template: `
     <div class="auth-page">
       <div class="auth-card">
@@ -32,7 +36,7 @@ import { APP_NAME } from '../../core/constants';
           </nutri-button>
         </form>
         <p class="auth-card__footer">
-          Não tem conta? <a routerLink="/auth/cadastro">Cadastre-se</a>
+          Não tem conta? <a routerLink="/auth/cadastro" appAnalyticsCta="criar_conta" appAnalyticsCtaLocation="login_footer">Cadastre-se</a>
         </p>
       </div>
     </div>
@@ -43,6 +47,8 @@ export class LoginComponent {
   readonly auth = inject(AuthFacade);
   readonly appName = APP_NAME;
   private readonly router = inject(Router);
+  private readonly tokens = inject(TokenStorage);
+  private readonly analytics = inject(AnalyticsService);
 
   email = '';
   password = '';
@@ -54,15 +60,19 @@ export class LoginComponent {
   }
 
   async submit(): Promise<void> {
+    this.analytics.trackLoginFormStart();
     try {
       await this.auth.login(this.email, this.password);
+      this.analytics.trackLogin(this.auth.primaryRole());
       this.router.navigateByUrl(this.postLoginRoute());
     } catch {
-      // error shown via facade
+      const error = this.auth.error();
+      this.analytics.trackLoginError(error ?? 'login_failed');
     }
   }
 
   private postLoginRoute(): string {
+    if (jwtRoles(this.tokens.getAccessToken()).includes('ADMIN')) return '/admin';
     if (this.auth.needsOnboarding()) return '/onboarding';
     if (this.auth.needsTerms()) return '/onboarding/termos';
     return '/app/dashboard';

@@ -130,6 +130,6 @@ export class MealPlanComponent implements OnInit {
   }
 
   async generate(): Promise<void> {
-    await this.generation.generate();
+    await this.generation.generate('plano');
   }
 }
