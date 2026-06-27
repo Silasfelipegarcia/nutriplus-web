@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NutriLogoComponent } from '../../../design-system/nutri-logo/nutri-logo.component';
-import { TAGLINE } from '../../core/constants';
+import { TAGLINE, APP_NAME } from '../../core/constants';
 
 @Component({
   selector: 'app-marketing-footer',
@@ -35,7 +35,7 @@ import { TAGLINE } from '../../core/constants';
           </div>
         </div>
         <div class="site-footer__bottom">
-          © {{ year }} Nutri+. Todos os direitos reservados.
+          © {{ year }} {{ appName }}. Todos os direitos reservados.
         </div>
       </div>
     </footer>
@@ -44,5 +44,6 @@ import { TAGLINE } from '../../core/constants';
 })
 export class MarketingFooterComponent {
   readonly tagline = TAGLINE;
+  readonly appName = APP_NAME;
   readonly year = new Date().getFullYear();
 }

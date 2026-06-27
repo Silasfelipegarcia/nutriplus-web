@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthFacade } from '../core/auth.facade';
 import { isMobileDevice } from '../core/device.util';
-export { nutritionistGuard } from '../core/jwt.util';
+export { nutritionistGuard, adminGuard } from '../core/jwt.util';
 
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthFacade);

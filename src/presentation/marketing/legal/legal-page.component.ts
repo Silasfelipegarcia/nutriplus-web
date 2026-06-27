@@ -17,7 +17,7 @@ const LEGAL_PAGES: Record<string, LegalContent> = {
       {
         heading: 'Coleta de dados',
         paragraphs: [
-          'Coletamos dados de cadastro (nome, e-mail), perfil nutricional, medições corporais e registros de aderência alimentar para fornecer o serviço Nutri+.',
+          'Coletamos dados de cadastro (nome, e-mail), perfil nutricional, medições corporais e registros de aderência alimentar para fornecer o serviço NutriPlus.',
         ],
       },
       {
@@ -48,7 +48,7 @@ const LEGAL_PAGES: Record<string, LegalContent> = {
       {
         heading: 'Aceite',
         paragraphs: [
-          'Ao utilizar o Nutri+, você concorda com estes termos e com nossa política de privacidade.',
+          'Ao utilizar o NutriPlus, você concorda com estes termos e com nossa política de privacidade.',
         ],
       },
       {
@@ -59,7 +59,7 @@ const LEGAL_PAGES: Record<string, LegalContent> = {
         heading: 'Responsabilidades',
         paragraphs: [
           'Você é responsável pela veracidade das informações fornecidas e por manter suas credenciais seguras.',
-          'O Nutri+ não se responsabiliza por decisões de saúde tomadas exclusivamente com base nas sugestões automatizadas.',
+          'O NutriPlus não se responsabiliza por decisões de saúde tomadas exclusivamente com base nas sugestões automatizadas.',
         ],
       },
     ],

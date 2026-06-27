@@ -7,6 +7,7 @@ import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-in
 import { AuthFacade } from '../../core/auth.facade';
 import { localizeAuthErrorMessage } from '../../core/auth-error-messages';
 import { OnboardingDraftService } from '../../onboarding/onboarding-draft.service';
+import { APP_NAME } from '../../core/constants';
 import {
   computeAgeFromBirthDate,
   cpfDigitsOnly,
@@ -27,7 +28,7 @@ import {
         <h1>Criar conta</h1>
         <p class="auth-card__subtitle">Comece sua jornada alimentar. Exclusivo para maiores de 18 anos.</p>
         <p class="auth-card__footer">
-          <a routerLink="/">Saiba mais sobre o Nutri+</a>
+          <a routerLink="/">Saiba mais sobre o {{ appName }}</a>
         </p>
         @if (validationError) {
           <div class="auth-card__error" role="alert">{{ validationError }}</div>
@@ -61,6 +62,7 @@ import {
 })
 export class RegisterComponent {
   readonly auth = inject(AuthFacade);
+  readonly appName = APP_NAME;
   private readonly router = inject(Router);
   private readonly onboardingDraft = inject(OnboardingDraftService);
 
@@ -114,8 +116,9 @@ export class RegisterComponent {
     }
     try {
       await this.auth.register(this.name, this.email, this.password, cpfDigitsOnly(this.cpf), this.birthDate);
-      this.onboardingDraft.update({ birthDate: this.birthDate, age });
-      this.router.navigateByUrl('/onboarding');
+      this.router.navigateByUrl('/auth/login', {
+        state: { registerMessage: this.auth.registerMessage() ?? 'Cadastro recebido. Aguarde a liberação do acesso.' },
+      });
     } catch {
       // error shown via facade
     }

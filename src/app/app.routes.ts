@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import {
+  adminGuard,
   authGuard,
   desktopGuard,
   guestGuard,
@@ -107,6 +108,11 @@ export const routes: Routes = [
       { path: 'convites', loadComponent: () => import('../presentation/pro/invites/pro-invites.component').then(m => m.ProInvitesComponent) },
       { path: 'perfil', loadComponent: () => import('../presentation/pro/profile/pro-profile.component').then(m => m.ProProfileComponent) },
     ],
+  },
+  {
+    path: 'admin',
+    canActivate: [desktopGuard, authGuard, adminGuard],
+    loadComponent: () => import('../presentation/admin/admin-dashboard.component').then(m => m.AdminDashboardComponent),
   },
   { path: '**', redirectTo: '' },
 ];

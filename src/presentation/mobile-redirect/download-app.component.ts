@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { NutriButtonComponent } from '../../design-system/nutri-button/nutri-button.component';
 import { NutriLogoComponent } from '../../design-system/nutri-logo/nutri-logo.component';
 import { environment } from '../../environments/environment';
+import { APP_NAME } from '../core/constants';
 
 @Component({
   selector: 'app-download-app',
@@ -11,7 +12,7 @@ import { environment } from '../../environments/environment';
     <div class="download-page">
       <div class="download-page__card">
         <nutri-logo />
-        <h1>O Nutri+ foi feito para o seu celular</h1>
+        <h1>O {{ appName }} foi feito para o seu celular</h1>
         <p>
           Para a melhor experiência com planos alimentares, check-ins e sua assistente Luna ou Bruno,
           baixe o app gratuito.
@@ -33,6 +34,7 @@ import { environment } from '../../environments/environment';
   styleUrl: './download-app.component.scss',
 })
 export class DownloadAppComponent {
+  readonly appName = APP_NAME;
   readonly appStoreUrl = environment.appStoreUrl;
   readonly playStoreUrl = environment.playStoreUrl;
 }

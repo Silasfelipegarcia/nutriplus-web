@@ -1,4 +1,6 @@
-export const APP_NAME = 'Nutri+';
+/** Marca user-facing: NutriPlus. Usar APP_NAME; não usar "Nutri+". */
+export const APP_NAME = 'NutriPlus';
+export const PRO_PRODUCT_NAME = 'NutriPlus Pro';
 export const TAGLINE = 'Seu plano alimentar inteligente';
 
 export const DISCLAIMER =
@@ -6,7 +8,7 @@ export const DISCLAIMER =
   'Consulte um nutricionista para orientação profissional individualizada.';
 
 export const TERMS_BODY =
-  'O Nutri+ utiliza inteligência artificial para sugerir planos alimentares e organizar suas metas. ' +
+  'O NutriPlus utiliza inteligência artificial para sugerir planos alimentares e organizar suas metas. ' +
   'Essas recomendações têm caráter informativo e de apoio — não substituem consulta, diagnóstico ou ' +
   'tratamento com nutricionista ou médico.\n\n' +
   'Ao continuar, você declara estar ciente de que as sugestões são geradas automaticamente e que ' +

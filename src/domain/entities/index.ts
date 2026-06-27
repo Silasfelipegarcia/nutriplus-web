@@ -11,6 +11,14 @@ export interface User {
   privacyPolicyAcceptedAt?: string;
 }
 
+export interface RegisterResponse {
+  id: number;
+  name: string;
+  email: string;
+  loginEnabled: boolean;
+  message: string;
+}
+
 export interface AuthResponse {
   token: string;
   refreshToken?: string;

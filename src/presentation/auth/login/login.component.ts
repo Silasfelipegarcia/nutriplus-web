@@ -5,6 +5,8 @@ import { NutriLogoComponent } from '../../../design-system/nutri-logo/nutri-logo
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
 import { AuthFacade } from '../../core/auth.facade';
+import { localizeAuthErrorMessage } from '../../core/auth-error-messages';
+import { APP_NAME } from '../../core/constants';
 
 @Component({
   selector: 'app-login',
@@ -15,9 +17,12 @@ import { AuthFacade } from '../../core/auth.facade';
       <div class="auth-card">
         <div class="auth-card__logo"><nutri-logo /></div>
         <h1>Entrar</h1>
-        <p class="auth-card__subtitle">Acesse seu portal Nutri+</p>
-        @if (auth.error()) {
-          <div class="auth-card__error" role="alert">{{ auth.error() }}</div>
+        <p class="auth-card__subtitle">Acesse seu portal {{ appName }}</p>
+        @if (infoMessage) {
+          <div class="auth-card__info" role="status">{{ infoMessage }}</div>
+        }
+        @if (authErrorMessage) {
+          <div class="auth-card__error" role="alert">{{ authErrorMessage }}</div>
         }
         <form (ngSubmit)="submit()">
           <nutri-input label="E-mail" type="email" [(ngModel)]="email" name="email" />
@@ -36,10 +41,17 @@ import { AuthFacade } from '../../core/auth.facade';
 })
 export class LoginComponent {
   readonly auth = inject(AuthFacade);
+  readonly appName = APP_NAME;
   private readonly router = inject(Router);
 
   email = '';
   password = '';
+  infoMessage = (history.state?.registerMessage as string | undefined) ?? null;
+
+  get authErrorMessage(): string | null {
+    const error = this.auth.error();
+    return error ? localizeAuthErrorMessage(error) : null;
+  }
 
   async submit(): Promise<void> {
     try {

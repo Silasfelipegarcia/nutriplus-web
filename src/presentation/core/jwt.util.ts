@@ -20,3 +20,11 @@ export const nutritionistGuard: CanActivateFn = () => {
   if (roles.includes('NUTRITIONIST')) return true;
   return router.createUrlTree(['/app/dashboard']);
 };
+
+export const adminGuard: CanActivateFn = () => {
+  const tokens = inject(TokenStorage);
+  const router = inject(Router);
+  const roles = jwtRoles(tokens.getAccessToken());
+  if (roles.includes('ADMIN')) return true;
+  return router.createUrlTree(['/app/dashboard']);
+};

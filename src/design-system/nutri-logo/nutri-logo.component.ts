@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { APP_NAME } from '../../presentation/core/constants';
 
 @Component({
   selector: 'nutri-logo',
@@ -39,12 +40,13 @@ import { RouterLink } from '@angular/router';
           stroke-linecap="round"
         />
       </svg>
-      <span class="logo__wordmark">Nutri+</span>
+      <span class="logo__wordmark">{{ appName }}</span>
     </a>
   `,
   styleUrl: './nutri-logo.component.scss',
 })
 export class NutriLogoComponent {
+  readonly appName = APP_NAME;
   @Input() variant: 'default' | 'light' = 'default';
   @Input() size: 'md' | 'sm' = 'md';
 }

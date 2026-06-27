@@ -12,6 +12,8 @@ export class AuthFacade {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
+  readonly registerMessage = signal<string | null>(null);
+
   readonly isAuthenticated = computed(() => this.user() !== null);
   readonly needsOnboarding = computed(() => {
     const u = this.user();
@@ -54,9 +56,10 @@ export class AuthFacade {
   async register(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
+    this.registerMessage.set(null);
     try {
-      const auth = await this.authRepo.register(name, email, password, cpf, birthDate);
-      this.user.set(auth.user);
+      const result = await this.authRepo.register(name, email, password, cpf, birthDate);
+      this.registerMessage.set(result.message);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Erro ao cadastrar');
       throw e;
@@ -76,9 +79,10 @@ export class AuthFacade {
   }): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
+    this.registerMessage.set(null);
     try {
-      const auth = await this.authRepo.registerNutritionist(data);
-      this.user.set(auth.user);
+      const result = await this.authRepo.registerNutritionist(data);
+      this.registerMessage.set(result.message);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Erro ao cadastrar');
       throw e;

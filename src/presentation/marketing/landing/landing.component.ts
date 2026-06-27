@@ -7,7 +7,7 @@ import { NutriCardComponent } from '../../../design-system/nutri-card/nutri-card
 import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-banner/disclaimer-banner.component';
 import { RevealDirective } from '../directives/reveal.directive';
 import { NutriIconComponent } from './nutri-icon.component';
-import { TAGLINE } from '../../core/constants';
+import { TAGLINE, APP_NAME } from '../../core/constants';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -208,7 +208,7 @@ import { environment } from '../../../environments/environment';
             <div>
               <h2>Nosso compromisso com você</h2>
               <p>
-                O Nutri+ é uma ferramenta de <strong>organização e educação alimentar</strong>.
+                O {{ appName }} é uma ferramenta de <strong>organização e educação alimentar</strong>.
                 Utilizamos inteligência artificial para montar planos a partir dos seus dados —
                 mas reforçamos sempre: recomendações automatizadas <strong>não substituem</strong>
                 consulta, diagnóstico ou acompanhamento com nutricionista ou médico.
@@ -304,7 +304,7 @@ import { environment } from '../../../environments/environment';
         <section id="download" class="section download">
           <div class="download__glow" aria-hidden="true"></div>
           <div class="container" appReveal>
-            <h2 class="section-title section-title--light">Baixe o Nutri+</h2>
+            <h2 class="section-title section-title--light">Baixe o {{ appName }}</h2>
             <p class="section-subtitle section-subtitle--center section-subtitle--light">
               Disponível para iOS e Android. No celular, use o app para a melhor experiência.
             </p>
@@ -329,6 +329,7 @@ import { environment } from '../../../environments/environment';
 })
 export class LandingComponent implements OnDestroy {
   readonly tagline = TAGLINE;
+  readonly appName = APP_NAME;
   readonly appStoreUrl = environment.appStoreUrl;
   readonly playStoreUrl = environment.playStoreUrl;
 

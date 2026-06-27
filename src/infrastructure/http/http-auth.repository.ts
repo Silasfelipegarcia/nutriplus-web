@@ -6,7 +6,7 @@ import { TraceService } from '../tracing/trace.service';
 import { TokenStorage } from '../auth/token-storage';
 import { ApiError } from './api-error';
 import { newIdempotencyKey, withIdempotencyKey } from './idempotency';
-import { AuthResponse, User } from '../../domain/entities';
+import { AuthResponse, RegisterResponse, User } from '../../domain/entities';
 import { AuthRepository, NutritionistRegisterData } from '../../domain/repositories/auth.repository';
 
 @Injectable()
@@ -21,16 +21,12 @@ export class HttpAuthRepository implements AuthRepository {
     return auth;
   }
 
-  async register(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<AuthResponse> {
-    const auth = await this.postAuth('/auth/register', { name, email, password, cpf, birthDate }, 'register');
-    this.tokens.setTokens(auth.token, auth.refreshToken);
-    return auth;
+  async register(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<RegisterResponse> {
+    return this.postRegister('/auth/register', { name, email, password, cpf, birthDate }, 'register');
   }
 
-  async registerNutritionist(data: NutritionistRegisterData): Promise<AuthResponse> {
-    const auth = await this.postAuth('/auth/register/nutritionist', data, 'register-nutritionist');
-    this.tokens.setTokens(auth.token, auth.refreshToken);
-    return auth;
+  async registerNutritionist(data: NutritionistRegisterData): Promise<RegisterResponse> {
+    return this.postRegister('/auth/register/nutritionist', data, 'register-nutritionist');
   }
 
   async refreshToken(refreshToken: string): Promise<AuthResponse> {
@@ -63,6 +59,22 @@ export class HttpAuthRepository implements AuthRepository {
 
   async updateProfile(data: { name?: string; photoUrl?: string }): Promise<User> {
     return this.authorizedPut<User>('/users/me', data, 'update-profile');
+  }
+
+  private async postRegister(path: string, body: unknown, flowId: string): Promise<RegisterResponse> {
+    const idempotencyKey = newIdempotencyKey();
+    try {
+      return await firstValueFrom(
+        this.http.post<RegisterResponse>(`${environment.apiBaseUrl}${path}`, body, {
+          headers: withIdempotencyKey(
+            { 'Content-Type': 'application/json', ...this.trace.headers(flowId) },
+            idempotencyKey,
+          ),
+        }),
+      );
+    } catch (e) {
+      throw this.toApiError(e);
+    }
   }
 
   private async postAuth(path: string, body: unknown, flowId: string): Promise<AuthResponse> {

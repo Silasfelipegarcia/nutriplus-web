@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { OnboardingDraftService } from '../onboarding-draft.service';
+import { APP_NAME } from '../../core/constants';
 
 @Component({
   selector: 'app-onboarding-profile-type',
@@ -13,7 +14,7 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
       <div class="onboarding__card">
         <p class="onboarding__step">Passo 2 de 8</p>
         <h1>Seu perfil</h1>
-        <p class="onboarding__lead">Como você quer usar o Nutri+?</p>
+        <p class="onboarding__lead">Como você quer usar o {{ appName }}?</p>
         <nutri-info-tip
           message="O modo atleta ajusta calorias e macros conforme seus treinos. Você pode mudar depois no perfil."
         />
@@ -47,6 +48,7 @@ import { OnboardingDraftService } from '../onboarding-draft.service';
   styleUrl: '../onboarding.scss',
 })
 export class OnboardingProfileTypeComponent {
+  readonly appName = APP_NAME;
   private readonly draft = inject(OnboardingDraftService);
   private readonly router = inject(Router);
   athlete = this.draft.draft().athleteModeEnabled;

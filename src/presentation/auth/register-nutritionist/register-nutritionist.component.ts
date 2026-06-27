@@ -7,6 +7,7 @@ import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-in
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { AuthFacade } from '../../core/auth.facade';
 import { cpfDigitsOnly, formatCpfInput, isValidCpf } from '../../core/date.util';
+import { PRO_PRODUCT_NAME } from '../../core/constants';
 
 @Component({
   selector: 'app-register-nutritionist',
@@ -24,7 +25,7 @@ import { cpfDigitsOnly, formatCpfInput, isValidCpf } from '../../core/date.util'
       <div class="auth-card auth-card--wide">
         <div class="auth-card__logo"><nutri-logo /></div>
         <h1>Cadastro Nutricionista</h1>
-        <p class="auth-card__subtitle">Acesse o portal Pro do Nutri+</p>
+        <p class="auth-card__subtitle">Acesse o portal {{ proProductName }}</p>
         <nutri-info-tip message="Seu CRN será verificado pela equipe antes da publicação no marketplace." />
         @if (validationError) {
           <div class="auth-card__error" role="alert">{{ validationError }}</div>
@@ -55,6 +56,7 @@ import { cpfDigitsOnly, formatCpfInput, isValidCpf } from '../../core/date.util'
 })
 export class RegisterNutritionistComponent {
   readonly auth = inject(AuthFacade);
+  readonly proProductName = PRO_PRODUCT_NAME;
   private readonly router = inject(Router);
 
   name = '';
@@ -91,7 +93,9 @@ export class RegisterNutritionistComponent {
         bio: this.bio.trim() || undefined,
         specialties: this.specialties.trim() || undefined,
       });
-      this.router.navigateByUrl('/pro/dashboard');
+      this.router.navigateByUrl('/auth/login', {
+        state: { registerMessage: this.auth.registerMessage() ?? 'Cadastro recebido. Aguarde a liberação do acesso.' },
+      });
     } catch {
       // error shown via facade
     }

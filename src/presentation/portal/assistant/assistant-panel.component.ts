@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { agentDisplayName } from '../../../domain/entities';
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
 import { PortalDataStore } from '../../core/portal-data.store';
-import { LUNA_TIPS, BRUNO_TIPS } from '../../core/constants';
+import { LUNA_TIPS, BRUNO_TIPS, APP_NAME } from '../../core/constants';
 import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-banner/disclaimer-banner.component';
 
 @Component({
@@ -22,7 +22,7 @@ import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-ban
         </div>
         <div>
           <p class="assistant-panel__name">{{ displayName() }}</p>
-          <p class="assistant-panel__role">Sua assistente Nutri+</p>
+          <p class="assistant-panel__role">Sua assistente {{ appName }}</p>
         </div>
       </div>
 
@@ -61,6 +61,7 @@ import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-ban
   styleUrl: './assistant-panel.component.scss',
 })
 export class AssistantPanelComponent implements OnInit {
+  readonly appName = APP_NAME;
   readonly generation = inject(MealPlanGenerationFacade);
   readonly portalData = inject(PortalDataStore);
   private readonly router = inject(Router);

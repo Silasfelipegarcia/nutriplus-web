@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
+import { PRO_PRODUCT_NAME } from '../core/constants';
 
 @Component({
   selector: 'app-pro-shell',
@@ -9,7 +10,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
     <div class="pro-layout">
       <aside class="pro-sidebar">
         <div class="pro-sidebar__brand">
-          <strong>Nutri+ Pro</strong>
+          <strong>{{ proProductName }}</strong>
           <span>Portal do nutricionista</span>
         </div>
         <nav class="pro-sidebar__nav">
@@ -79,4 +80,6 @@ import { RouterLink, RouterOutlet } from '@angular/router';
     }
   `,
 })
-export class ProShellComponent {}
+export class ProShellComponent {
+  readonly proProductName = PRO_PRODUCT_NAME;
+}
