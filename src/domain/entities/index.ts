@@ -133,6 +133,7 @@ export interface TodayMealCheckin {
   mealName: string;
   status?: string;
   mealCalories?: number;
+  items?: MealItem[];
 }
 
 export interface DailyFoodExtraItem {
