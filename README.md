@@ -60,5 +60,7 @@ src/
   design-system/     # tokens, componentes base, logo
   domain/            # entities, repository ports
   infrastructure/    # HTTP adapters, auth, tracing
-  presentation/      # marketing, auth, onboarding, portal
+  presentation/      # marketing, auth, onboarding, portal, pro, admin
 ```
+
+**Documentação completa:** [docs/README.md](./docs/README.md) — rotas, paridade Flutter, integrações.
