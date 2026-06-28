@@ -1,4 +1,5 @@
-import { Directive, ElementRef, Input, OnDestroy, OnInit, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Directive, ElementRef, Input, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
 
 @Directive({
   selector: '[appReveal]',
@@ -6,6 +7,7 @@ import { Directive, ElementRef, Input, OnDestroy, OnInit, inject } from '@angula
 })
 export class RevealDirective implements OnInit, OnDestroy {
   private readonly el = inject(ElementRef<HTMLElement>);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   @Input() revealDelay = 0;
 
   private observer?: IntersectionObserver;
@@ -15,6 +17,11 @@ export class RevealDirective implements OnInit, OnDestroy {
     node.classList.add('reveal');
     if (this.revealDelay) {
       node.style.transitionDelay = `${this.revealDelay}ms`;
+    }
+
+    if (!this.isBrowser || typeof IntersectionObserver === 'undefined') {
+      node.classList.add('reveal--visible');
+      return;
     }
 
     this.observer = new IntersectionObserver(

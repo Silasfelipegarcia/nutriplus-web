@@ -22,6 +22,12 @@ import { environment } from '../../../environments/environment';
         <div class="site-header__actions">
           <a
             class="header-btn header-btn--outline"
+            routerLink="/beta"
+            appAnalyticsCta="participar_beta"
+            appAnalyticsCtaLocation="header"
+          >Beta</a>
+          <a
+            class="header-btn header-btn--outline"
             routerLink="/auth/login"
             appAnalyticsCta="entrar"
             appAnalyticsCtaLocation="header"

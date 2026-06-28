@@ -25,6 +25,7 @@ export interface AdminUserAccess {
   createdAt?: string;
   hasNutritionProfile: boolean;
   registrationSource: string;
+  acquisitionCampaign?: string;
 }
 
 export interface FeatureFlag {
@@ -32,6 +33,23 @@ export interface FeatureFlag {
   name: string;
   description?: string;
   enabled: boolean;
+  updatedAt?: string;
+}
+
+export interface AdminSubscriptionPlan {
+  id: number;
+  planCode: string;
+  name: string;
+  description?: string;
+  priceCents: number;
+  periodDays: number;
+  priceSuffix?: string;
+  benefits: string[];
+  trialAvailable: boolean;
+  contactSales: boolean;
+  enabled: boolean;
+  visibleInCatalog: boolean;
+  sortOrder: number;
   updatedAt?: string;
 }
 
@@ -92,6 +110,24 @@ export class AdminApiService {
 
   updateFeatureFlag(code: string, enabled: boolean): Promise<FeatureFlag> {
     return this.patch<FeatureFlag>(`/admin/feature-flags/${code}`, { enabled }, 'admin-flag-toggle');
+  }
+
+  subscriptionPlans(): Promise<AdminSubscriptionPlan[]> {
+    return this.get<AdminSubscriptionPlan[]>('/admin/subscription-plans', 'admin-plans');
+  }
+
+  updateSubscriptionPlan(id: number, body: Partial<AdminSubscriptionPlan> & {
+    name: string;
+    priceCents: number;
+    periodDays: number;
+    benefits: string[];
+    trialAvailable: boolean;
+    contactSales: boolean;
+    enabled: boolean;
+    visibleInCatalog: boolean;
+    sortOrder: number;
+  }): Promise<AdminSubscriptionPlan> {
+    return this.patch<AdminSubscriptionPlan>(`/admin/subscription-plans/${id}`, body, 'admin-plan-update');
   }
 
   private async get<T>(path: string, flowId: string): Promise<T> {

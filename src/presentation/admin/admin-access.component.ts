@@ -61,6 +61,7 @@ type AccessTab = 'pending' | 'approved';
                   <th>E-mail</th>
                   <th>Papel</th>
                   <th>Origem</th>
+                  <th>Campanha</th>
                   <th>Cadastro</th>
                   <th></th>
                 </tr>
@@ -78,6 +79,7 @@ type AccessTab = 'pending' | 'approved';
                         Aberto
                       }
                     </td>
+                    <td>{{ user.acquisitionCampaign || '—' }}</td>
                     <td>{{ user.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
                     <td>
                       <button type="button" class="admin-btn" (click)="approve(user)" [disabled]="busyId() === user.id">

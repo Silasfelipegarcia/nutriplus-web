@@ -1,0 +1,50 @@
+.plans-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-top: 1.5rem;
+}
+
+.plan-card {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  padding: 1.25rem;
+  background: #fff;
+}
+
+.plan-card--current {
+  border-color: var(--primary, #16a34a);
+}
+
+.plan-price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+}
+
+.payment-prefs {
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.payment-prefs__row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.trial-banner {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin: 0.75rem 0;
+}
+
+.alert-info { background: #eff6ff; color: #1e40af; }
+.alert-error { background: #fef2f2; color: #b91c1c; }
+
+.hint { color: #6b7280; font-size: 0.9rem; }

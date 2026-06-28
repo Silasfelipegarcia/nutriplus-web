@@ -1,7 +1,6 @@
 import { Component, HostListener, OnDestroy, signal } from '@angular/core';
 import { MarketingHeaderComponent } from '../marketing-header/marketing-header.component';
 import { MarketingFooterComponent } from '../marketing-footer/marketing-footer.component';
-import { CookieBannerComponent } from '../cookie-banner/cookie-banner.component';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriCardComponent } from '../../../design-system/nutri-card/nutri-card.component';
 import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-banner/disclaimer-banner.component';
@@ -17,7 +16,6 @@ import { environment } from '../../../environments/environment';
   imports: [
     MarketingHeaderComponent,
     MarketingFooterComponent,
-    CookieBannerComponent,
     NutriButtonComponent,
     NutriCardComponent,
     DisclaimerBannerComponent,
@@ -62,9 +60,14 @@ import { environment } from '../../../environments/environment';
                 >Começar gratuitamente</nutri-button>
                 <nutri-button
                   variant="outline"
-                  [href]="playStoreUrl"
-                  [external]="true"
-                  analyticsCta="baixar_app_play"
+                  to="/beta"
+                  analyticsCta="participar_beta"
+                  analyticsLocation="hero"
+                >Participar do beta</nutri-button>
+                <nutri-button
+                  variant="outline"
+                  to="/baixar-app"
+                  analyticsCta="baixar_app"
                   analyticsLocation="hero"
                 >Baixar app</nutri-button>
               </div>
@@ -213,6 +216,23 @@ import { environment } from '../../../environments/environment';
           </div>
         </section>
 
+        <section id="planos" class="section section--white">
+          <div class="container">
+            <div appReveal class="section-head">
+              <span class="section-eyebrow">Modo Atleta</span>
+              <h2 class="section-title">Planos para quem treina</h2>
+              <p class="section-subtitle section-subtitle--center">
+                Macros ajustados ao treino, trial de 7 dias e cancelamento a qualquer momento.
+              </p>
+            </div>
+            <div appReveal class="section-head" style="margin-top: 1.5rem;">
+              <nutri-button variant="primary" to="/planos" analyticsCta="landing_planos_cta">
+                Ver planos Atleta
+              </nutri-button>
+            </div>
+          </div>
+        </section>
+
         <section class="commitment-band">
           <div class="container commitment-band__inner" appReveal>
             <div class="commitment-band__icon">
@@ -349,7 +369,6 @@ import { environment } from '../../../environments/environment';
         </section>
       </main>
       <app-marketing-footer />
-      <app-cookie-banner />
     </div>
   `,
   styleUrl: './landing.component.scss',

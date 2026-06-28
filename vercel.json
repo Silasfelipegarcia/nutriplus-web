@@ -2,7 +2,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/nutriplus-web/browser",
   "framework": null,
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.csr.html" }],
   "headers": [
     {
       "source": "/index.html",
@@ -28,7 +28,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' http://localhost:8080 https://api.nutriplus.com.br https://*.up.railway.app https://*.vercel.app"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com; connect-src 'self' http://localhost:8080 https://api.nutriplus.com.br https://nutriplus-api-production.up.railway.app https://*.up.railway.app https://*.vercel.app https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://www.googletagmanager.com"
         }
       ]
     }

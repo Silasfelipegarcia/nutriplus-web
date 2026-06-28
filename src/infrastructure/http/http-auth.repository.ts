@@ -7,6 +7,7 @@ import { TokenStorage } from '../auth/token-storage';
 import { ApiError } from './api-error';
 import { newIdempotencyKey, withIdempotencyKey } from './idempotency';
 import { AuthResponse, RegisterResponse, User } from '../../domain/entities';
+import { PatientRegistrationData } from '../../domain/auth/registration.model';
 import { AuthRepository, NutritionistRegisterData } from '../../domain/repositories/auth.repository';
 
 @Injectable()
@@ -22,11 +23,19 @@ export class HttpAuthRepository implements AuthRepository {
   }
 
   async register(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<RegisterResponse> {
-    return this.postRegister('/auth/register', { name, email, password, cpf, birthDate }, 'register');
+    return this.registerPatient({ name, email, password, cpf, birthDate });
+  }
+
+  async registerPatient(data: PatientRegistrationData): Promise<RegisterResponse> {
+    return this.postRegister('/auth/register', data, 'register');
   }
 
   async betaRequest(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<RegisterResponse> {
-    return this.postRegister('/auth/beta-request', { name, email, password, cpf, birthDate }, 'beta-request');
+    return this.betaRequestPatient({ name, email, password, cpf, birthDate });
+  }
+
+  async betaRequestPatient(data: PatientRegistrationData): Promise<RegisterResponse> {
+    return this.postRegister('/auth/beta-request', data, 'beta-request');
   }
 
   async registerNutritionist(data: NutritionistRegisterData): Promise<RegisterResponse> {

@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository';
+import { PatientRegistrationData } from '../../domain/auth/registration.model';
 import { TokenStorage } from '../../infrastructure/auth/token-storage';
 import { AnalyticsService } from '../../infrastructure/analytics/analytics.service';
 import { User, userHasAcceptedLegal } from '../../domain/entities';
@@ -69,6 +70,14 @@ export class AuthFacade {
     await this.submitRegistration(() =>
       this.authRepo.betaRequest(name, email, password, cpf, birthDate),
     );
+  }
+
+  async registerWithAttribution(data: PatientRegistrationData): Promise<void> {
+    await this.submitRegistration(() => this.authRepo.registerPatient(data));
+  }
+
+  async betaRequestWithAttribution(data: PatientRegistrationData): Promise<void> {
+    await this.submitRegistration(() => this.authRepo.betaRequestPatient(data));
   }
 
   async registerNutritionist(data: {

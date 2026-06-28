@@ -419,6 +419,85 @@ tbody tr:last-child td {
   font-weight: 700;
 }
 
+.admin-plan-card {
+  background: #fff;
+  border: 1px solid #e8e3db;
+  border-radius: 12px;
+  padding: 1rem 1.1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.admin-plan-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.admin-plan-card__meta {
+  display: block;
+  font-size: 0.78rem;
+  color: #667085;
+}
+
+.admin-plan-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-plan-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.admin-plan-form input,
+.admin-plan-form textarea {
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #e8e3db;
+  border-radius: 8px;
+}
+
+.admin-plan-form__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-plan-form__checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem 1rem;
+}
+
+.admin-plan-form__checks label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 500;
+}
+
+.admin-btn {
+  width: fit-content;
+  padding: 0.55rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--nutri-brand, #3d8b5f);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-page__success {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #ecfdf3;
+  color: #027a48;
+}
+
 @media (max-width: 900px) {
   .admin-layout {
     grid-template-columns: 1fr;

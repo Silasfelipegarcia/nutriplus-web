@@ -1,0 +1,64 @@
+@if (carregando()) {
+  <p class="loading">Carregando planos...</p>
+} @else {
+  @if (!cobrancaHabilitada()) {
+    <div class="alert alert-info">
+      Durante o beta, o modo atleta está liberado sem assinatura. A cobrança será habilitada em breve.
+    </div>
+  }
+
+  @if (auth.isAuthenticated() && cobrancaHabilitada() && assinatura()?.trialDisponivel && !somentePublico()) {
+    <button type="button" class="btn btn-outline trial-banner" (click)="iniciarTrial()" [disabled]="!!processando()">
+      @if (processando() === 'trial') { Ativando trial... }
+      @else { Testar Atleta 7 dias grátis (cadastre o cartão) }
+    </button>
+  }
+
+  @if (mensagem()) {
+    <div class="alert alert-info">{{ mensagem() }}</div>
+  }
+  @if (erro()) {
+    <div class="alert alert-error">{{ erro() }}</div>
+  }
+
+  @if (auth.isAuthenticated() && cobrancaHabilitada() && cartoes().length > 0) {
+    <section class="payment-prefs card">
+      <h3>Cartão salvo</h3>
+      <div class="payment-prefs__row">
+        <select [ngModel]="cartaoSelecionado()" (ngModelChange)="cartaoSelecionado.set($event)">
+          @for (card of cartoes(); track card.id) {
+            <option [value]="card.id">{{ card.brand }} •••• {{ card.lastFourDigits }}</option>
+          }
+        </select>
+        <input type="password" inputmode="numeric" maxlength="4" placeholder="CVV"
+          [value]="cvv()" (input)="onCvvInput($event)" />
+      </div>
+    </section>
+  } @else if (auth.isAuthenticated() && cobrancaHabilitada()) {
+    <p class="hint"><a routerLink="/app/cobranca">Cadastre um cartão</a> para pagar sem sair do app.</p>
+  }
+
+  <div class="plans-grid">
+    @for (item of planosPagos(); track item.plan) {
+      <article class="plan-card" [class.plan-card--current]="isPlanoAtual(item.plan)">
+        <h2>{{ item.nome }}</h2>
+        <p class="plan-price">{{ item.priceLabel }}</p>
+        <p class="plan-desc">{{ item.descricao }}</p>
+        <ul>
+          @for (b of item.beneficios; track b) {
+            <li>{{ b }}</li>
+          }
+        </ul>
+        @if (isPlanoAtual(item.plan)) {
+          <span class="badge">Seu plano</span>
+        } @else if (podeAssinar(item)) {
+          <button type="button" class="btn btn-primary" (click)="assinarItem(item)"
+            [disabled]="!!processando()">
+            @if (processando() === item.plan) { Processando... }
+            @else { Assinar }
+          </button>
+        }
+      </article>
+    }
+  </div>
+}

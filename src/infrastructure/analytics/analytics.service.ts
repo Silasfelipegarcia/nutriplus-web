@@ -9,6 +9,7 @@ import {
   RegistrationMode,
   RouteAnalyticsConfig,
 } from '../../domain/analytics/analytics.model';
+import { CampaignAttribution } from '../marketing/campaign-attribution.service';
 import { sanitizeAnalyticsError } from './analytics-error.util';
 import { AnalyticsFlowService } from './analytics-flow.service';
 import { CookieConsentService } from './cookie-consent.service';
@@ -24,6 +25,22 @@ export class AnalyticsService {
   private initialized = false;
   private currentUserId: string | null = null;
   private currentUserRole: string | null = null;
+  private readonly pendingEvents: Array<{ event: AnalyticsEventName; params: AnalyticsEventParams }> = [];
+  private static readonly MAX_PENDING_EVENTS = 24;
+
+  wireConsentHandling(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    this.consentService.consent$.subscribe((state) => {
+      if (state?.analytics) {
+        this.init();
+        this.flushPending();
+      } else if (state && !state.analytics) {
+        this.pendingEvents.length = 0;
+      }
+    });
+  }
 
   init(): void {
     if (!this.isBrowser || !this.measurementId || this.initialized || !this.consentService.hasAnalyticsConsent()) {
@@ -76,9 +93,11 @@ export class AnalyticsService {
   onConsentGranted(): void {
     this.trackConsentGranted();
     this.init();
+    this.flushPending();
   }
 
   onConsentRevoked(): void {
+    this.pendingEvents.length = 0;
     this.trackConsentRejected();
   }
 
@@ -292,6 +311,50 @@ export class AnalyticsService {
     this.funnelEvent('pro_stripe_connect_start', 'monetization', 4, 'pro_stripe_connect');
   }
 
+  trackCampaignLandingView(attribution: CampaignAttribution): void {
+    this.send('campaign_landing_view', this.campaignParams(attribution));
+  }
+
+  trackBetaSignupStart(mode: RegistrationMode, location: string, attribution: CampaignAttribution): void {
+    this.send('beta_signup_start', {
+      ...this.campaignParams(attribution),
+      registration_mode: mode,
+      cta_location: location,
+    });
+  }
+
+  trackBetaSignupComplete(mode: RegistrationMode, location: string, attribution: CampaignAttribution): void {
+    this.send('beta_signup_complete', {
+      ...this.campaignParams(attribution),
+      registration_mode: mode,
+      cta_location: location,
+    });
+  }
+
+  trackBetaSignupError(
+    errorCode: string,
+    mode: RegistrationMode,
+    location: string,
+    attribution: CampaignAttribution,
+  ): void {
+    this.send('beta_signup_error', {
+      ...this.campaignParams(attribution),
+      registration_mode: mode,
+      cta_location: location,
+      error_code: sanitizeAnalyticsError(errorCode),
+    });
+  }
+
+  private campaignParams(attribution: CampaignAttribution): AnalyticsEventParams {
+    return {
+      flow_id: this.flowService.getFlowId(),
+      utm_source: attribution.acquisitionSource,
+      utm_medium: attribution.acquisitionMedium,
+      utm_campaign: attribution.acquisitionCampaign,
+      landing_path: attribution.acquisitionLanding,
+    };
+  }
+
   private funnelEvent(
     event: AnalyticsEventName,
     funnel: FunnelId,
@@ -310,17 +373,37 @@ export class AnalyticsService {
   }
 
   private send(event: AnalyticsEventName, params: AnalyticsEventParams = {}): void {
-    if (!this.consentService.hasAnalyticsConsent()) {
-      return;
-    }
-
     const enriched: AnalyticsEventParams = {
       ...params,
       flow_id: params.flow_id ?? this.flowService.getFlowId(),
       user_role: params.user_role ?? this.currentUserRole ?? undefined,
     };
 
+    if (!this.consentService.hasAnalyticsConsent()) {
+      if (event !== 'consent_rejected') {
+        this.enqueue(event, enriched);
+      }
+      return;
+    }
+
     this.sendToGa4(event, enriched);
+  }
+
+  private enqueue(event: AnalyticsEventName, params: AnalyticsEventParams): void {
+    if (this.pendingEvents.length >= AnalyticsService.MAX_PENDING_EVENTS) {
+      return;
+    }
+    this.pendingEvents.push({ event, params });
+  }
+
+  private flushPending(): void {
+    if (!this.consentService.hasAnalyticsConsent()) {
+      return;
+    }
+    const queue = this.pendingEvents.splice(0);
+    for (const { event, params } of queue) {
+      this.sendToGa4(event, params);
+    }
   }
 
   private sendToGa4(event: AnalyticsEventName, params: AnalyticsEventParams): void {

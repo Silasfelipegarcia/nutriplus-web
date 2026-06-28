@@ -59,6 +59,8 @@ export class PortalShellComponent implements OnInit {
     { path: '/app/progresso', label: 'Progresso', icon: '📏' },
     { path: '/app/evolucao', label: 'Evolução', icon: '📈' },
     { path: '/app/treino', label: 'Treino', icon: '🏃' },
+    { path: '/app/planos', label: 'Planos', icon: '⭐' },
+    { path: '/app/assinatura', label: 'Assinatura', icon: '💳' },
     { path: '/app/perfil', label: 'Perfil', icon: '👤' },
     { path: '/app/nutricionistas', label: 'Nutricionista', icon: '🩺' },
   ];

@@ -30,6 +30,7 @@ import { NutriLogoComponent } from '../../design-system/nutri-logo/nutri-logo.co
 
           <p class="admin-sidebar__group">Plataforma</p>
           <a routerLink="/admin/flags" routerLinkActive="active">Feature flags</a>
+          <a routerLink="/admin/planos" routerLinkActive="active">Planos de assinatura</a>
         </nav>
 
         <div class="admin-sidebar__footer">

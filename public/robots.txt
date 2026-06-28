@@ -3,5 +3,7 @@ Allow: /
 Disallow: /app/
 Disallow: /auth/
 Disallow: /onboarding/
+Disallow: /admin/
+Disallow: /pro/
 
 Sitemap: https://nutriplus.com.br/sitemap.xml

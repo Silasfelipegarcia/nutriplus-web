@@ -2,7 +2,6 @@ import { Component, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MarketingHeaderComponent } from '../marketing-header/marketing-header.component';
 import { MarketingFooterComponent } from '../marketing-footer/marketing-footer.component';
-import { CookieBannerComponent } from '../cookie-banner/cookie-banner.component';
 import { TERMS_BODY } from '../../core/constants';
 
 interface LegalContent {
@@ -121,7 +120,7 @@ const LEGAL_PAGES: Record<string, LegalContent> = {
 @Component({
   selector: 'app-legal-page',
   standalone: true,
-  imports: [MarketingHeaderComponent, MarketingFooterComponent, CookieBannerComponent],
+  imports: [MarketingHeaderComponent, MarketingFooterComponent],
   template: `
     <div class="legal-page">
       <app-marketing-header />
@@ -138,7 +137,6 @@ const LEGAL_PAGES: Record<string, LegalContent> = {
         }
       </main>
       <app-marketing-footer />
-      <app-cookie-banner />
     </div>
   `,
   styleUrl: './legal-page.component.scss',

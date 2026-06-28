@@ -5,6 +5,7 @@ export const environment = {
   playStoreUrl: 'https://play.google.com/store/apps/details?id=br.com.nutriplus',
   gaId: '',
   siteUrl: 'http://localhost:4200',
+  mercadoPagoPublicKey: '',
   termsVersion: '1.0',
   privacyVersion: '1.0',
 };

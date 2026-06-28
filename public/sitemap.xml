@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://nutriplus.com.br/</loc><priority>1.0</priority></url>
-  <url><loc>https://nutriplus.com.br/privacidade</loc><priority>0.5</priority></url>
-  <url><loc>https://nutriplus.com.br/termos</loc><priority>0.5</priority></url>
-  <url><loc>https://nutriplus.com.br/cookies</loc><priority>0.4</priority></url>
-  <url><loc>https://nutriplus.com.br/seguranca</loc><priority>0.4</priority></url>
-  <url><loc>https://nutriplus.com.br/baixar-app</loc><priority>0.6</priority></url>
+  <url><loc>https://nutriplus.com.br/</loc><lastmod>2026-06-28</lastmod><priority>1.0</priority></url>
+  <url><loc>https://nutriplus.com.br/beta</loc><lastmod>2026-06-28</lastmod><priority>0.9</priority></url>
+  <url><loc>https://nutriplus.com.br/baixar-app</loc><lastmod>2026-06-28</lastmod><priority>0.6</priority></url>
+  <url><loc>https://nutriplus.com.br/privacidade</loc><lastmod>2026-06-28</lastmod><priority>0.5</priority></url>
+  <url><loc>https://nutriplus.com.br/termos</loc><lastmod>2026-06-28</lastmod><priority>0.5</priority></url>
+  <url><loc>https://nutriplus.com.br/cookies</loc><lastmod>2026-06-28</lastmod><priority>0.4</priority></url>
+  <url><loc>https://nutriplus.com.br/seguranca</loc><lastmod>2026-06-28</lastmod><priority>0.4</priority></url>
 </urlset>

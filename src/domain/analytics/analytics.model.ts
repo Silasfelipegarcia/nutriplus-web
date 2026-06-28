@@ -42,7 +42,11 @@ export type AnalyticsEventName =
   | 'invite_accepted'
   | 'pro_invite_created'
   | 'pro_plan_generated'
-  | 'pro_stripe_connect_start';
+  | 'pro_stripe_connect_start'
+  | 'campaign_landing_view'
+  | 'beta_signup_start'
+  | 'beta_signup_complete'
+  | 'beta_signup_error';
 
 export interface AnalyticsEventParams {
   funnel_id?: FunnelId;

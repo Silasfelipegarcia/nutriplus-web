@@ -1,5 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import { AuthResponse, RegisterResponse, User } from '../entities';
+import { PatientRegistrationData } from '../auth/registration.model';
 
 export interface NutritionistRegisterData {
   name: string;
@@ -14,7 +15,9 @@ export interface NutritionistRegisterData {
 export interface AuthRepository {
   login(email: string, password: string): Promise<AuthResponse>;
   register(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<RegisterResponse>;
+  registerPatient(data: PatientRegistrationData): Promise<RegisterResponse>;
   betaRequest(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<RegisterResponse>;
+  betaRequestPatient(data: PatientRegistrationData): Promise<RegisterResponse>;
   registerNutritionist(data: NutritionistRegisterData): Promise<RegisterResponse>;
   betaRequestNutritionist(data: NutritionistRegisterData): Promise<RegisterResponse>;
   refreshToken(refreshToken: string): Promise<AuthResponse>;

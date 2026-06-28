@@ -28,6 +28,8 @@ const resolved = apiBaseUrl || productionDefault;
 const gaId = (process.env.GA_MEASUREMENT_ID || 'G-L11DG3Z3ZC').trim();
 const siteUrl = (process.env.SITE_URL || 'https://nutriplus.com.br').trim().replace(/\/$/, '');
 
+const mpPublicKey = (process.env.MERCADOPAGO_PUBLIC_KEY || '').trim();
+
 const content = `// Gerado por scripts/generate-environment.mjs — não edite manualmente em CI.
 export const environment = {
   production: true,
@@ -36,6 +38,7 @@ export const environment = {
   playStoreUrl: 'https://play.google.com/store/apps/details?id=br.com.nutriplus',
   gaId: '${gaId}',
   siteUrl: '${siteUrl}',
+  mercadoPagoPublicKey: '${mpPublicKey}',
   termsVersion: '1.0',
   privacyVersion: '1.0',
 };
