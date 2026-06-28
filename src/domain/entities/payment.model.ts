@@ -1,4 +1,14 @@
-export type AthletePlan = 'FREE' | 'ATHLETE_MONTHLY' | 'ATHLETE_YEARLY';
+export type SubscriptionPlanCode =
+  | 'FREE'
+  | 'ESSENTIAL_MONTHLY'
+  | 'ESSENTIAL_YEARLY'
+  | 'ATHLETE_MONTHLY'
+  | 'ATHLETE_YEARLY';
+
+/** @deprecated use SubscriptionPlanCode */
+export type AthletePlan = SubscriptionPlanCode;
+
+export type PaidPlanCode = Exclude<SubscriptionPlanCode, 'FREE'>;
 
 export interface PaymentConfig {
   publicKey: string;
@@ -12,7 +22,7 @@ export interface PlanCatalogResponse {
 }
 
 export interface PlanCatalogItem {
-  plan: AthletePlan;
+  plan: SubscriptionPlanCode;
   nome: string;
   descricao: string;
   priceCents: number;
@@ -49,7 +59,7 @@ export interface CheckoutSyncResponse {
 }
 
 export interface ChargePlanRequest {
-  plan: 'ATHLETE_MONTHLY' | 'ATHLETE_YEARLY';
+  plan: PaidPlanCode;
   cardId?: string;
   securityCode?: string;
   token?: string;
@@ -83,7 +93,7 @@ export interface PaymentHistoryItem {
 
 export interface SubscriptionStatus {
   status: string;
-  plan?: AthletePlan;
+  plan?: SubscriptionPlanCode;
   planNome?: string;
   validUntil?: string;
   cancelledAt?: string;
@@ -98,11 +108,23 @@ export interface SubscriptionStatus {
 }
 
 export interface PlanQuote {
-  plan: 'ATHLETE_MONTHLY' | 'ATHLETE_YEARLY';
+  plan: PaidPlanCode;
   amountCents: number;
   amountLabel: string;
   fullPriceCents: number;
   fullPriceLabel: string;
   upgrade: boolean;
   description?: string;
+}
+
+export function isPaidPlan(plan: SubscriptionPlanCode | undefined): plan is PaidPlanCode {
+  return plan != null && plan !== 'FREE';
+}
+
+export function isAthletePlan(plan: SubscriptionPlanCode | undefined): boolean {
+  return plan === 'ATHLETE_MONTHLY' || plan === 'ATHLETE_YEARLY';
+}
+
+export function isEssentialPlan(plan: SubscriptionPlanCode | undefined): boolean {
+  return plan === 'ESSENTIAL_MONTHLY' || plan === 'ESSENTIAL_YEARLY';
 }

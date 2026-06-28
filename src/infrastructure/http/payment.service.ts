@@ -15,6 +15,7 @@ import {
   PlanCatalogItem,
   PlanCatalogResponse,
   PlanQuote,
+  PaidPlanCode,
   SavedCard,
   SubscriptionStatus,
 } from '../../domain/entities/payment.model';
@@ -32,7 +33,7 @@ export class PaymentService {
     return this.http.get<PaymentConfig>(`${this.apiBase}/payments/config`).pipe(catchError(this.tratarErro));
   }
 
-  criarCheckout(plan: 'ATHLETE_MONTHLY' | 'ATHLETE_YEARLY'): Observable<CheckoutResponse> {
+  criarCheckout(plan: PaidPlanCode): Observable<CheckoutResponse> {
     const headers = withIdempotencyKey({}, newIdempotencyKey());
     return this.http.post<CheckoutResponse>(`${this.apiBase}/payments/checkout`, { plan }, { headers }).pipe(
       catchError(this.tratarErro),
@@ -52,7 +53,7 @@ export class PaymentService {
     );
   }
 
-  obterCotacao(plan: 'ATHLETE_MONTHLY' | 'ATHLETE_YEARLY'): Observable<PlanQuote> {
+  obterCotacao(plan: PaidPlanCode): Observable<PlanQuote> {
     return this.http.get<PlanQuote>(`${this.apiBase}/payments/quote`, { params: { plan } }).pipe(
       catchError(this.tratarErro),
     );

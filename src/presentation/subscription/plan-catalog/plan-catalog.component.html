@@ -3,14 +3,14 @@
 } @else {
   @if (!cobrancaHabilitada()) {
     <div class="alert alert-info">
-      Durante o beta, o modo atleta está liberado sem assinatura. A cobrança será habilitada em breve.
+      Durante o beta, todos os recursos estão liberados. Quando a cobrança for ativada, o plano gratuito terá 1 plano/mês.
     </div>
   }
 
   @if (auth.isAuthenticated() && cobrancaHabilitada() && assinatura()?.trialDisponivel && !somentePublico()) {
     <button type="button" class="btn btn-outline trial-banner" (click)="iniciarTrial()" [disabled]="!!processando()">
       @if (processando() === 'trial') { Ativando trial... }
-      @else { Testar Atleta 7 dias grátis (cadastre o cartão) }
+      @else { Testar Nutri+ 7 dias grátis (acesso completo) }
     </button>
   }
 

@@ -6,9 +6,11 @@ import { AuthFacade } from '../../core/auth.facade';
 import { PaymentService } from '../../../infrastructure/http/payment.service';
 import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
 import {
-  AthletePlan,
   CHECKOUT_ORDER_STORAGE_KEY,
   CheckoutResponse,
+  isAthletePlan,
+  isPaidPlan,
+  PaidPlanCode,
   PlanCatalogItem,
   PlanQuote,
   SavedCard,
@@ -34,7 +36,7 @@ export class PlanCatalogComponent implements OnInit {
   cobrancaHabilitada = signal(false);
   registrationOpen = signal(true);
   carregando = signal(true);
-  processando = signal<AthletePlan | 'trial' | null>(null);
+  processando = signal<PaidPlanCode | 'trial' | null>(null);
   mensagem = signal('');
   erro = signal('');
 
@@ -43,12 +45,10 @@ export class PlanCatalogComponent implements OnInit {
   cvv = signal('');
   pagamentosConfigurados = signal(true);
   mpPublicKey = signal('');
-  cotacoes = signal<Partial<Record<AthletePlan, PlanQuote>>>({});
-  assinatura = signal<{ plan?: AthletePlan; status?: string; trialDisponivel?: boolean } | null>(null);
+  cotacoes = signal<Partial<Record<PaidPlanCode, PlanQuote>>>({});
+  assinatura = signal<SubscriptionStatus | null>(null);
 
-  planosPagos = computed(() =>
-    this.catalogo().filter((i) => i.plan === 'ATHLETE_MONTHLY' || i.plan === 'ATHLETE_YEARLY'),
-  );
+  planosPagos = computed(() => this.catalogo().filter((i) => isPaidPlan(i.plan)));
 
   ngOnInit(): void {
     void this.featureFlags.isRegistrationOpen().then((open) => this.registrationOpen.set(open));
@@ -90,7 +90,12 @@ export class PlanCatalogComponent implements OnInit {
         error: () => {},
       });
 
-      for (const plan of ['ATHLETE_MONTHLY', 'ATHLETE_YEARLY'] as const) {
+      for (const plan of [
+        'ESSENTIAL_MONTHLY',
+        'ESSENTIAL_YEARLY',
+        'ATHLETE_MONTHLY',
+        'ATHLETE_YEARLY',
+      ] as const) {
         this.payment.obterCotacao(plan).subscribe({
           next: (quote) => this.cotacoes.update((atual) => ({ ...atual, [plan]: quote })),
           error: () => {},
@@ -99,11 +104,11 @@ export class PlanCatalogComponent implements OnInit {
     }
   }
 
-  cotacao(plan?: AthletePlan): PlanQuote | undefined {
+  cotacao(plan?: PaidPlanCode): PlanQuote | undefined {
     return plan ? this.cotacoes()[plan] : undefined;
   }
 
-  isPlanoAtual(plan?: AthletePlan): boolean {
+  isPlanoAtual(plan?: PlanCatalogItem['plan']): boolean {
     if (!plan || plan === 'FREE') return plan === 'FREE';
     const sub = this.assinatura();
     return sub?.plan === plan && (sub.status === 'ACTIVE' || sub.status === 'TRIAL' || sub.status === 'CANCELLED_PENDING');
@@ -111,8 +116,12 @@ export class PlanCatalogComponent implements OnInit {
 
   podeAssinar(item: PlanCatalogItem): boolean {
     if (!this.cobrancaHabilitada()) return false;
-    if (item.contatoComercial || !item.plan || item.plan === 'FREE') return false;
-    if (item.plan === 'ATHLETE_MONTHLY' && this.assinatura()?.plan === 'ATHLETE_YEARLY') return false;
+    if (item.contatoComercial || !isPaidPlan(item.plan)) return false;
+    const current = this.assinatura()?.plan;
+    if (current === 'ATHLETE_YEARLY' && item.plan !== 'ATHLETE_YEARLY') return false;
+    if (current === 'ESSENTIAL_YEARLY' && isAthletePlan(item.plan) && item.plan === 'ATHLETE_MONTHLY') return true;
+    if (item.plan === 'ESSENTIAL_MONTHLY' && current === 'ESSENTIAL_YEARLY') return false;
+    if (item.plan === 'ATHLETE_MONTHLY' && current === 'ATHLETE_YEARLY') return false;
     return !this.isPlanoAtual(item.plan);
   }
 
@@ -128,7 +137,7 @@ export class PlanCatalogComponent implements OnInit {
     this.processando.set('trial');
     this.payment.iniciarTrial().subscribe({
       next: () => {
-        this.mensagem.set('Trial de 7 dias ativado! Cobrança só após o período.');
+        this.mensagem.set('Trial de 7 dias ativado! Acesso completo; após o período, R$ 19,90/mês no Essencial.');
         this.processando.set(null);
         this.payment.obterAssinatura().subscribe({ next: (s) => this.assinatura.set(s) });
       },
@@ -140,12 +149,12 @@ export class PlanCatalogComponent implements OnInit {
   }
 
   assinarItem(item: PlanCatalogItem): void {
-    if (item.plan === 'ATHLETE_MONTHLY' || item.plan === 'ATHLETE_YEARLY') {
+    if (isPaidPlan(item.plan)) {
       this.assinar(item.plan);
     }
   }
 
-  assinar(plan: 'ATHLETE_MONTHLY' | 'ATHLETE_YEARLY'): void {
+  assinar(plan: PaidPlanCode): void {
     if (!this.auth.isAuthenticated()) {
       const path = this.registrationOpen() ? '/auth/cadastro' : '/beta';
       void this.router.navigate([path], { queryParams: { redirect: '/planos' } });
@@ -192,7 +201,7 @@ export class PlanCatalogComponent implements OnInit {
     this.abrirCheckout(plan);
   }
 
-  private abrirCheckout(plan: 'ATHLETE_MONTHLY' | 'ATHLETE_YEARLY'): void {
+  private abrirCheckout(plan: PaidPlanCode): void {
     this.payment.criarCheckout(plan).subscribe({
       next: (checkout) => {
         sessionStorage.setItem(CHECKOUT_ORDER_STORAGE_KEY, checkout.orderId);
