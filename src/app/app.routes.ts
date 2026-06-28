@@ -13,6 +13,7 @@ import {
   openRegistrationGuard,
   portalReadyGuard,
   profileEditGuard,
+  shoppingFinanceGuard,
 } from '../presentation/core/guards';
 
 type RouteData = {
@@ -249,6 +250,12 @@ export const routes: Routes = [
         data: ret(2, 'shopping_list_view'),
       },
       {
+        path: 'economia',
+        canActivate: [shoppingFinanceGuard],
+        loadComponent: () => import('../presentation/portal/shopping-finance/shopping-finance.component').then(m => m.ShoppingFinanceComponent),
+        data: ret(2, 'shopping_finance_view'),
+      },
+      {
         path: 'progresso',
         loadComponent: () => import('../presentation/portal/progress/progress.component').then(m => m.ProgressComponent),
         data: ret(2, 'progress_view'),
@@ -383,6 +390,7 @@ export const routes: Routes = [
     data: privateSeo('/admin', 'Admin — Nutri+'),
     children: [
       { path: '', loadComponent: () => import('../presentation/admin/admin-overview.component').then(m => m.AdminOverviewComponent) },
+      { path: 'financeiro', loadComponent: () => import('../presentation/admin/admin-finance.component').then(m => m.AdminFinanceComponent) },
       { path: 'acesso', loadComponent: () => import('../presentation/admin/admin-access.component').then(m => m.AdminAccessComponent) },
       { path: 'administradores', loadComponent: () => import('../presentation/admin/admin-admins.component').then(m => m.AdminAdminsComponent) },
       { path: 'nutricionistas', loadComponent: () => import('../presentation/admin/admin-nutritionists.component').then(m => m.AdminNutritionistsComponent) },
