@@ -96,6 +96,14 @@ export class AdminApiService {
     return this.patch<AdminUserAccess>(`/admin/access/users/${userId}/login-enabled`, { enabled }, 'admin-login-toggle');
   }
 
+  rejectUserAccess(userId: number, reason?: string): Promise<AdminUserAccess> {
+    return this.post<AdminUserAccess>(
+      `/admin/access/users/${userId}/reject`,
+      'admin-access-reject',
+      reason?.trim() ? { reason: reason.trim() } : {},
+    );
+  }
+
   setUserAdmin(userId: number, admin: boolean): Promise<AdminUserAccess> {
     return this.patch<AdminUserAccess>(`/admin/access/users/${userId}/admin`, { admin }, 'admin-role-toggle');
   }
@@ -108,8 +116,12 @@ export class AdminApiService {
     return this.post<void>(`/admin/nutritionists/${nutritionistId}/verify`, 'admin-nutritionist-verify');
   }
 
-  rejectNutritionist(nutritionistId: number): Promise<void> {
-    return this.post<void>(`/admin/nutritionists/${nutritionistId}/reject`, 'admin-nutritionist-reject');
+  rejectNutritionist(nutritionistId: number, reason?: string): Promise<void> {
+    return this.post<void>(
+      `/admin/nutritionists/${nutritionistId}/reject`,
+      'admin-nutritionist-reject',
+      reason?.trim() ? { reason: reason.trim() } : {},
+    );
   }
 
   featureFlags(): Promise<FeatureFlag[]> {

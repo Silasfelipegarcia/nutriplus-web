@@ -69,6 +69,37 @@ import { AdminPageHeaderComponent } from './admin-page-header.component';
         }
       </div>
     </section>
+
+    @if (rejectTarget(); as n) {
+      <div class="admin-modal-backdrop" role="presentation" (click)="closeRejectDialog()"></div>
+      <div class="admin-modal" role="dialog" aria-labelledby="reject-nutri-title" aria-modal="true">
+        <h3 id="reject-nutri-title">Recusar verificação CRN</h3>
+        <p class="admin-modal__lead">
+          A verificação de <strong>{{ n.email }}</strong> será recusada e a pessoa receberá um e-mail.
+        </p>
+        <label class="admin-modal__field">
+          Motivo (opcional)
+          <textarea
+            rows="3"
+            maxlength="500"
+            placeholder="Ex.: CRN não confere com o cadastro"
+            [value]="rejectReason()"
+            (input)="rejectReason.set($any($event.target).value)"
+          ></textarea>
+        </label>
+        <div class="admin-modal__actions">
+          <button type="button" class="admin-btn admin-btn--secondary" (click)="closeRejectDialog()">Cancelar</button>
+          <button
+            type="button"
+            class="admin-btn admin-btn--danger"
+            (click)="confirmReject()"
+            [disabled]="busyId() === n.nutritionistId"
+          >
+            Confirmar recusa
+          </button>
+        </div>
+      </div>
+    }
   `,
   styleUrl: './admin.scss',
 })
@@ -78,6 +109,8 @@ export class AdminNutritionistsComponent {
   readonly pending = signal<NutritionistPending[]>([]);
   readonly error = signal<string | null>(null);
   readonly busyId = signal<number | null>(null);
+  readonly rejectTarget = signal<NutritionistPending | null>(null);
+  readonly rejectReason = signal('');
 
   constructor() {
     void this.reload();
@@ -104,10 +137,24 @@ export class AdminNutritionistsComponent {
   }
 
   async reject(n: NutritionistPending): Promise<void> {
-    if (!confirm(`Rejeitar verificação de ${n.email}?`)) return;
+    this.rejectReason.set('');
+    this.rejectTarget.set(n);
+  }
+
+  closeRejectDialog(): void {
+    if (this.busyId() !== null) return;
+    this.rejectTarget.set(null);
+    this.rejectReason.set('');
+  }
+
+  async confirmReject(): Promise<void> {
+    const n = this.rejectTarget();
+    if (!n) return;
     this.busyId.set(n.nutritionistId);
     try {
-      await this.adminApi.rejectNutritionist(n.nutritionistId);
+      await this.adminApi.rejectNutritionist(n.nutritionistId, this.rejectReason());
+      this.rejectTarget.set(null);
+      this.rejectReason.set('');
       await this.reload();
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Erro ao rejeitar nutricionista');
