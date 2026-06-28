@@ -53,6 +53,7 @@ export class NutriInputComponent implements ControlValueAccessor {
   @Input() placeholder = '';
   @Input() error = '';
   @Input() inputId = '';
+  @Input() disabled = false;
 
   get resolvedInputId(): string {
     if (this.cachedInputId) {
@@ -81,7 +82,6 @@ export class NutriInputComponent implements ControlValueAccessor {
   }
 
   value = '';
-  disabled = false;
   onChange: (v: string) => void = () => {};
   onTouched: () => void = () => {};
 

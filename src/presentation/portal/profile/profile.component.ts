@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
@@ -24,6 +24,7 @@ import { withActionFeedback } from '../../core/action-feedback';
 import { mealRoutineSummary } from '../../core/meal-routine';
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
 import { ProfileEditService } from './profile-edit.service';
+import { fileToPhotoDataUrl, pickImageFile, PhotoPickerError } from '../../core/photo-picker.util';
 
 const GOAL_LABELS: Record<string, string> = {
   LOSE_WEIGHT: 'Perder peso',
@@ -88,12 +89,18 @@ const BUDGET_LABELS: Record<string, string> = {
       @if (auth.user(); as user) {
         <div class="profile-hero portal-card portal-card--highlight">
           <div class="profile-hero__main">
-            <nutri-avatar
-              [name]="user.name"
-              [photoUrl]="user.photoThumbnailUrl"
-              size="lg"
-            />
-            <div>
+            <div class="profile-hero__avatar-wrap">
+              <nutri-avatar
+                [name]="user.name"
+                [photoUrl]="displayPhotoUrl()"
+                size="lg"
+                [uploadable]="true"
+                [uploadBusy]="savingPhoto"
+                [uploadDisabled]="savingPhoto"
+                (uploadClick)="changePhoto()"
+              />
+            </div>
+            <div class="profile-hero__identity">
               <h1 class="profile-hero__name">{{ user.name }}</h1>
               <p class="profile-hero__meta">{{ user.email }}</p>
               @if (user.cpfMasked) {
@@ -270,26 +277,97 @@ const BUDGET_LABELS: Record<string, string> = {
           }
         </nutri-section>
 
-        <nutri-section title="Conta">
-          <div class="portal-card">
-            <nutri-input label="Nome" [(ngModel)]="name" name="name" />
-            <div class="portal-actions" style="margin-top: 0; padding-top: 0; border: none">
-              <nutri-button variant="primary" size="sm" [disabled]="savingName" (click)="saveName()">
-                {{ savingName ? 'Salvando...' : 'Salvar nome' }}
-              </nutri-button>
+        <nutri-section
+          title="Minha conta"
+          description="Foto, nome e dados de acesso da sua conta Nutri+."
+        >
+          <div class="portal-card profile-account-card">
+            <div class="profile-account-card__header">
+              <nutri-avatar
+                [name]="name || user.name"
+                [photoUrl]="displayPhotoUrl()"
+                size="lg"
+                [uploadable]="true"
+                [uploadBusy]="savingPhoto"
+                [uploadDisabled]="savingPhoto"
+                (uploadClick)="changePhoto()"
+              />
+              <div class="profile-account-card__photo-actions">
+                <nutri-button
+                  variant="secondary"
+                  size="sm"
+                  [disabled]="savingPhoto"
+                  (click)="changePhoto()"
+                >
+                  {{ savingPhoto ? 'Enviando foto...' : 'Alterar foto' }}
+                </nutri-button>
+                @if (hasPhoto()) {
+                  <nutri-button
+                    variant="ghost"
+                    size="sm"
+                    [disabled]="savingPhoto || removingPhoto"
+                    (click)="removePhoto()"
+                  >
+                    {{ removingPhoto ? 'Removendo...' : 'Remover foto' }}
+                  </nutri-button>
+                }
+                <p class="profile-account-card__hint">JPEG, PNG ou WebP. Máximo 2 MB.</p>
+              </div>
             </div>
+
+            <form class="form-grid form-grid--full profile-account-card__form" (ngSubmit)="saveAccount()">
+              <nutri-input label="Nome completo" [(ngModel)]="name" name="name" required />
+              <nutri-input label="E-mail" [ngModel]="user.email" name="email" [disabled]="true" />
+              @if (user.cpfMasked) {
+                <nutri-input label="CPF" [ngModel]="user.cpfMasked" name="cpf" [disabled]="true" />
+              }
+              <div class="profile-account-card__actions">
+                <nutri-button
+                  variant="primary"
+                  type="submit"
+                  [disabled]="savingAccount || !name.trim()"
+                >
+                  {{ savingAccount ? 'Salvando...' : 'Salvar alterações' }}
+                </nutri-button>
+              </div>
+            </form>
           </div>
         </nutri-section>
 
-        <nutri-section title="Alterar senha">
+        <nutri-section title="Segurança" description="Mantenha sua conta protegida com uma senha forte.">
           <div class="portal-card">
-            <nutri-input label="Senha atual" type="password" [(ngModel)]="currentPassword" name="cur" />
-            <nutri-input label="Nova senha" type="password" [(ngModel)]="newPassword" name="new" />
-            <div class="portal-actions" style="margin-top: 0; padding-top: 0; border: none">
-              <nutri-button variant="primary" size="sm" [disabled]="changingPassword" (click)="changePassword()">
-                {{ changingPassword ? 'Alterando...' : 'Alterar senha' }}
-              </nutri-button>
-            </div>
+            <form class="form-grid form-grid--full" (ngSubmit)="changePassword()">
+              <nutri-input
+                label="Senha atual"
+                type="password"
+                [(ngModel)]="currentPassword"
+                name="cur"
+                autocomplete="current-password"
+              />
+              <nutri-input
+                label="Nova senha"
+                type="password"
+                [(ngModel)]="newPassword"
+                name="new"
+                autocomplete="new-password"
+              />
+              <nutri-input
+                label="Confirmar nova senha"
+                type="password"
+                [(ngModel)]="confirmPassword"
+                name="confirm"
+                autocomplete="new-password"
+              />
+              <div class="profile-account-card__actions">
+                <nutri-button
+                  variant="primary"
+                  type="submit"
+                  [disabled]="changingPassword || !canChangePassword()"
+                >
+                  {{ changingPassword ? 'Alterando...' : 'Alterar senha' }}
+                </nutri-button>
+              </div>
+            </form>
           </div>
         </nutri-section>
       }
@@ -353,8 +431,20 @@ export class ProfileComponent implements OnInit {
   name = this.auth.user()?.name ?? '';
   currentPassword = '';
   newPassword = '';
-  savingName = false;
+  confirmPassword = '';
+  savingAccount = false;
+  savingPhoto = false;
+  removingPhoto = false;
   changingPassword = false;
+  private readonly photoPreview = signal<string | null>(null);
+
+  readonly displayPhotoUrl = computed(() => {
+    const preview = this.photoPreview();
+    if (preview) return preview;
+    return this.auth.user()?.photoThumbnailUrl;
+  });
+
+  readonly hasPhoto = computed(() => Boolean(this.displayPhotoUrl()));
 
   readonly lifeStageLabel = lifeStageLabel;
 
@@ -456,20 +546,85 @@ export class ProfileComponent implements OnInit {
     this.ratingCareId = null;
   }
 
-  async saveName(): Promise<void> {
-    this.savingName = true;
+  async changePhoto(): Promise<void> {
+    if (this.savingPhoto) return;
+
+    const file = await pickImageFile();
+    if (!file) return;
+
+    this.savingPhoto = true;
+    try {
+      const dataUrl = await fileToPhotoDataUrl(file);
+      this.photoPreview.set(dataUrl);
+      await withActionFeedback(
+        this.toast,
+        async () => {
+          await this.authRepo.updateProfile({ photoUrl: dataUrl });
+          await this.auth.refreshUser();
+          this.photoPreview.set(null);
+        },
+        { success: 'Foto atualizada' },
+      );
+    } catch (e) {
+      this.photoPreview.set(null);
+      const message = e instanceof PhotoPickerError ? e.message : 'Não foi possível enviar a foto.';
+      this.toast.error(message);
+    } finally {
+      this.savingPhoto = false;
+    }
+  }
+
+  async removePhoto(): Promise<void> {
+    if (this.removingPhoto || this.savingPhoto) return;
+
+    this.removingPhoto = true;
     await withActionFeedback(
       this.toast,
       async () => {
-        await this.authRepo.updateProfile({ name: this.name });
+        await this.authRepo.updateProfile({ photoUrl: '' });
         await this.auth.refreshUser();
+        this.photoPreview.set(null);
       },
-      { success: 'Nome atualizado' },
+      { success: 'Foto removida' },
     );
-    this.savingName = false;
+    this.removingPhoto = false;
+  }
+
+  async saveAccount(): Promise<void> {
+    const trimmed = this.name.trim();
+    if (!trimmed) return;
+
+    this.savingAccount = true;
+    await withActionFeedback(
+      this.toast,
+      async () => {
+        await this.authRepo.updateProfile({ name: trimmed });
+        await this.auth.refreshUser();
+        this.name = this.auth.user()?.name ?? trimmed;
+      },
+      { success: 'Conta atualizada' },
+    );
+    this.savingAccount = false;
+  }
+
+  canChangePassword(): boolean {
+    return (
+      this.currentPassword.length > 0 &&
+      this.newPassword.length >= 8 &&
+      this.newPassword === this.confirmPassword
+    );
   }
 
   async changePassword(): Promise<void> {
+    if (!this.canChangePassword()) {
+      if (this.newPassword && this.newPassword !== this.confirmPassword) {
+        this.toast.error('A confirmação não coincide com a nova senha.');
+      } else if (this.newPassword && this.newPassword.length < 8) {
+        this.toast.error('A nova senha deve ter pelo menos 8 caracteres.');
+      }
+      return;
+    }
+
     this.changingPassword = true;
     const ok = await withActionFeedback(
       this.toast,
@@ -477,6 +632,7 @@ export class ProfileComponent implements OnInit {
         await this.authRepo.changePassword(this.currentPassword, this.newPassword);
         this.currentPassword = '';
         this.newPassword = '';
+        this.confirmPassword = '';
       },
       { success: 'Senha alterada' },
     );

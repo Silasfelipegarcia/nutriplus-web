@@ -7,7 +7,7 @@ import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nut
 import { NutriPlanAdherenceChartComponent } from '../../../design-system/nutri-plan-adherence-chart/nutri-plan-adherence-chart.component';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
 import { PlanAdherenceHistory } from '../../../domain/entities';
-import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
+import { GenerationPhase, MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
 import { PortalDataStore } from '../../core/portal-data.store';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { withActionFeedback } from '../../core/action-feedback';
@@ -171,7 +171,7 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
       </section>
 
       @if (weekAdherence(); as week) {
-        <section class="portal-section">
+        <section class="portal-section portal-section--chart">
           <div class="dashboard-week-header">
             <h2 class="portal-section__title">Últimos 7 dias</h2>
             <a routerLink="/app/evolucao" [queryParams]="{ view: 'plan' }">Ver evolução</a>
@@ -181,6 +181,13 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
             [targetCalories]="week.targetCalories"
             [showDisclaimer]="false"
           />
+        </section>
+      } @else if (portalData.todayCheckins()) {
+        <section class="portal-section portal-section--chart portal-section--chart-skeleton" aria-hidden="true">
+          <div class="dashboard-week-header">
+            <h2 class="portal-section__title">Últimos 7 dias</h2>
+          </div>
+          <div class="chart-skeleton"></div>
         </section>
       }
     } @else if (!loading()) {
@@ -195,7 +202,7 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
       </nutri-empty-state>
     }
 
-    @if (loading()) {
+    @if (loading() && !portalData.todayCheckins()) {
       <p class="loading-text">Carregando...</p>
     }
     </div>
@@ -239,6 +246,28 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
       text-decoration: none;
       font-weight: 600;
     }
+
+    .portal-section--chart {
+      min-height: 280px;
+    }
+
+    .chart-skeleton {
+      height: 220px;
+      border-radius: var(--nutri-radius-sm);
+      background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--nutri-border) 35%, white) 0%,
+        color-mix(in srgb, var(--nutri-border) 15%, white) 50%,
+        color-mix(in srgb, var(--nutri-border) 35%, white) 100%
+      );
+      background-size: 200% 100%;
+      animation: chart-skeleton-shimmer 1.4s ease-in-out infinite;
+    }
+
+    @keyframes chart-skeleton-shimmer {
+      0% { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
   `,
   styleUrl: '../portal.scss',
 })
@@ -252,12 +281,16 @@ export class DashboardComponent implements OnInit {
   readonly loading = signal(true);
   readonly weekAdherence = signal<PlanAdherenceHistory | null>(null);
   readonly todayDateLabel = this.formatTodayDate();
+  private lastGenerationPhase: GenerationPhase = 'idle';
+  private refreshInFlight: Promise<void> | null = null;
 
   constructor() {
     effect(() => {
-      if (this.generation.phase() === 'ready' || this.generation.showReadyNotice()) {
+      const phase = this.generation.phase();
+      if (phase === 'ready' && this.lastGenerationPhase !== 'ready') {
         void this.refreshFromStore(true);
       }
+      this.lastGenerationPhase = phase;
     });
   }
 
@@ -279,17 +312,32 @@ export class DashboardComponent implements OnInit {
   }
 
   private async refreshFromStore(force: boolean): Promise<void> {
-    this.loading.set(true);
-    try {
-      await Promise.all([
-        this.portalData.loadNutritionProfile(force),
-        this.portalData.loadTodayCheckins(force),
-        this.portalData.loadCheckinStats(force),
-      ]);
-      await this.loadWeekAdherence();
-    } finally {
-      this.loading.set(false);
+    if (this.refreshInFlight) {
+      return this.refreshInFlight;
     }
+
+    const showLoading = !this.portalData.todayCheckins();
+    if (showLoading) {
+      this.loading.set(true);
+    }
+
+    this.refreshInFlight = (async () => {
+      try {
+        await Promise.all([
+          this.portalData.loadNutritionProfile(force),
+          this.portalData.loadTodayCheckins(force),
+          this.portalData.loadCheckinStats(force),
+          this.loadWeekAdherence(),
+        ]);
+      } finally {
+        if (showLoading) {
+          this.loading.set(false);
+        }
+        this.refreshInFlight = null;
+      }
+    })();
+
+    return this.refreshInFlight;
   }
 
   private async loadWeekAdherence(): Promise<void> {

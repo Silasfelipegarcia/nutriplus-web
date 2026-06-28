@@ -92,7 +92,9 @@ import {
     .plan-chart__plot {
       position: relative;
       min-height: 180px;
+      height: 180px;
       padding-top: 1.25rem;
+      contain: layout style;
     }
 
     .plan-chart__target-line {
