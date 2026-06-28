@@ -1,7 +1,13 @@
 .portal-shell {
   display: grid;
-  min-height: 100vh;
+  min-height: 100dvh;
   grid-template-columns: 260px 1fr 320px;
+
+  @media (min-width: 901px) {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
 
   @media (max-width: 1100px) {
     grid-template-columns: 220px 1fr;
@@ -9,6 +15,9 @@
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
+    height: auto;
+    max-height: none;
+    overflow: visible;
   }
 }
 
@@ -18,9 +27,16 @@
   padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  position: sticky;
-  top: 0;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  @media (min-width: 901px) {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+  }
 
   @media (max-width: 900px) {
     display: none;
@@ -62,11 +78,19 @@
 
 .portal-main {
   padding: 2rem 2.5rem;
+  min-height: 0;
+  min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   background: var(--nutri-surface);
+
+  @media (max-width: 900px) {
+    padding: 1.25rem 1rem 2rem;
+    overflow-y: visible;
+  }
 }
 
 .portal-page {
@@ -224,7 +248,10 @@
   border-left: 1px solid var(--nutri-border);
   background: white;
   padding: 1.5rem 1rem;
+  min-height: 0;
+  min-width: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 
   @media (max-width: 1100px) {
     display: none;
