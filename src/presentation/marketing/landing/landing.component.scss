@@ -186,6 +186,12 @@
   flex-wrap: wrap;
   gap: 0.875rem;
   margin-bottom: 1.25rem;
+
+  .nutri-btn--beta {
+    padding: 0.95rem 1.85rem;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+  }
 }
 
 .hero__stats {

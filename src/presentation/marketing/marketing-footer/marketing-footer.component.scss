@@ -55,6 +55,21 @@
   }
 }
 
+.site-footer__link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    color: white;
+  }
+}
+
 .site-footer__bottom {
   margin-top: 2.5rem;
   padding-top: 1.5rem;

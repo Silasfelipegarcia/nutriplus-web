@@ -62,3 +62,15 @@
   display: flex;
   justify-content: center;
 }
+
+.auth-card__forgot {
+  text-align: right;
+  margin: -0.5rem 0 1rem;
+  font-size: 0.875rem;
+
+  a {
+    color: var(--nutri-brand);
+    font-weight: 600;
+    text-decoration: none;
+  }
+}

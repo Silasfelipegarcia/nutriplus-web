@@ -17,6 +17,7 @@ import { routes } from './app.routes';
 import { AnalyticsRouterService } from '../infrastructure/analytics/analytics-router.service';
 import { AnalyticsService } from '../infrastructure/analytics/analytics.service';
 import { CookieConsentService } from '../infrastructure/analytics/cookie-consent.service';
+import { FeatureFlagService } from '../infrastructure/http/feature-flag.service';
 import { SeoRouterService } from '../infrastructure/seo/seo-router.service';
 import { AUTH_REPOSITORY } from '../domain/repositories/auth.repository';
 import { NUTRITION_REPOSITORY } from '../domain/repositories/nutrition.repository';
@@ -32,6 +33,22 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
 
 function bootstrapAuth(auth: AuthFacade): () => Promise<void> {
   return () => auth.bootstrap();
+}
+
+function bootstrapCookieConsent(): () => void {
+  const consentService = inject(CookieConsentService);
+  const platformId = inject(PLATFORM_ID);
+
+  return () => {
+    if (isPlatformBrowser(platformId)) {
+      consentService.syncFromStorage();
+    }
+  };
+}
+
+function bootstrapFeatureFlags(): () => Promise<void> {
+  const featureFlags = inject(FeatureFlagService);
+  return () => featureFlags.list().then(() => undefined);
 }
 
 function bootstrapAnalytics(): () => void {
@@ -53,7 +70,6 @@ function bootstrapAnalytics(): () => void {
         consentService.syncFromStorage();
         analytics.wireConsentHandling();
         seoRouter.init();
-        analytics.initIfConsented();
         routerAnalytics.init();
         if (consentService.hasAnalyticsConsent()) {
           routerAnalytics.trackCurrentPage();
@@ -78,6 +94,16 @@ export const appConfig: ApplicationConfig = {
     HttpCareRepository,
     ChunkLoadRecovery,
     provideChunkLoadRecovery(),
+    {
+      provide: APP_INITIALIZER,
+      useFactory: bootstrapFeatureFlags,
+      multi: true,
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: bootstrapCookieConsent,
+      multi: true,
+    },
     {
       provide: APP_INITIALIZER,
       useFactory: bootstrapAuth,

@@ -46,7 +46,12 @@ export type AnalyticsEventName =
   | 'campaign_landing_view'
   | 'beta_signup_start'
   | 'beta_signup_complete'
-  | 'beta_signup_error';
+  | 'beta_signup_error'
+  | 'password_reset_request'
+  | 'password_reset_request_success'
+  | 'password_reset_request_error'
+  | 'password_reset_complete'
+  | 'password_reset_complete_error';
 
 export interface AnalyticsEventParams {
   funnel_id?: FunnelId;

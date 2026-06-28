@@ -32,18 +32,26 @@ export class AnalyticsService {
     if (!this.isBrowser) {
       return;
     }
-    this.consentService.consent$.subscribe((state) => {
+
+    const applyConsent = (state: ReturnType<CookieConsentService['getState']>): void => {
       if (state?.analytics) {
         this.init();
         this.flushPending();
       } else if (state && !state.analytics) {
         this.pendingEvents.length = 0;
       }
-    });
+    };
+
+    this.consentService.syncFromStorage();
+    applyConsent(this.consentService.getState());
+    this.consentService.consent$.subscribe(applyConsent);
   }
 
   init(): void {
     if (!this.isBrowser || !this.measurementId || this.initialized || !this.consentService.hasAnalyticsConsent()) {
+      if (!environment.production && this.isBrowser && !this.measurementId) {
+        console.warn('[analytics] GA_MEASUREMENT_ID / environment.gaId ausente — eventos não serão enviados.');
+      }
       return;
     }
 
@@ -56,13 +64,19 @@ export class AnalyticsService {
     }
 
     window.gtag('consent', 'default', {
-      analytics_storage: 'granted',
+      analytics_storage: 'denied',
       ad_storage: 'denied',
       ad_user_data: 'denied',
       ad_personalization: 'denied',
     });
 
     window.gtag('js', new Date());
+    window.gtag('consent', 'update', {
+      analytics_storage: 'granted',
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+    });
     window.gtag('config', this.measurementId, {
       send_page_view: false,
       anonymize_ip: true,
@@ -70,20 +84,11 @@ export class AnalyticsService {
     });
     this.initialized = true;
 
-    this.loadGtagScript()
-      .then(() => {
-        window.gtag('consent', 'update', {
-          analytics_storage: 'granted',
-          ad_storage: 'denied',
-          ad_user_data: 'denied',
-          ad_personalization: 'denied',
-        });
-      })
-      .catch((error) => {
-        if (!environment.production) {
-          console.warn('[analytics] falha ao carregar gtag', error);
-        }
-      });
+    void this.loadGtagScript().catch((error) => {
+      if (!environment.production) {
+        console.warn('[analytics] falha ao carregar gtag', error);
+      }
+    });
   }
 
   initIfConsented(): void {
@@ -341,6 +346,32 @@ export class AnalyticsService {
       ...this.campaignParams(attribution),
       registration_mode: mode,
       cta_location: location,
+      error_code: sanitizeAnalyticsError(errorCode),
+    });
+  }
+
+  trackPasswordResetRequest(): void {
+    this.send('password_reset_request', { flow_id: this.flowService.getFlowId() });
+  }
+
+  trackPasswordResetRequestSuccess(): void {
+    this.send('password_reset_request_success', { flow_id: this.flowService.getFlowId() });
+  }
+
+  trackPasswordResetRequestError(errorCode: string): void {
+    this.send('password_reset_request_error', {
+      flow_id: this.flowService.getFlowId(),
+      error_code: sanitizeAnalyticsError(errorCode),
+    });
+  }
+
+  trackPasswordResetComplete(): void {
+    this.send('password_reset_complete', { flow_id: this.flowService.getFlowId() });
+  }
+
+  trackPasswordResetCompleteError(errorCode: string): void {
+    this.send('password_reset_complete_error', {
+      flow_id: this.flowService.getFlowId(),
       error_code: sanitizeAnalyticsError(errorCode),
     });
   }

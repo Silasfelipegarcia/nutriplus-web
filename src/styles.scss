@@ -1,3 +1,7 @@
 @use 'design-system/tokens';
 @use 'design-system/buttons';
 @use 'design-system/forms';
+
+body.has-cookie-banner {
+  padding-bottom: calc(var(--cookie-banner-offset, 96px) + env(safe-area-inset-bottom, 0px));
+}

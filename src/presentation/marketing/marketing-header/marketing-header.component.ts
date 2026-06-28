@@ -23,7 +23,7 @@ import { environment } from '../../../environments/environment';
         <div class="site-header__actions">
           @if (registrationOpen() === false) {
             <a
-              class="header-btn header-btn--outline"
+              class="header-btn header-btn--beta"
               routerLink="/beta"
               appAnalyticsCta="participar_beta"
               appAnalyticsCtaLocation="header"

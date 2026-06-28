@@ -78,6 +78,31 @@ export class HttpAuthRepository implements AuthRepository {
     return this.authorizedPut<User>('/users/me', data, 'update-profile');
   }
 
+  async forgotPassword(email: string): Promise<string> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{ message: string }>(`${environment.apiBaseUrl}/auth/forgot-password`, { email }, {
+          headers: { 'Content-Type': 'application/json', ...this.trace.headers('forgot-password') },
+        }),
+      );
+      return response.message;
+    } catch (e) {
+      throw this.toApiError(e);
+    }
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.post<void>(`${environment.apiBaseUrl}/auth/reset-password`, { token, newPassword }, {
+          headers: { 'Content-Type': 'application/json', ...this.trace.headers('reset-password') },
+        }),
+      );
+    } catch (e) {
+      throw this.toApiError(e);
+    }
+  }
+
   private async postRegister(path: string, body: unknown, flowId: string): Promise<RegisterResponse> {
     const idempotencyKey = newIdempotencyKey();
     try {

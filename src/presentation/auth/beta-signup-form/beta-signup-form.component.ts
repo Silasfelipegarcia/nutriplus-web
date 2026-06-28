@@ -26,9 +26,13 @@ import { RegistrationMode } from '../../../domain/analytics/analytics.model';
   selector: 'app-beta-signup-form',
   standalone: true,
   imports: [FormsModule, RouterLink, NutriButtonComponent, NutriInputComponent],
+  host: {
+    'ngSkipHydration': 'true',
+    '[class.beta-form--compact]': 'compact',
+  },
   template: `
-    @if (showTitle) {
-      <h2 class="beta-form__title">{{ registrationOpen() ? 'Criar conta' : 'Solicite seu acesso ao beta' }}</h2>
+    @if (showTitle && !compact) {
+      <h2 class="beta-form__title">{{ registrationOpen() ? 'Criar conta' : compactTitle }}</h2>
       <p class="beta-form__subtitle">
         @if (registrationOpen()) {
           Comece sua jornada alimentar. Exclusivo para maiores de 18 anos.
@@ -44,7 +48,29 @@ import { RegistrationMode } from '../../../domain/analytics/analytics.model';
       <div class="beta-form__error" role="alert">{{ authErrorMessage }}</div>
     }
     <form (ngSubmit)="submit()">
-      @if (!registrationOpen()) {
+      @if (compact) {
+        <fieldset class="beta-form__profile beta-form__profile--compact">
+          <legend class="sr-only">Quero participar como</legend>
+          <div class="beta-form__profile-tabs" role="radiogroup" aria-label="Tipo de participação">
+            <button
+              type="button"
+              class="beta-form__profile-tab"
+              [class.beta-form__profile-tab--active]="profileType === 'patient'"
+              (click)="profileType = 'patient'"
+            >
+              Cliente
+            </button>
+            <button
+              type="button"
+              class="beta-form__profile-tab"
+              [class.beta-form__profile-tab--active]="profileType === 'nutritionist'"
+              (click)="profileType = 'nutritionist'"
+            >
+              Nutricionista
+            </button>
+          </div>
+        </fieldset>
+      } @else if (!registrationOpen()) {
         <fieldset class="beta-form__profile">
           <legend>Quero participar como</legend>
           <label class="beta-form__profile-option">
@@ -69,7 +95,7 @@ import { RegistrationMode } from '../../../domain/analytics/analytics.model';
       />
       <nutri-input label="CPF" [(ngModel)]="cpf" name="cpf" placeholder="000.000.000-00" (ngModelChange)="onCpfChange($event)" />
 
-      @if (registrationOpen() || profileType === 'patient') {
+      @if (compact || registrationOpen() || profileType === 'patient') {
         <nutri-input label="Data de nascimento" type="date" [(ngModel)]="birthDate" name="birthDate" />
       }
 
@@ -80,9 +106,16 @@ import { RegistrationMode } from '../../../domain/analytics/analytics.model';
       }
 
       <nutri-input label="Senha" type="password" [(ngModel)]="password" name="password" />
-      <nutri-button variant="primary" type="submit" [block]="true" [disabled]="auth.loading() || loadingFlags()">
+      <nutri-button
+        [variant]="compact || !registrationOpen() ? 'beta' : 'primary'"
+        type="submit"
+        [block]="true"
+        [disabled]="auth.loading() || loadingFlags()"
+      >
         @if (auth.loading()) {
           Enviando...
+        } @else if (compact) {
+          Solicitar acesso
         } @else if (registrationOpen()) {
           Cadastrar
         } @else {
@@ -110,13 +143,44 @@ import { RegistrationMode } from '../../../domain/analytics/analytics.model';
     .beta-form__profile { border: 0; margin: 0 0 16px; padding: 0; display: grid; gap: 8px; }
     .beta-form__profile legend { font-weight: 700; margin-bottom: 4px; padding: 0; }
     .beta-form__profile-option { display: flex; align-items: flex-start; gap: 8px; font-size: 0.95rem; line-height: 1.4; cursor: pointer; }
+    .beta-form__profile-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .beta-form__profile-tab {
+      border: 1.5px solid #e5ece8;
+      background: #fff;
+      border-radius: 12px;
+      padding: 0.65rem 0.5rem;
+      font-family: var(--nutri-font);
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--nutri-ink-muted);
+      cursor: pointer;
+    }
+    .beta-form__profile-tab--active {
+      border-color: var(--nutri-brand-dark);
+      background: #e8f5ee;
+      color: var(--nutri-brand-deep);
+    }
+    :host(.beta-form--compact) form {
+      display: grid;
+      gap: 0;
+    }
+    :host(.beta-form--compact) .beta-form__profile--compact {
+      margin-bottom: 12px;
+    }
   `,
 })
 export class BetaSignupFormComponent implements OnInit {
   @Input() showTitle = true;
   @Input() showFooterLinks = true;
+  @Input() compact = false;
   @Input() analyticsLocation = 'beta_form';
   @Output() submitted = new EventEmitter<void>();
+
+  readonly compactTitle = 'Seus dados';
 
   readonly auth = inject(AuthFacade);
   private readonly router = inject(Router);
@@ -124,7 +188,7 @@ export class BetaSignupFormComponent implements OnInit {
   private readonly analytics = inject(AnalyticsService);
   private readonly campaign = inject(CampaignAttributionService);
 
-  readonly registrationOpen = signal(true);
+  readonly registrationOpen = signal(false);
   readonly loadingFlags = signal(true);
 
   profileType: BetaProfileType = 'patient';
@@ -145,12 +209,29 @@ export class BetaSignupFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (this.featureFlags.cacheReady()) {
+      this.syncRegistrationFlag();
+      return;
+    }
     void this.loadFlags();
+  }
+
+  private syncRegistrationFlag(): void {
+    if (this.compact) {
+      this.registrationOpen.set(false);
+    } else {
+      this.registrationOpen.set(this.featureFlags.isRegistrationOpenSync());
+    }
+    this.loadingFlags.set(false);
   }
 
   private async loadFlags(): Promise<void> {
     try {
-      this.registrationOpen.set(await this.featureFlags.isEnabled('REGISTRATION_OPEN'));
+      if (this.compact) {
+        this.registrationOpen.set(false);
+      } else {
+        this.registrationOpen.set(await this.featureFlags.isRegistrationOpen());
+      }
     } finally {
       this.loadingFlags.set(false);
     }

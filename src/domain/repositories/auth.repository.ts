@@ -26,6 +26,8 @@ export interface AuthRepository {
   acceptTerms(termsVersion: string, privacyVersion: string): Promise<User>;
   changePassword(currentPassword: string, newPassword: string): Promise<AuthResponse>;
   updateProfile(data: { name?: string; photoUrl?: string }): Promise<User>;
+  forgotPassword(email: string): Promise<string>;
+  resetPassword(token: string, newPassword: string): Promise<void>;
 }
 
 export const AUTH_REPOSITORY = new InjectionToken<AuthRepository>('AUTH_REPOSITORY');

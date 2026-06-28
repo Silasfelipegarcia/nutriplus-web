@@ -16,7 +16,7 @@ import { APP_NAME } from '../../core/constants';
         <p class="auth-card__footer">
           <a routerLink="/">Saiba mais sobre o {{ appName }}</a>
           @if (registrationOpen() === false) {
-            · <a routerLink="/beta">Participar do beta</a>
+            · <a routerLink="/beta" class="beta-cta-link">Participar do beta</a>
           }
         </p>
         <app-beta-signup-form analyticsLocation="signup_page" />

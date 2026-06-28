@@ -3,7 +3,7 @@ export const environment = {
   apiBaseUrl: 'http://localhost:8080',
   appStoreUrl: 'https://apps.apple.com/app/nutriplus',
   playStoreUrl: 'https://play.google.com/store/apps/details?id=br.com.nutriplus',
-  gaId: '',
+  gaId: 'G-L11DG3Z3ZC',
   siteUrl: 'http://localhost:4200',
   mercadoPagoPublicKey: '',
   termsVersion: '1.0',

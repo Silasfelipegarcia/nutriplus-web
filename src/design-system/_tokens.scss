@@ -1,6 +1,7 @@
 :root {
   --nutri-brand: #3d8b5f;
   --nutri-brand-dark: #2a6b47;
+  --nutri-brand-deep: #1a4d32;
   --nutri-brand-light: #e8f5ec;
   --nutri-accent: #5baf7a;
   --nutri-sage: #7aab8a;
@@ -42,7 +43,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-a:not(.nutri-btn):not(.header-btn):not(.logo) {
+a:not(.nutri-btn):not(.header-btn):not(.logo):not(.beta-cta-link) {
   color: var(--nutri-brand);
   text-decoration: none;
 

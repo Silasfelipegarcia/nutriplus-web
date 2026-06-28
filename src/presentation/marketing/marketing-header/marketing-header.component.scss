@@ -104,6 +104,24 @@ a.header-btn--primary {
   }
 }
 
+.header-btn--beta,
+a.header-btn--beta {
+  color: #fff;
+  background: linear-gradient(135deg, var(--nutri-brand-dark) 0%, var(--nutri-brand-deep) 100%);
+  border: none;
+  box-shadow:
+    0 4px 18px rgba(26, 77, 50, 0.42),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+
+  &:hover {
+    color: #fff;
+    background: linear-gradient(135deg, #327a52 0%, #153d28 100%);
+    box-shadow:
+      0 8px 26px rgba(26, 77, 50, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.16) inset;
+  }
+}
+
 .header-btn--sm {
   padding: 0.5rem 1rem;
   font-size: 0.8125rem;

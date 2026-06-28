@@ -3,7 +3,6 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 export const COOKIE_CONSENT_KEY = 'nutri_cookie_consent';
 export const COOKIE_CONSENT_VERSION = 2;
-const LEGACY_CONSENT_KEY = 'nutri_cookie_consent';
 
 export interface CookieConsentState {
   version: typeof COOKIE_CONSENT_VERSION;
@@ -14,7 +13,7 @@ export interface CookieConsentState {
 
 @Injectable({ providedIn: 'root' })
 export class CookieConsentService {
-  private readonly subject = new BehaviorSubject<CookieConsentState | null>(this.load());
+  private readonly subject = new BehaviorSubject<CookieConsentState | null>(null);
 
   readonly consent$: Observable<CookieConsentState | null> = this.subject.asObservable();
 
@@ -45,6 +44,13 @@ export class CookieConsentService {
     this.persist({ essential: true, analytics: false });
   }
 
+  clearDecision(): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(COOKIE_CONSENT_KEY);
+    }
+    this.subject.next(null);
+  }
+
   private persist(partial: Pick<CookieConsentState, 'essential' | 'analytics'>): void {
     const state: CookieConsentState = {
       version: COOKIE_CONSENT_VERSION,
@@ -65,39 +71,20 @@ export class CookieConsentService {
     }
 
     const raw = localStorage.getItem(COOKIE_CONSENT_KEY);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw) as CookieConsentState;
-        if (parsed.version === COOKIE_CONSENT_VERSION) {
-          return parsed;
-        }
-      } catch {
-        // fall through to legacy migration
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as CookieConsentState;
+      if (parsed.version === COOKIE_CONSENT_VERSION) {
+        return parsed;
       }
+    } catch {
+      // valor legado inválido — tratar como sem decisão
     }
 
-    const legacy = localStorage.getItem(LEGACY_CONSENT_KEY);
-    if (legacy === 'accepted') {
-      const migrated: CookieConsentState = {
-        version: COOKIE_CONSENT_VERSION,
-        essential: true,
-        analytics: true,
-        decidedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(migrated));
-      return migrated;
-    }
-    if (legacy === 'rejected') {
-      const migrated: CookieConsentState = {
-        version: COOKIE_CONSENT_VERSION,
-        essential: true,
-        analytics: false,
-        decidedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(migrated));
-      return migrated;
-    }
-
+    localStorage.removeItem(COOKIE_CONSENT_KEY);
     return null;
   }
 }

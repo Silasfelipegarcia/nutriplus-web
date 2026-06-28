@@ -32,6 +32,9 @@ import { APP_NAME } from '../../core/constants';
         <form (ngSubmit)="submit()">
           <nutri-input label="E-mail" type="email" [(ngModel)]="email" name="email" />
           <nutri-input label="Senha" type="password" [(ngModel)]="password" name="password" />
+          <p class="auth-card__forgot">
+            <a routerLink="/auth/esqueci-senha">Esqueci minha senha</a>
+          </p>
           <nutri-button variant="primary" type="submit" [block]="true" [disabled]="auth.loading()">
             {{ auth.loading() ? 'Entrando...' : 'Entrar' }}
           </nutri-button>
@@ -41,7 +44,7 @@ import { APP_NAME } from '../../core/constants';
           @if (registrationOpen()) {
             <a routerLink="/auth/cadastro" appAnalyticsCta="criar_conta" appAnalyticsCtaLocation="login_footer">Cadastre-se</a>
           } @else if (registrationOpen() === false) {
-            <a routerLink="/beta" appAnalyticsCta="participar_beta" appAnalyticsCtaLocation="login_footer">Participar do beta</a>
+            <a routerLink="/beta" class="beta-cta-link" appAnalyticsCta="participar_beta" appAnalyticsCtaLocation="login_footer">Participar do beta</a>
           }
         </p>
       </div>

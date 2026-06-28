@@ -42,7 +42,7 @@ export class NutriButtonComponent implements AfterContentInit {
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly analytics = inject(AnalyticsService);
 
-  @Input() variant: 'primary' | 'secondary' | 'ghost' | 'outline' = 'primary';
+  @Input() variant: 'primary' | 'secondary' | 'ghost' | 'outline' | 'beta' = 'primary';
   @Input() size: 'md' | 'sm' = 'md';
   @Input() block = false;
   @Input() type: 'button' | 'submit' = 'button';

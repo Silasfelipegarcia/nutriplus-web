@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NutriLogoComponent } from '../../../design-system/nutri-logo/nutri-logo.component';
+import { CookieConsentService } from '../../../infrastructure/analytics/cookie-consent.service';
 import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
 import { TAGLINE, APP_NAME } from '../../core/constants';
 
@@ -38,6 +39,11 @@ import { TAGLINE, APP_NAME } from '../../core/constants';
                 <a routerLink="/cookies" appAnalyticsCta="cookies" appAnalyticsCtaLocation="footer">Cookies</a>
               </li>
               <li>
+                <button type="button" class="site-footer__link" (click)="openCookiePreferences()">
+                  Preferências de cookies
+                </button>
+              </li>
+              <li>
                 <a routerLink="/seguranca" appAnalyticsCta="seguranca" appAnalyticsCtaLocation="footer">Segurança</a>
               </li>
             </ul>
@@ -52,7 +58,13 @@ import { TAGLINE, APP_NAME } from '../../core/constants';
   styleUrl: './marketing-footer.component.scss',
 })
 export class MarketingFooterComponent {
+  private readonly cookieConsent = inject(CookieConsentService);
+
   readonly tagline = TAGLINE;
   readonly appName = APP_NAME;
   readonly year = new Date().getFullYear();
+
+  openCookiePreferences(): void {
+    this.cookieConsent.clearDecision();
+  }
 }

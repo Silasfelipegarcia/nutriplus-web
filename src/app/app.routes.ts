@@ -160,6 +160,18 @@ export const routes: Routes = [
     data: acq(3, 'signup_pro_form_view', privateSeo('/auth/cadastro-nutricionista', 'Cadastro Pro — Nutri+')),
   },
   {
+    path: 'auth/esqueci-senha',
+    canActivate: [desktopGuard, guestGuard],
+    loadComponent: () => import('../presentation/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
+    data: acq(2, 'forgot_password_view', privateSeo('/auth/esqueci-senha', 'Esqueci minha senha — Nutri+')),
+  },
+  {
+    path: 'auth/redefinir-senha',
+    canActivate: [desktopGuard, guestGuard],
+    loadComponent: () => import('../presentation/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent),
+    data: acq(2, 'reset_password_view', privateSeo('/auth/redefinir-senha', 'Redefinir senha — Nutri+')),
+  },
+  {
     path: 'convite/:code',
     canActivate: [desktopGuard, authGuard],
     loadComponent: () => import('../presentation/portal/marketplace/accept-invite.component').then(m => m.AcceptInviteComponent),

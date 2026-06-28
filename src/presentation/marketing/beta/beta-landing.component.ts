@@ -23,6 +23,23 @@ import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
       <app-marketing-header />
       <main class="beta-page__main">
         <section class="beta-hero container">
+          <div class="beta-hero__mobile-head">
+            <p class="beta-hero__eyebrow">Beta · vagas limitadas</p>
+            <h1>Solicite seu acesso</h1>
+            <p class="beta-hero__mobile-lead">Cadastro rápido — analisamos e liberamos por e-mail.</p>
+          </div>
+
+          <nutri-card class="beta-hero__form-card">
+            <app-beta-signup-form
+              [showFooterLinks]="false"
+              [compact]="true"
+              analyticsLocation="beta_landing"
+            />
+          </nutri-card>
+          <p class="beta-hero__mobile-login">
+            Já tem conta? <a routerLink="/auth/login">Entrar</a>
+          </p>
+
           <div class="beta-hero__copy">
             <p class="beta-hero__eyebrow">Beta fechado · vagas limitadas</p>
             <h1>Participe do beta do Nutri+ — plano alimentar com IA</h1>
@@ -39,12 +56,19 @@ import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
               Conheça o Nutri+
             </a>
           </div>
-          <nutri-card class="beta-hero__form-card">
-            <app-beta-signup-form [showFooterLinks]="false" analyticsLocation="beta_landing" />
-          </nutri-card>
         </section>
 
-        <section class="beta-steps container">
+        <details class="beta-mobile-more container">
+          <summary>Como funciona o beta?</summary>
+          <ol class="beta-mobile-more__steps">
+            <li>Preencha o formulário acima.</li>
+            <li>Analisamos seu perfil em lotes.</li>
+            <li>Você recebe e-mail quando for aprovado.</li>
+          </ol>
+          <p class="beta-mobile-more__note">O beta é gratuito. Seus dados seguem a LGPD.</p>
+        </details>
+
+        <section class="beta-steps container beta-page__desktop-only">
           <h2>Como funciona o beta</h2>
           <ol class="beta-steps__list">
             <li><strong>Solicite acesso</strong> — preencha o formulário com seus dados.</li>
@@ -53,7 +77,7 @@ import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
           </ol>
         </section>
 
-        <section class="beta-faq container" id="faq">
+        <section class="beta-faq container beta-page__desktop-only" id="faq">
           <h2>Perguntas frequentes</h2>
           @for (item of faq; track item.q) {
             <details class="beta-faq__item">

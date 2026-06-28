@@ -2,7 +2,7 @@ import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
   { path: '', renderMode: RenderMode.Prerender },
-  { path: 'beta', renderMode: RenderMode.Prerender },
+  { path: 'beta', renderMode: RenderMode.Client },
   { path: 'privacidade', renderMode: RenderMode.Prerender },
   { path: 'termos', renderMode: RenderMode.Prerender },
   { path: 'cookies', renderMode: RenderMode.Prerender },

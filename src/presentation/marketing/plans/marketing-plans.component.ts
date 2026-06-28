@@ -1,13 +1,13 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { PlanCatalogComponent } from '../../subscription/plan-catalog/plan-catalog.component';
 import { AuthFacade } from '../../core/auth.facade';
 import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
+import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 
 @Component({
   selector: 'app-marketing-plans',
   standalone: true,
-  imports: [PlanCatalogComponent, RouterLink],
+  imports: [PlanCatalogComponent, NutriButtonComponent],
   template: `
     <div class="marketing-plans">
       <header>
@@ -15,9 +15,9 @@ import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.se
         <p>Grátis para começar. Atleta para treinar com inteligência.</p>
         @if (!auth.isAuthenticated()) {
           @if (registrationOpen()) {
-            <a routerLink="/auth/cadastro" class="btn btn-primary">Criar conta grátis</a>
+            <nutri-button variant="primary" to="/auth/cadastro">Criar conta grátis</nutri-button>
           } @else if (registrationOpen() === false) {
-            <a routerLink="/beta" class="btn btn-primary">Participar do beta</a>
+            <nutri-button variant="beta" to="/beta">Participar do beta</nutri-button>
           }
         }
       </header>

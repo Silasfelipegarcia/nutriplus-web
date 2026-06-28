@@ -7,6 +7,12 @@
   padding-bottom: 64px;
 }
 
+.beta-page__desktop-only {
+  @media (max-width: 899px) {
+    display: none;
+  }
+}
+
 .beta-hero {
   display: grid;
   gap: 32px;
@@ -16,6 +22,41 @@
   @media (min-width: 900px) {
     grid-template-columns: 1fr 420px;
     padding-top: 64px;
+  }
+
+  @media (max-width: 899px) {
+    gap: 16px;
+    padding: calc(var(--nutri-header-h) + 12px) 12px 20px;
+  }
+}
+
+.beta-hero__mobile-head {
+  display: none;
+
+  @media (max-width: 899px) {
+    display: block;
+    text-align: center;
+    padding: 0 4px 4px;
+  }
+
+  h1 {
+    margin: 0 0 8px;
+    font-size: 1.65rem;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+}
+
+.beta-hero__mobile-lead {
+  margin: 0;
+  color: var(--nutri-ink-muted, #5c6b63);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.beta-hero__copy {
+  @media (max-width: 899px) {
+    display: none;
   }
 }
 
@@ -57,6 +98,76 @@
 
 .beta-hero__form-card {
   padding: 24px;
+
+  @media (max-width: 899px) {
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(26, 77, 50, 0.08);
+  }
+}
+
+.beta-hero__mobile-login {
+  display: none;
+
+  @media (max-width: 899px) {
+    display: block;
+    margin: 0;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--nutri-ink-muted);
+
+    a {
+      font-weight: 700;
+      color: var(--nutri-brand-dark);
+    }
+  }
+}
+
+.beta-mobile-more {
+  display: none;
+
+  @media (max-width: 899px) {
+    display: block;
+    margin: 0 12px 24px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid #e5ece8;
+  }
+
+  summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--nutri-brand-dark);
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::after {
+      content: ' ▾';
+      font-size: 0.85em;
+    }
+  }
+
+  &[open] summary::after {
+    content: ' ▴';
+  }
+}
+
+.beta-mobile-more__steps {
+  margin: 12px 0 8px;
+  padding-left: 1.1rem;
+  line-height: 1.65;
+  font-size: 0.92rem;
+  color: var(--nutri-ink-muted);
+}
+
+.beta-mobile-more__note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--nutri-ink-muted);
 }
 
 .beta-steps {
@@ -98,5 +209,11 @@
     margin: 12px 0 0;
     color: var(--nutri-text-muted, #5c6b63);
     line-height: 1.6;
+  }
+}
+
+@media (max-width: 899px) {
+  .beta-page app-marketing-footer {
+    display: none;
   }
 }

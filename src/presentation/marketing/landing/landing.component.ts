@@ -62,7 +62,7 @@ import { environment } from '../../../environments/environment';
                   >Começar gratuitamente</nutri-button>
                 } @else if (registrationOpen() === false) {
                   <nutri-button
-                    variant="primary"
+                    variant="beta"
                     to="/beta"
                     analyticsCta="participar_beta"
                     analyticsLocation="hero"

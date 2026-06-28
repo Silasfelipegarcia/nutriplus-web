@@ -52,7 +52,7 @@ import { RegistrationMode } from '../../../domain/analytics/analytics.model';
           <nutri-input label="Senha" type="password" [(ngModel)]="password" name="password" />
           <nutri-input label="Especialidades" [(ngModel)]="specialties" name="specialties" placeholder="Ex: Esportiva, clínica" />
           <nutri-input label="Bio" type="textarea" [(ngModel)]="bio" name="bio" placeholder="Apresentação breve" />
-          <nutri-button variant="primary" type="submit" [block]="true" [disabled]="auth.loading() || loadingFlags()">
+          <nutri-button [variant]="registrationOpen() ? 'primary' : 'beta'" type="submit" [block]="true" [disabled]="auth.loading() || loadingFlags()">
             @if (auth.loading()) {
               Enviando...
             } @else if (registrationOpen()) {
@@ -68,7 +68,7 @@ import { RegistrationMode } from '../../../domain/analytics/analytics.model';
           @if (registrationOpen()) {
             <a routerLink="/auth/cadastro">Cadastro paciente</a>
           } @else {
-            <a routerLink="/beta">Participar do beta</a>
+            <a routerLink="/beta" class="beta-cta-link">Participar do beta</a>
           }
         </p>
       </div>
