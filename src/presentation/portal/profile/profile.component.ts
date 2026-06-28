@@ -21,6 +21,9 @@ import { TokenStorage } from '../../../infrastructure/auth/token-storage';
 import { jwtRoles } from '../../core/jwt.util';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { withActionFeedback } from '../../core/action-feedback';
+import { mealRoutineSummary } from '../../core/meal-routine';
+import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
+import { ProfileEditService } from './profile-edit.service';
 
 const GOAL_LABELS: Record<string, string> = {
   LOSE_WEIGHT: 'Perder peso',
@@ -32,6 +35,19 @@ const DIET_LABELS: Record<string, string> = {
   OMNIVORE: 'Onívoro',
   VEGETARIAN: 'Vegetariano',
   VEGAN: 'Vegano',
+};
+
+const RESTRICTION_LABELS: Record<string, string> = {
+  NONE: 'Nenhuma',
+  LACTOSE: 'Sem lactose',
+  GLUTEN: 'Sem glúten',
+  LACTOSE_GLUTEN: 'Sem lactose e glúten',
+};
+
+const BUDGET_LABELS: Record<string, string> = {
+  ECONOMIC: 'Econômico',
+  MODERATE: 'Moderado',
+  FLEXIBLE: 'Flexível',
 };
 
 @Component({
@@ -50,6 +66,25 @@ const DIET_LABELS: Record<string, string> = {
   ],
   template: `
     <div class="portal-page">
+      @if (profileEdit.regeneratePrompt(); as prompt) {
+        <div class="profile-dialog-backdrop" (click)="closeRegenerateDialog()">
+          <div class="profile-dialog" role="dialog" (click)="$event.stopPropagation()">
+            <h3>Perfil atualizado</h3>
+            <p>{{ prompt.messages.join(' ') }} Deseja gerar um novo plano alimentar agora?</p>
+            <div class="portal-actions" style="margin-top: 1rem; padding-top: 0; border: none">
+              <nutri-button variant="ghost" (click)="closeRegenerateDialog()">Depois</nutri-button>
+              <nutri-button
+                variant="primary"
+                [disabled]="generation.phase() === 'generating'"
+                (click)="generatePlan()"
+              >
+                {{ generation.phase() === 'generating' ? 'Gerando...' : 'Gerar plano agora' }}
+              </nutri-button>
+            </div>
+          </div>
+        </div>
+      }
+
       @if (auth.user(); as user) {
         <div class="profile-hero portal-card portal-card--highlight">
           <div class="profile-hero__main">
@@ -72,7 +107,9 @@ const DIET_LABELS: Record<string, string> = {
             </div>
           </div>
           <div class="portal-actions profile-hero__actions">
-            <nutri-button variant="secondary" to="/onboarding">Editar onboarding</nutri-button>
+            <nutri-button variant="secondary" to="/app/perfil/editar/preferencias">Editar preferências</nutri-button>
+            <nutri-button variant="secondary" to="/app/perfil/editar/metricas">Editar dados pessoais</nutri-button>
+            <nutri-button variant="secondary" to="/app/perfil/editar/saude">Editar dieta e saúde</nutri-button>
             <nutri-button variant="secondary" to="/app/treino">Modo atleta</nutri-button>
             <nutri-button variant="secondary" to="/app/nutricionistas">Buscar nutricionista</nutri-button>
             @if (isNutritionist()) {
@@ -93,7 +130,38 @@ const DIET_LABELS: Record<string, string> = {
             </div>
           </nutri-section>
 
+          <nutri-section
+            title="Preferências alimentares"
+            description="Gostos, aversões e rotina usados pela IA no plano."
+          >
+            <nutri-button sectionAction variant="secondary" size="sm" to="/app/perfil/editar/preferencias">
+              Editar preferências
+            </nutri-button>
+            <div class="portal-card">
+              <div class="profile-detail-grid">
+                <p><strong>Orçamento:</strong> {{ budgetLabel() }}</p>
+                <p><strong>Rotina:</strong> {{ mealRoutineLabel() }}</p>
+                @if (p.foodLikes) {
+                  <p class="profile-detail-grid__full"><strong>Gosta de:</strong> {{ p.foodLikes }}</p>
+                } @else {
+                  <p class="profile-detail-grid__full"><strong>Gosta de:</strong> <span class="profile-muted">Não informado</span></p>
+                }
+                @if (p.foodDislikes) {
+                  <p class="profile-detail-grid__full"><strong>Evita:</strong> {{ p.foodDislikes }}</p>
+                } @else {
+                  <p class="profile-detail-grid__full"><strong>Evita:</strong> <span class="profile-muted">Não informado</span></p>
+                }
+                @if (p.mealNotes) {
+                  <p class="profile-detail-grid__full"><strong>Observações:</strong> {{ p.mealNotes }}</p>
+                }
+              </div>
+            </div>
+          </nutri-section>
+
           <nutri-section title="Dados demográficos" description="Informações usadas nos cálculos metabólicos.">
+            <nutri-button sectionAction variant="secondary" size="sm" to="/app/perfil/editar/metricas">
+              Editar dados pessoais
+            </nutri-button>
             <div class="portal-card">
               <div class="profile-detail-grid">
                 @if (p.birthDate) {
@@ -110,7 +178,6 @@ const DIET_LABELS: Record<string, string> = {
                 @if (p.lifeStage) {
                   <p><strong>Faixa etária:</strong> {{ lifeStageLabel(p.lifeStage) }}</p>
                 }
-                <p><strong>Dieta:</strong> {{ dietLabel() }}</p>
                 @if (p.athleteModeEnabled && p.trainingDailyExtraKcal) {
                   <p>
                     <strong>Modo atleta:</strong>
@@ -124,24 +191,35 @@ const DIET_LABELS: Record<string, string> = {
             </div>
           </nutri-section>
 
-          @if (p.healthConditions || p.allergies || p.medications || p.healthNotes) {
-            <nutri-section title="Saúde" description="Informações compartilhadas com a IA e seu nutricionista.">
-              <div class="portal-card">
+          <nutri-section title="Dieta e saúde" description="Informações compartilhadas com a IA e seu nutricionista.">
+            <nutri-button sectionAction variant="secondary" size="sm" to="/app/perfil/editar/saude">
+              Editar dieta e saúde
+            </nutri-button>
+            <div class="portal-card">
+              <div class="profile-detail-grid">
+                <p><strong>Dieta:</strong> {{ dietLabel() }}</p>
+                <p><strong>Restrição:</strong> {{ restrictionLabel() }}</p>
+                @if (p.wakeTime || p.sleepTime) {
+                  <p>
+                    <strong>Sono:</strong>
+                    acorda {{ p.wakeTime || '—' }} · dorme {{ p.sleepTime || '—' }}
+                  </p>
+                }
                 @if (p.healthConditions) {
-                  <p><strong>Condições:</strong> {{ p.healthConditions }}</p>
+                  <p class="profile-detail-grid__full"><strong>Condições:</strong> {{ p.healthConditions }}</p>
                 }
                 @if (p.allergies) {
-                  <p><strong>Alergias:</strong> {{ p.allergies }}</p>
+                  <p class="profile-detail-grid__full"><strong>Alergias:</strong> {{ p.allergies }}</p>
                 }
                 @if (p.medications) {
-                  <p><strong>Medicamentos:</strong> {{ p.medications }}</p>
+                  <p class="profile-detail-grid__full"><strong>Medicamentos:</strong> {{ p.medications }}</p>
                 }
                 @if (p.healthNotes) {
-                  <p><strong>Observações:</strong> {{ p.healthNotes }}</p>
+                  <p class="profile-detail-grid__full"><strong>Observações:</strong> {{ p.healthNotes }}</p>
                 }
               </div>
-            </nutri-section>
-          }
+            </div>
+          </nutri-section>
         }
 
         <nutri-section
@@ -218,9 +296,46 @@ const DIET_LABELS: Record<string, string> = {
     </div>
   `,
   styleUrl: '../portal.scss',
+  styles: `
+    .profile-dialog-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    .profile-dialog {
+      background: white;
+      border-radius: var(--nutri-radius);
+      padding: 1.5rem;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: var(--nutri-shadow);
+    }
+    .profile-dialog h3 {
+      margin: 0 0 0.75rem;
+      font-size: 1.1rem;
+    }
+    .profile-dialog p {
+      margin: 0;
+      color: var(--nutri-text-muted);
+      line-height: 1.5;
+    }
+    .profile-muted {
+      color: var(--nutri-text-muted);
+    }
+    .profile-detail-grid__full {
+      grid-column: 1 / -1;
+    }
+  `,
 })
 export class ProfileComponent implements OnInit {
   readonly auth = inject(AuthFacade);
+  readonly profileEdit = inject(ProfileEditService);
+  readonly generation = inject(MealPlanGenerationFacade);
   private readonly authRepo = inject(AUTH_REPOSITORY);
   private readonly careRepo = inject(CARE_REPOSITORY);
   private readonly portalData = inject(PortalDataStore);
@@ -266,6 +381,38 @@ export class ProfileComponent implements OnInit {
   dietLabel(): string {
     const d = this.profile()?.dietaryPreference ?? '';
     return DIET_LABELS[d] ?? d;
+  }
+
+  restrictionLabel(): string {
+    const r = this.profile()?.restriction ?? 'NONE';
+    return RESTRICTION_LABELS[r] ?? r;
+  }
+
+  budgetLabel(): string {
+    const b = this.profile()?.foodBudgetLevel ?? 'MODERATE';
+    return BUDGET_LABELS[b] ?? b;
+  }
+
+  mealRoutineLabel(): string {
+    const p = this.profile();
+    if (!p) return '—';
+    return mealRoutineSummary({
+      eatsBreakfast: p.eatsBreakfast ?? true,
+      eatsLunch: p.eatsLunch ?? true,
+      eatsAfternoonSnack: p.eatsAfternoonSnack ?? false,
+      eatsDinner: p.eatsDinner ?? true,
+      openToRoutineAdjustment: p.openToRoutineAdjustment ?? false,
+      freeExtras: p.freeExtras ?? [],
+    });
+  }
+
+  closeRegenerateDialog(): void {
+    this.profileEdit.clearRegeneratePrompt();
+  }
+
+  async generatePlan(): Promise<void> {
+    this.profileEdit.clearRegeneratePrompt();
+    await this.generation.generate('profile');
   }
 
   isNutritionist(): boolean {

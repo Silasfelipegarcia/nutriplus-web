@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { OnboardingDraft } from '../../domain/entities';
+import { NutritionProfile, OnboardingActivityDraft, OnboardingDraft, TrainingProfile } from '../../domain/entities';
 import { defaultBirthDateForAge } from '../core/date.util';
 
 const DEFAULT_DRAFT: OnboardingDraft = {
@@ -49,5 +49,54 @@ export class OnboardingDraftService {
 
   reset(): void {
     this.draft.set({ ...DEFAULT_DRAFT });
+  }
+
+  hydrateFromProfile(profile: NutritionProfile, training?: TrainingProfile | null): void {
+    const birthDate = profile.birthDate?.slice(0, 10) ?? defaultBirthDateForAge(profile.age);
+    const activities: OnboardingActivityDraft[] =
+      training?.activities.map((a) => ({
+        sportType: a.sportType,
+        label: a.label,
+        customLabel: a.customLabel,
+        daysPerWeek: a.daysPerWeek,
+        minutesPerSession: a.minutesPerSession,
+      })) ?? [];
+
+    this.draft.set({
+      agentPersona: profile.agentPersona ?? 'LUNA',
+      athleteModeEnabled: profile.athleteModeEnabled ?? false,
+      activities,
+      foodLikes: profile.foodLikes ?? '',
+      foodDislikes: profile.foodDislikes ?? '',
+      mealNotes: profile.mealNotes ?? '',
+      eatsBreakfast: profile.eatsBreakfast ?? true,
+      eatsLunch: profile.eatsLunch ?? true,
+      eatsAfternoonSnack: profile.eatsAfternoonSnack ?? false,
+      eatsDinner: profile.eatsDinner ?? true,
+      openToRoutineAdjustment: profile.openToRoutineAdjustment ?? false,
+      freeExtras: [...(profile.freeExtras ?? [])],
+      foodBudgetLevel: profile.foodBudgetLevel ?? 'MODERATE',
+      age: profile.age,
+      birthDate,
+      city: profile.city ?? '',
+      stateCode: profile.stateCode ?? '',
+      chewingDifficulty: profile.chewingDifficulty ?? 'NONE',
+      seniorWeightLossAck: profile.seniorWeightLossAck ?? false,
+      goalTargetWeeks: profile.goalTargetWeeks ?? 12,
+      sex: profile.sex,
+      heightCm: profile.heightCm,
+      currentWeightKg: profile.currentWeightKg,
+      targetWeightKg: profile.targetWeightKg,
+      goal: profile.goal,
+      activityLevel: profile.activityLevel,
+      dietaryPreference: profile.dietaryPreference,
+      restriction: profile.restriction,
+      healthConditions: profile.healthConditions ?? '',
+      medications: profile.medications ?? '',
+      allergies: profile.allergies ?? '',
+      healthNotes: profile.healthNotes ?? '',
+      wakeTime: profile.wakeTime ?? '07:00',
+      sleepTime: profile.sleepTime ?? '22:30',
+    });
   }
 }

@@ -12,6 +12,7 @@ import {
   onboardingOnlyGuard,
   openRegistrationGuard,
   portalReadyGuard,
+  profileEditGuard,
 } from '../presentation/core/guards';
 
 type RouteData = {
@@ -266,6 +267,33 @@ export const routes: Routes = [
         path: 'perfil',
         loadComponent: () => import('../presentation/portal/profile/profile.component').then(m => m.ProfileComponent),
         data: ret(3, 'profile_view'),
+      },
+      {
+        path: 'perfil/editar/preferencias',
+        canActivate: [profileEditGuard],
+        loadComponent: () =>
+          import('../presentation/portal/profile/edit/profile-edit-preferences.component').then(
+            (m) => m.ProfileEditPreferencesComponent,
+          ),
+        data: ret(3, 'profile_edit_preferences'),
+      },
+      {
+        path: 'perfil/editar/metricas',
+        canActivate: [profileEditGuard],
+        loadComponent: () =>
+          import('../presentation/portal/profile/edit/profile-edit-metrics.component').then(
+            (m) => m.ProfileEditMetricsComponent,
+          ),
+        data: ret(3, 'profile_edit_metrics'),
+      },
+      {
+        path: 'perfil/editar/saude',
+        canActivate: [profileEditGuard],
+        loadComponent: () =>
+          import('../presentation/portal/profile/edit/profile-edit-health.component').then(
+            (m) => m.ProfileEditHealthComponent,
+          ),
+        data: ret(3, 'profile_edit_health'),
       },
       {
         path: 'nutricionistas',

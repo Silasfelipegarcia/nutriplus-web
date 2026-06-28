@@ -50,6 +50,15 @@ export const onboardingOnlyGuard: CanActivateFn = () => {
   return true;
 };
 
+export const profileEditGuard: CanActivateFn = () => {
+  const auth = inject(AuthFacade);
+  const router = inject(Router);
+  if (auth.needsOnboarding()) {
+    return router.createUrlTree(['/onboarding']);
+  }
+  return true;
+};
+
 export const termsGuard: CanActivateFn = () => {
   const auth = inject(AuthFacade);
   const router = inject(Router);
