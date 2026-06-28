@@ -96,3 +96,12 @@ export const betaRegistrationGuard: CanActivateFn = async () => {
   }
   return true;
 };
+
+export const shoppingFinanceGuard: CanActivateFn = async () => {
+  const flags = inject(FeatureFlagService);
+  const router = inject(Router);
+  if (!(await flags.isShoppingFinanceEnabled())) {
+    return router.createUrlTree(['/app/dashboard']);
+  }
+  return true;
+};

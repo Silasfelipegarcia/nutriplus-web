@@ -105,18 +105,50 @@ export interface MealPlan {
   meals: Meal[];
 }
 
+export interface ShoppingSwapOption {
+  id: string;
+  label: string;
+  costTier: string;
+  whyCheaper?: string;
+  proteinLeanness?: string;
+  kcalEstimate?: number;
+  matchesMealFoods?: string[];
+}
+
+export interface ShoppingGuidance {
+  satietyTips?: { title: string; description: string; category: string }[];
+  flexibleOptions?: unknown[];
+  weeklyImpactSummary?: string;
+  budgetSummary?: string;
+}
+
 export interface ShoppingListItem {
+  id?: number;
   itemName: string;
   quantity: string;
   category?: string;
+  foodType?: string;
+  proteinLeanness?: string;
+  kcalEstimate?: number;
+  explanation?: string;
+  alternatives?: string[];
+  swapGroup?: string;
+  swapOptions?: ShoppingSwapOption[];
+  marketTips?: string[];
+  defaultOptionId?: string;
+  recommendedOptionId?: string;
+  selectedSwapId?: string;
 }
 
 export interface ShoppingList {
   id: number;
+  mealPlanId?: number;
   weekStart?: string;
   weekEnd?: string;
   createdAt?: string;
   items: ShoppingListItem[];
+  guidance?: ShoppingGuidance;
+  pendingSwapReview?: boolean;
 }
 
 export interface MealPlanGenerationStatus {

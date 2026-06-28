@@ -8,6 +8,7 @@ export interface PublicFeatureFlag {
   code: string;
   name: string;
   description?: string;
+  category?: string;
   enabled: boolean;
 }
 
@@ -75,6 +76,14 @@ export class FeatureFlagService {
 
   isAppStoreLinksVisibleSync(): boolean {
     return this.isEnabledSync('APP_STORE_LINKS');
+  }
+
+  isShoppingFinanceEnabled(): Promise<boolean> {
+    return this.isEnabled('SHOPPING_FINANCE');
+  }
+
+  isShoppingFinanceEnabledSync(): boolean {
+    return this.isEnabledSync('SHOPPING_FINANCE');
   }
 
   clearCache(): void {

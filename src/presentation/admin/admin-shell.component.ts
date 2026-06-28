@@ -21,6 +21,9 @@ import { NutriLogoComponent } from '../../design-system/nutri-logo/nutri-logo.co
             Dashboard
           </a>
 
+          <p class="admin-sidebar__group">Receita</p>
+          <a routerLink="/admin/financeiro" routerLinkActive="active">Financeiro</a>
+
           <p class="admin-sidebar__group">Operações</p>
           <a routerLink="/admin/acesso" routerLinkActive="active">Acesso &amp; aprovações</a>
           <a routerLink="/admin/nutricionistas" routerLinkActive="active">Verificação CRN</a>
@@ -28,9 +31,11 @@ import { NutriLogoComponent } from '../../design-system/nutri-logo/nutri-logo.co
           <p class="admin-sidebar__group">Equipe</p>
           <a routerLink="/admin/administradores" routerLinkActive="active">Administradores</a>
 
+          <p class="admin-sidebar__group">Monetização</p>
+          <a routerLink="/admin/planos" routerLinkActive="active">Planos de assinatura</a>
+
           <p class="admin-sidebar__group">Plataforma</p>
           <a routerLink="/admin/flags" routerLinkActive="active">Feature flags</a>
-          <a routerLink="/admin/planos" routerLinkActive="active">Planos de assinatura</a>
         </nav>
 
         <div class="admin-sidebar__footer">

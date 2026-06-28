@@ -7,6 +7,28 @@ import { TraceService } from '../tracing/trace.service';
 import { ApiError } from './api-error';
 import { newIdempotencyKey, withIdempotencyKey } from './idempotency';
 
+export interface AdminFinanceOverview {
+  year: number;
+  month: number;
+  subscriptionGrossCents: number;
+  subscriptionPaymentCount: number;
+  proPlatformFeeCents: number;
+  proConsultationCount: number;
+  totalPlatformRevenueCents: number;
+  activePaidSubscriptions: number;
+  monthlyRecurringRevenueCents: number;
+  projectedYearlyRevenueCents: number;
+  history: AdminFinanceMonthPoint[];
+}
+
+export interface AdminFinanceMonthPoint {
+  year: number;
+  month: number;
+  subscriptionGrossCents: number;
+  proPlatformFeeCents: number;
+  totalPlatformRevenueCents: number;
+}
+
 export interface AdminAccessSummary {
   pendingApprovalCount: number;
   loginEnabledCount: number;
@@ -33,6 +55,7 @@ export interface FeatureFlag {
   code: string;
   name: string;
   description?: string;
+  category?: string;
   enabled: boolean;
   updatedAt?: string;
 }
@@ -78,6 +101,17 @@ export class AdminApiService {
 
   summary(): Promise<AdminAccessSummary> {
     return this.get<AdminAccessSummary>('/admin/access/summary', 'admin-summary');
+  }
+
+  financeOverview(year?: number, month?: number): Promise<AdminFinanceOverview> {
+    const params = new URLSearchParams();
+    if (year != null) params.set('year', String(year));
+    if (month != null) params.set('month', String(month));
+    const query = params.toString();
+    return this.get<AdminFinanceOverview>(
+      `/admin/finance/overview${query ? `?${query}` : ''}`,
+      'admin-finance-overview',
+    );
   }
 
   pendingUsers(): Promise<AdminUserAccess[]> {
