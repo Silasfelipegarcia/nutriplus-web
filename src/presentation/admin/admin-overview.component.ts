@@ -48,6 +48,10 @@ import { AdminPageHeaderComponent } from './admin-page-header.component';
           <strong>{{ s.totalUsers }}</strong>
           <span>Total de usuários</span>
         </div>
+        <a routerLink="/admin/financeiro" class="admin-kpi admin-kpi--finance">
+          <strong>💰</strong>
+          <span>Ver receita da plataforma</span>
+        </a>
       </section>
 
       @if (attentionItems().length > 0) {
