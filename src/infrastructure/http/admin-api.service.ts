@@ -24,6 +24,7 @@ export interface AdminUserAccess {
   loginEnabledAt?: string;
   createdAt?: string;
   hasNutritionProfile: boolean;
+  contactPhone?: string;
   registrationSource: string;
   acquisitionCampaign?: string;
 }

@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NutriLogoComponent } from '../../../design-system/nutri-logo/nutri-logo.component';
 import { BetaSignupFormComponent } from '../beta-signup-form/beta-signup-form.component';
+import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
 import { APP_NAME } from '../../core/constants';
 
 @Component({
@@ -14,7 +15,9 @@ import { APP_NAME } from '../../core/constants';
         <div class="auth-card__logo"><nutri-logo /></div>
         <p class="auth-card__footer">
           <a routerLink="/">Saiba mais sobre o {{ appName }}</a>
-          · <a routerLink="/beta">Participar do beta</a>
+          @if (registrationOpen() === false) {
+            · <a routerLink="/beta">Participar do beta</a>
+          }
         </p>
         <app-beta-signup-form analyticsLocation="signup_page" />
       </div>
@@ -22,6 +25,13 @@ import { APP_NAME } from '../../core/constants';
   `,
   styleUrl: '../auth-layout.scss',
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   readonly appName = APP_NAME;
+  readonly registrationOpen = signal<boolean | null>(null);
+
+  private readonly featureFlags = inject(FeatureFlagService);
+
+  ngOnInit(): void {
+    void this.featureFlags.isRegistrationOpen().then((open) => this.registrationOpen.set(open));
+  }
 }

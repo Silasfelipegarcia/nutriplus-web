@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthFacade } from '../../core/auth.facade';
 import { PaymentService } from '../../../infrastructure/http/payment.service';
+import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
 import {
   AthletePlan,
   CHECKOUT_ORDER_STORAGE_KEY,
@@ -24,12 +25,14 @@ import {
 export class PlanCatalogComponent implements OnInit {
   readonly auth = inject(AuthFacade);
   private readonly payment = inject(PaymentService);
+  private readonly featureFlags = inject(FeatureFlagService);
   private readonly router = inject(Router);
 
   somentePublico = input(false);
 
   catalogo = signal<PlanCatalogItem[]>([]);
   cobrancaHabilitada = signal(false);
+  registrationOpen = signal(true);
   carregando = signal(true);
   processando = signal<AthletePlan | 'trial' | null>(null);
   mensagem = signal('');
@@ -48,6 +51,8 @@ export class PlanCatalogComponent implements OnInit {
   );
 
   ngOnInit(): void {
+    void this.featureFlags.isRegistrationOpen().then((open) => this.registrationOpen.set(open));
+
     this.payment.listarCatalogo().subscribe({
       next: (response) => {
         this.catalogo.set(response.plans);
@@ -142,7 +147,8 @@ export class PlanCatalogComponent implements OnInit {
 
   assinar(plan: 'ATHLETE_MONTHLY' | 'ATHLETE_YEARLY'): void {
     if (!this.auth.isAuthenticated()) {
-      void this.router.navigate(['/auth/cadastro'], { queryParams: { redirect: '/planos' } });
+      const path = this.registrationOpen() ? '/auth/cadastro' : '/beta';
+      void this.router.navigate([path], { queryParams: { redirect: '/planos' } });
       return;
     }
     const item = this.catalogo().find((i) => i.plan === plan);

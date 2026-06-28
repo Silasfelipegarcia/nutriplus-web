@@ -48,3 +48,26 @@ export function isValidCpf(value: string): boolean {
   const d2 = checkDigit(digits.slice(0, 10), 11);
   return Number(digits[9]) === d1 && Number(digits[10]) === d2;
 }
+
+export function phoneDigitsOnly(value: string): string {
+  let digits = value.replace(/\D/g, '');
+  if (digits.startsWith('55') && digits.length >= 12) {
+    digits = digits.slice(2);
+  }
+  return digits.slice(0, 11);
+}
+
+export function formatPhoneInput(value: string): string {
+  const digits = phoneDigitsOnly(value);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+export function isValidBrazilPhone(value: string): boolean {
+  const digits = phoneDigitsOnly(value);
+  return digits.length >= 10 && digits.length <= 11;
+}

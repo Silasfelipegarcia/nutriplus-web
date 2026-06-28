@@ -28,6 +28,11 @@ export class FeatureFlagService {
     return flags.find((f) => f.code === code)?.enabled ?? false;
   }
 
+  /** Cadastro aberto = fluxo normal; desligado = lista de espera beta. */
+  isRegistrationOpen(): Promise<boolean> {
+    return this.isEnabled('REGISTRATION_OPEN');
+  }
+
   clearCache(): void {
     this.cache = null;
   }

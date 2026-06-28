@@ -22,16 +22,16 @@ export class HttpAuthRepository implements AuthRepository {
     return auth;
   }
 
-  async register(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<RegisterResponse> {
-    return this.registerPatient({ name, email, password, cpf, birthDate });
+  async register(name: string, email: string, password: string, cpf: string, birthDate: string, contactPhone: string): Promise<RegisterResponse> {
+    return this.registerPatient({ name, email, password, cpf, birthDate, contactPhone });
   }
 
   async registerPatient(data: PatientRegistrationData): Promise<RegisterResponse> {
     return this.postRegister('/auth/register', data, 'register');
   }
 
-  async betaRequest(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<RegisterResponse> {
-    return this.betaRequestPatient({ name, email, password, cpf, birthDate });
+  async betaRequest(name: string, email: string, password: string, cpf: string, birthDate: string, contactPhone: string): Promise<RegisterResponse> {
+    return this.betaRequestPatient({ name, email, password, cpf, birthDate, contactPhone });
   }
 
   async betaRequestPatient(data: PatientRegistrationData): Promise<RegisterResponse> {

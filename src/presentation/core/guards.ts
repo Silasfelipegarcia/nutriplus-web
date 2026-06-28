@@ -1,5 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { FeatureFlagService } from '../../infrastructure/http/feature-flag.service';
 import { AuthFacade } from '../core/auth.facade';
 import { isMobileDevice } from '../core/device.util';
 export { nutritionistGuard, adminGuard } from '../core/jwt.util';
@@ -63,5 +64,25 @@ export const portalReadyGuard: CanActivateFn = () => {
   if (!auth.isAuthenticated()) return router.createUrlTree(['/auth/login']);
   if (auth.needsOnboarding()) return router.createUrlTree(['/onboarding']);
   if (auth.needsTerms()) return router.createUrlTree(['/onboarding/termos']);
+  return true;
+};
+
+export const openRegistrationGuard: CanActivateFn = async () => {
+  const flags = inject(FeatureFlagService);
+  const router = inject(Router);
+  const open = await flags.isRegistrationOpen();
+  if (!open) {
+    return router.createUrlTree(['/beta']);
+  }
+  return true;
+};
+
+export const betaRegistrationGuard: CanActivateFn = async () => {
+  const flags = inject(FeatureFlagService);
+  const router = inject(Router);
+  const open = await flags.isRegistrationOpen();
+  if (open) {
+    return router.createUrlTree(['/auth/cadastro']);
+  }
   return true;
 };

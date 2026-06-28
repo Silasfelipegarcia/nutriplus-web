@@ -6,7 +6,7 @@ import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
 import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { AuthFacade } from '../../core/auth.facade';
-import { cpfDigitsOnly, formatCpfInput, isValidCpf } from '../../core/date.util';
+import { cpfDigitsOnly, formatCpfInput, formatPhoneInput, isValidBrazilPhone, isValidCpf, phoneDigitsOnly } from '../../core/date.util';
 import { PRO_PRODUCT_NAME } from '../../core/constants';
 import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
 import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
@@ -46,6 +46,7 @@ import { RegistrationMode } from '../../../domain/analytics/analytics.model';
         <form (ngSubmit)="submit()">
           <nutri-input label="Nome completo" [(ngModel)]="name" name="name" />
           <nutri-input label="E-mail" type="email" [(ngModel)]="email" name="email" />
+          <nutri-input label="Telefone / WhatsApp" [(ngModel)]="phone" name="phone" placeholder="(11) 98765-4321" (ngModelChange)="onPhoneChange($event)" />
           <nutri-input label="CPF" [(ngModel)]="cpf" name="cpf" placeholder="000.000.000-00" (ngModelChange)="onCpfChange($event)" />
           <nutri-input label="CRN" [(ngModel)]="crn" name="crn" placeholder="Ex: CRN-3 12345" />
           <nutri-input label="Senha" type="password" [(ngModel)]="password" name="password" />
@@ -63,7 +64,12 @@ import { RegistrationMode } from '../../../domain/analytics/analytics.model';
         </form>
         <p class="auth-card__footer">
           Já tem conta? <a routerLink="/auth/login">Entrar</a>
-          · É paciente? <a routerLink="/auth/cadastro">Cadastro paciente</a>
+          · É paciente?
+          @if (registrationOpen()) {
+            <a routerLink="/auth/cadastro">Cadastro paciente</a>
+          } @else {
+            <a routerLink="/beta">Participar do beta</a>
+          }
         </p>
       </div>
     </div>
@@ -84,6 +90,7 @@ export class RegisterNutritionistComponent implements OnInit {
   email = '';
   password = '';
   cpf = '';
+  phone = '';
   crn = '';
   bio = '';
   specialties = '';
@@ -106,10 +113,19 @@ export class RegisterNutritionistComponent implements OnInit {
     this.validationError = '';
   }
 
+  onPhoneChange(value: string): void {
+    this.phone = formatPhoneInput(value);
+    this.validationError = '';
+  }
+
   async submit(): Promise<void> {
     this.validationError = '';
     if (!isValidCpf(this.cpf)) {
       this.validationError = 'CPF inválido.';
+      return;
+    }
+    if (!isValidBrazilPhone(this.phone)) {
+      this.validationError = 'Informe um telefone válido com DDD.';
       return;
     }
     if (this.password.length < 8) {
@@ -121,6 +137,7 @@ export class RegisterNutritionistComponent implements OnInit {
       email: this.email,
       password: this.password,
       cpf: cpfDigitsOnly(this.cpf),
+      contactPhone: phoneDigitsOnly(this.phone),
       crn: this.crn.trim(),
       bio: this.bio.trim() || undefined,
       specialties: this.specialties.trim() || undefined,

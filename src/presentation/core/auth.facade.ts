@@ -60,15 +60,15 @@ export class AuthFacade {
     }
   }
 
-  async register(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<void> {
+  async register(name: string, email: string, password: string, cpf: string, birthDate: string, contactPhone: string): Promise<void> {
     await this.submitRegistration(() =>
-      this.authRepo.register(name, email, password, cpf, birthDate),
+      this.authRepo.register(name, email, password, cpf, birthDate, contactPhone),
     );
   }
 
-  async betaRequest(name: string, email: string, password: string, cpf: string, birthDate: string): Promise<void> {
+  async betaRequest(name: string, email: string, password: string, cpf: string, birthDate: string, contactPhone: string): Promise<void> {
     await this.submitRegistration(() =>
-      this.authRepo.betaRequest(name, email, password, cpf, birthDate),
+      this.authRepo.betaRequest(name, email, password, cpf, birthDate, contactPhone),
     );
   }
 
@@ -85,6 +85,7 @@ export class AuthFacade {
     email: string;
     password: string;
     cpf: string;
+    contactPhone: string;
     crn: string;
     bio?: string;
     specialties?: string;
@@ -97,6 +98,7 @@ export class AuthFacade {
     email: string;
     password: string;
     cpf: string;
+    contactPhone: string;
     crn: string;
     bio?: string;
     specialties?: string;

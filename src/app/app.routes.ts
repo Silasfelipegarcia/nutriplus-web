@@ -4,11 +4,13 @@ import { RouteSeoConfig } from '../domain/seo/seo.model';
 import {
   adminGuard,
   authGuard,
+  betaRegistrationGuard,
   desktopGuard,
   guestGuard,
   nutritionistGuard,
   onboardingGuard,
   onboardingOnlyGuard,
+  openRegistrationGuard,
   portalReadyGuard,
 } from '../presentation/core/guards';
 
@@ -69,6 +71,7 @@ export const routes: Routes = [
   },
   {
     path: 'beta',
+    canActivate: [betaRegistrationGuard],
     loadComponent: () => import('../presentation/marketing/beta/beta-landing.component').then(m => m.BetaLandingComponent),
     data: acq(2, 'beta_landing_view', BETA_SEO),
   },
@@ -146,7 +149,7 @@ export const routes: Routes = [
   },
   {
     path: 'auth/cadastro',
-    canActivate: [desktopGuard, guestGuard],
+    canActivate: [desktopGuard, guestGuard, openRegistrationGuard],
     loadComponent: () => import('../presentation/auth/register/register.component').then(m => m.RegisterComponent),
     data: acq(3, 'signup_form_view', privateSeo('/auth/cadastro', 'Cadastro — Nutri+')),
   },

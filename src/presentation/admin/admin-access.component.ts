@@ -59,6 +59,7 @@ type AccessTab = 'pending' | 'approved';
                 <tr>
                   <th>Nome</th>
                   <th>E-mail</th>
+                  <th>Telefone</th>
                   <th>Papel</th>
                   <th>Origem</th>
                   <th>Campanha</th>
@@ -71,7 +72,8 @@ type AccessTab = 'pending' | 'approved';
                   <tr>
                     <td>{{ user.name }}</td>
                     <td>{{ user.email }}</td>
-                    <td>{{ user.role }}</td>
+                    <td>{{ formatPhone(user.contactPhone) }}</td>
+                    <td>{{ roleLabel(user.role) }}</td>
                     <td>
                       @if (user.registrationSource === 'BETA_WAITLIST') {
                         <span class="admin-badge">Beta</span>
@@ -116,6 +118,7 @@ type AccessTab = 'pending' | 'approved';
                 <tr>
                   <th>Nome</th>
                   <th>E-mail</th>
+                  <th>Telefone</th>
                   <th>Papel</th>
                   <th>Login</th>
                   <th>Admin</th>
@@ -126,7 +129,8 @@ type AccessTab = 'pending' | 'approved';
                   <tr>
                     <td>{{ user.name }}</td>
                     <td>{{ user.email }}</td>
-                    <td>{{ user.role }}</td>
+                    <td>{{ formatPhone(user.contactPhone) }}</td>
+                    <td>{{ roleLabel(user.role) }}</td>
                     <td>
                       @if (user.role === 'ADMIN') {
                         <span>Sempre ativo</span>
@@ -243,6 +247,25 @@ export class AdminAccessComponent {
       this.error.set(e instanceof Error ? e.message : 'Erro ao atualizar acesso');
     } finally {
       this.busyId.set(null);
+    }
+  }
+
+  formatPhone(value?: string): string {
+    if (!value) return '—';
+    const d = value.replace(/\D/g, '');
+    if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+    if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+    return value;
+  }
+
+  roleLabel(role: string): string {
+    switch (role) {
+      case 'NUTRITIONIST':
+        return 'Nutricionista';
+      case 'ADMIN':
+        return 'Admin';
+      default:
+        return 'Cliente';
     }
   }
 }

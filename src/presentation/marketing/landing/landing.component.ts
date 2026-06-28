@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { MarketingHeaderComponent } from '../marketing-header/marketing-header.component';
 import { MarketingFooterComponent } from '../marketing-footer/marketing-footer.component';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
@@ -7,6 +7,7 @@ import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-ban
 import { RevealDirective } from '../directives/reveal.directive';
 import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
 import { NutriIconComponent } from './nutri-icon.component';
+import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
 import { TAGLINE, APP_NAME } from '../../core/constants';
 import { environment } from '../../../environments/environment';
 
@@ -52,18 +53,21 @@ import { environment } from '../../../environments/environment';
                 acompanhamento diário — para você evoluir com clareza e consistência.
               </p>
               <div class="hero__ctas">
-                <nutri-button
-                  variant="primary"
-                  to="/auth/cadastro"
-                  analyticsCta="comecar_gratis"
-                  analyticsLocation="hero"
-                >Começar gratuitamente</nutri-button>
-                <nutri-button
-                  variant="outline"
-                  to="/beta"
-                  analyticsCta="participar_beta"
-                  analyticsLocation="hero"
-                >Participar do beta</nutri-button>
+                @if (registrationOpen()) {
+                  <nutri-button
+                    variant="primary"
+                    to="/auth/cadastro"
+                    analyticsCta="comecar_gratis"
+                    analyticsLocation="hero"
+                  >Começar gratuitamente</nutri-button>
+                } @else if (registrationOpen() === false) {
+                  <nutri-button
+                    variant="primary"
+                    to="/beta"
+                    analyticsCta="participar_beta"
+                    analyticsLocation="hero"
+                  >Participar do beta</nutri-button>
+                }
                 <nutri-button
                   variant="outline"
                   to="/baixar-app"
@@ -373,13 +377,20 @@ import { environment } from '../../../environments/environment';
   `,
   styleUrl: './landing.component.scss',
 })
-export class LandingComponent implements OnDestroy {
+export class LandingComponent implements OnInit, OnDestroy {
   readonly tagline = TAGLINE;
   readonly appName = APP_NAME;
   readonly appStoreUrl = environment.appStoreUrl;
   readonly playStoreUrl = environment.playStoreUrl;
 
   readonly scrollY = signal(0);
+  readonly registrationOpen = signal<boolean | null>(null);
+
+  private readonly featureFlags = inject(FeatureFlagService);
+
+  ngOnInit(): void {
+    void this.featureFlags.isRegistrationOpen().then((open) => this.registrationOpen.set(open));
+  }
 
   readonly heroStats = [
     { value: '100%', label: 'Macros calculados' },

@@ -6,4 +6,7 @@ export interface PatientRegistrationData extends CampaignAttribution {
   password: string;
   cpf: string;
   birthDate: string;
+  contactPhone: string;
 }
+
+export type BetaProfileType = 'patient' | 'nutritionist';

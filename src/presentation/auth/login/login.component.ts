@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { NutriLogoComponent } from '../../../design-system/nutri-logo/nutri-logo.component';
@@ -9,6 +9,7 @@ import { localizeAuthErrorMessage } from '../../core/auth-error-messages';
 import { jwtRoles } from '../../core/jwt.util';
 import { TokenStorage } from '../../../infrastructure/auth/token-storage';
 import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
+import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
 import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
 import { APP_NAME } from '../../core/constants';
 
@@ -36,23 +37,34 @@ import { APP_NAME } from '../../core/constants';
           </nutri-button>
         </form>
         <p class="auth-card__footer">
-          Não tem conta? <a routerLink="/auth/cadastro" appAnalyticsCta="criar_conta" appAnalyticsCtaLocation="login_footer">Cadastre-se</a>
+          Não tem conta?
+          @if (registrationOpen()) {
+            <a routerLink="/auth/cadastro" appAnalyticsCta="criar_conta" appAnalyticsCtaLocation="login_footer">Cadastre-se</a>
+          } @else if (registrationOpen() === false) {
+            <a routerLink="/beta" appAnalyticsCta="participar_beta" appAnalyticsCtaLocation="login_footer">Participar do beta</a>
+          }
         </p>
       </div>
     </div>
   `,
   styleUrl: '../auth-layout.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   readonly auth = inject(AuthFacade);
   readonly appName = APP_NAME;
+  readonly registrationOpen = signal<boolean | null>(null);
   private readonly router = inject(Router);
   private readonly tokens = inject(TokenStorage);
   private readonly analytics = inject(AnalyticsService);
+  private readonly featureFlags = inject(FeatureFlagService);
 
   email = '';
   password = '';
   infoMessage = (history.state?.registerMessage as string | undefined) ?? null;
+
+  ngOnInit(): void {
+    void this.featureFlags.isRegistrationOpen().then((open) => this.registrationOpen.set(open));
+  }
 
   get authErrorMessage(): string | null {
     const error = this.auth.error();
