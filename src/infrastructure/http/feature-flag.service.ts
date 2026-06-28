@@ -68,6 +68,15 @@ export class FeatureFlagService {
     return this.isEnabledSync('REGISTRATION_OPEN');
   }
 
+  /** Links para App Store / Google Play visíveis no site. */
+  isAppStoreLinksVisible(): Promise<boolean> {
+    return this.isEnabled('APP_STORE_LINKS');
+  }
+
+  isAppStoreLinksVisibleSync(): boolean {
+    return this.isEnabledSync('APP_STORE_LINKS');
+  }
+
   clearCache(): void {
     this.cache = null;
   }

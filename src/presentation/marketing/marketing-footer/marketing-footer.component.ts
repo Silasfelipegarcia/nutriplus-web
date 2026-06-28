@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NutriLogoComponent } from '../../../design-system/nutri-logo/nutri-logo.component';
 import { CookieConsentService } from '../../../infrastructure/analytics/cookie-consent.service';
+import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
 import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
 import { TAGLINE, APP_NAME } from '../../core/constants';
 
@@ -23,7 +24,9 @@ import { TAGLINE, APP_NAME } from '../../core/constants';
             <ul>
               <li><a href="#recursos">Recursos</a></li>
               <li><a href="#como-funciona">Como funciona</a></li>
-              <li><a href="#download">Download</a></li>
+              @if (appStoreLinksVisible()) {
+                <li><a href="#download">Download</a></li>
+              }
             </ul>
           </div>
           <div>
@@ -57,12 +60,20 @@ import { TAGLINE, APP_NAME } from '../../core/constants';
   `,
   styleUrl: './marketing-footer.component.scss',
 })
-export class MarketingFooterComponent {
+export class MarketingFooterComponent implements OnInit {
   private readonly cookieConsent = inject(CookieConsentService);
+  private readonly featureFlags = inject(FeatureFlagService);
 
   readonly tagline = TAGLINE;
   readonly appName = APP_NAME;
   readonly year = new Date().getFullYear();
+  readonly appStoreLinksVisible = signal(false);
+
+  ngOnInit(): void {
+    void this.featureFlags.isAppStoreLinksVisible().then((visible) => {
+      this.appStoreLinksVisible.set(visible);
+    });
+  }
 
   openCookiePreferences(): void {
     this.cookieConsent.clearDecision();
