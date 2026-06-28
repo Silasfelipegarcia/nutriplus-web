@@ -1,6 +1,7 @@
 import {
   NutritionProfile,
   ShoppingList,
+  ShoppingSwapOption,
 } from '../../domain/entities';
 
 export interface BudgetReference {
