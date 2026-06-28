@@ -210,6 +210,30 @@
   font-size: 0.9rem;
 }
 
+.admin-panel__button {
+  display: inline-block;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.admin-panel__status {
+  margin: 0 0 0.75rem;
+  font-size: 0.84rem;
+  color: #b45309;
+
+  &--ok {
+    color: var(--nutri-brand-dark, #2f6f4a);
+  }
+}
+
 .admin-queue {
   list-style: none;
   margin: 0;

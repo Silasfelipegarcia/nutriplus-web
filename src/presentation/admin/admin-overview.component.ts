@@ -82,6 +82,23 @@ import { AdminPageHeaderComponent } from './admin-page-header.component';
           <p>Ligue ou desligue funcionalidades do app sem deploy.</p>
           <a routerLink="/admin/flags" class="admin-panel__link">Gerenciar flags →</a>
         </article>
+        <article class="admin-panel">
+          <h2>E-mail transacional</h2>
+          <p>Envie um teste via Resend para o seu e-mail de administrador.</p>
+          @if (emailTestMessage()) {
+            <p class="admin-panel__status" [class.admin-panel__status--ok]="emailTestOk()">
+              {{ emailTestMessage() }}
+            </p>
+          }
+          <button
+            type="button"
+            class="admin-panel__link admin-panel__button"
+            [disabled]="emailTestBusy()"
+            (click)="sendTestEmail()"
+          >
+            {{ emailTestBusy() ? 'Enviando…' : 'Enviar e-mail de teste →' }}
+          </button>
+        </article>
       </section>
     }
   `,
@@ -91,6 +108,9 @@ export class AdminOverviewComponent {
   private readonly adminApi = inject(AdminApiService);
   readonly summary = signal<AdminAccessSummary | null>(null);
   readonly error = signal<string | null>(null);
+  readonly emailTestBusy = signal(false);
+  readonly emailTestMessage = signal<string | null>(null);
+  readonly emailTestOk = signal(false);
 
   readonly attentionItems = computed(() => {
     const s = this.summary();
@@ -122,6 +142,25 @@ export class AdminOverviewComponent {
       this.summary.set(await this.adminApi.summary());
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Erro ao carregar resumo');
+    }
+  }
+
+  async sendTestEmail(): Promise<void> {
+    this.emailTestBusy.set(true);
+    this.emailTestMessage.set(null);
+    try {
+      const result = await this.adminApi.sendTestEmail();
+      this.emailTestOk.set(result.sent);
+      this.emailTestMessage.set(
+        result.sent
+          ? `Enviado para ${result.recipient}. Verifique a caixa de entrada.`
+          : result.message,
+      );
+    } catch (e) {
+      this.emailTestOk.set(false);
+      this.emailTestMessage.set(e instanceof Error ? e.message : 'Falha ao enviar e-mail de teste');
+    } finally {
+      this.emailTestBusy.set(false);
     }
   }
 }
