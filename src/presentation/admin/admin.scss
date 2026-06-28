@@ -661,3 +661,38 @@ tbody tr:last-child td {
 .admin-flag-group + .admin-flag-group {
   margin-top: 0.5rem;
 }
+
+.admin-page__loading {
+  color: var(--nutri-ink-muted, #6b7280);
+  padding: 2rem;
+  text-align: center;
+}
+
+.admin-kpi--warn {
+  border-color: #f5c6a5;
+  background: #fff8f3;
+}
+
+.admin-table__row--warn td {
+  background: #fff8f3;
+}
+
+.admin-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.admin-skeleton-card {
+  height: 88px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #ece8e1 0%, #f5f2ec 45%, #ece8e1 90%);
+  background-size: 200% 100%;
+  animation: admin-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes admin-skeleton-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}

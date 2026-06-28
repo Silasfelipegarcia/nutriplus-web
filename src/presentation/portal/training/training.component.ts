@@ -11,6 +11,7 @@ import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toas
 import { parseApiError } from '../../../infrastructure/http/api-error';
 import { NutriSportPickerComponent } from '../../../design-system/nutri-sport-picker/nutri-sport-picker.component';
 import { SportSelection } from '../../core/sport-catalog';
+import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
 import {
   NutritionProfile,
   SportCatalogItem,
@@ -30,6 +31,7 @@ import {
     NutriInputComponent,
     NutriInfoTipComponent,
     NutriSportPickerComponent,
+    PortalPageSkeletonComponent,
   ],
   template: `
     <div class="portal-page">
@@ -39,7 +41,7 @@ import {
       </div>
 
       @if (loading()) {
-        <p class="loading-text">Carregando...</p>
+        <app-portal-page-skeleton [cards]="2" [rows]="2" />
       } @else if (error()) {
         <div class="auth-card__error">{{ error() }}</div>
       } @else {

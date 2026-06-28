@@ -12,7 +12,7 @@ import { PortalDataStore } from '../../core/portal-data.store';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { withActionFeedback } from '../../core/action-feedback';
 import { isNotFound } from '../../../infrastructure/http/api-error';
-import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
+import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -24,6 +24,7 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
     NutriEmptyStateComponent,
     NutriInfoTipComponent,
     NutriPlanAdherenceChartComponent,
+    PortalPageSkeletonComponent,
   ],
   template: `
     <div class="portal-page">
@@ -203,7 +204,7 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
     }
 
     @if (loading() && !portalData.todayCheckins()) {
-      <p class="loading-text">Carregando...</p>
+      <app-portal-page-skeleton [cards]="2" [rows]="3" />
     }
     </div>
   `,
@@ -323,9 +324,9 @@ export class DashboardComponent implements OnInit {
 
     this.refreshInFlight = (async () => {
       try {
+        await this.portalData.loadNutritionProfile(force);
+        await this.portalData.loadTodayCheckins(force);
         await Promise.all([
-          this.portalData.loadNutritionProfile(force),
-          this.portalData.loadTodayCheckins(force),
           this.portalData.loadCheckinStats(force),
           this.loadWeekAdherence(),
         ]);
