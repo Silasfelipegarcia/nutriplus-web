@@ -84,9 +84,19 @@ type AccessTab = 'pending' | 'approved';
                     <td>{{ user.acquisitionCampaign || '—' }}</td>
                     <td>{{ user.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
                     <td>
-                      <button type="button" class="admin-btn" (click)="approve(user)" [disabled]="busyId() === user.id">
-                        Liberar login
-                      </button>
+                      <div class="admin-actions">
+                        <button type="button" class="admin-btn" (click)="approve(user)" [disabled]="busyId() === user.id">
+                          Liberar login
+                        </button>
+                        <button
+                          type="button"
+                          class="admin-btn admin-btn--danger"
+                          (click)="openRejectDialog(user)"
+                          [disabled]="busyId() === user.id"
+                        >
+                          Recusar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 }
@@ -168,6 +178,37 @@ type AccessTab = 'pending' | 'approved';
         </div>
       </section>
     }
+
+    @if (rejectTarget(); as user) {
+      <div class="admin-modal-backdrop" role="presentation" (click)="closeRejectDialog()"></div>
+      <div class="admin-modal" role="dialog" aria-labelledby="reject-access-title" aria-modal="true">
+        <h3 id="reject-access-title">Recusar acesso</h3>
+        <p class="admin-modal__lead">
+          O cadastro de <strong>{{ user.email }}</strong> será recusado e a pessoa receberá um e-mail com a decisão.
+        </p>
+        <label class="admin-modal__field">
+          Motivo (opcional)
+          <textarea
+            rows="3"
+            maxlength="500"
+            placeholder="Ex.: perfil fora do escopo do beta atual"
+            [value]="rejectReason()"
+            (input)="rejectReason.set($any($event.target).value)"
+          ></textarea>
+        </label>
+        <div class="admin-modal__actions">
+          <button type="button" class="admin-btn admin-btn--secondary" (click)="closeRejectDialog()">Cancelar</button>
+          <button
+            type="button"
+            class="admin-btn admin-btn--danger"
+            (click)="confirmReject()"
+            [disabled]="busyId() === user.id"
+          >
+            Confirmar recusa
+          </button>
+        </div>
+      </div>
+    }
   `,
   styleUrl: './admin.scss',
 })
@@ -181,6 +222,8 @@ export class AdminAccessComponent {
   readonly tab = signal<AccessTab>('pending');
   readonly error = signal<string | null>(null);
   readonly busyId = signal<number | null>(null);
+  readonly rejectTarget = signal<AdminUserAccess | null>(null);
+  readonly rejectReason = signal('');
 
   readonly filteredPending = computed(() => {
     const list = this.pending();
@@ -219,6 +262,34 @@ export class AdminAccessComponent {
 
   async approve(user: AdminUserAccess): Promise<void> {
     await this.setLogin(user, true);
+  }
+
+  openRejectDialog(user: AdminUserAccess): void {
+    this.rejectReason.set('');
+    this.rejectTarget.set(user);
+  }
+
+  closeRejectDialog(): void {
+    if (this.busyId() !== null) return;
+    this.rejectTarget.set(null);
+    this.rejectReason.set('');
+  }
+
+  async confirmReject(): Promise<void> {
+    const user = this.rejectTarget();
+    if (!user) return;
+    this.busyId.set(user.id);
+    this.error.set(null);
+    try {
+      await this.adminApi.rejectUserAccess(user.id, this.rejectReason());
+      this.rejectTarget.set(null);
+      this.rejectReason.set('');
+      await this.reload();
+    } catch (e) {
+      this.error.set(e instanceof Error ? e.message : 'Erro ao recusar acesso');
+    } finally {
+      this.busyId.set(null);
+    }
   }
 
   async toggleLogin(user: AdminUserAccess, enabled: boolean): Promise<void> {
