@@ -391,6 +391,7 @@ export const routes: Routes = [
     children: [
       { path: '', loadComponent: () => import('../presentation/admin/admin-overview.component').then(m => m.AdminOverviewComponent) },
       { path: 'financeiro', loadComponent: () => import('../presentation/admin/admin-finance.component').then(m => m.AdminFinanceComponent) },
+      { path: 'performance', loadComponent: () => import('../presentation/admin/admin-performance.component').then(m => m.AdminPerformanceComponent) },
       { path: 'acesso', loadComponent: () => import('../presentation/admin/admin-access.component').then(m => m.AdminAccessComponent) },
       { path: 'administradores', loadComponent: () => import('../presentation/admin/admin-admins.component').then(m => m.AdminAdminsComponent) },
       { path: 'nutricionistas', loadComponent: () => import('../presentation/admin/admin-nutritionists.component').then(m => m.AdminNutritionistsComponent) },

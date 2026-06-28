@@ -5,6 +5,7 @@ import { NutriEmptyStateComponent } from '../../../design-system/nutri-empty-sta
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { isNotFound } from '../../../infrastructure/http/api-error';
 import { PortalDataStore } from '../../core/portal-data.store';
+import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
 import {
   buildShoppingFinanceSnapshot,
   formatBrl,
@@ -15,7 +16,7 @@ import {
 @Component({
   selector: 'app-shopping-finance',
   standalone: true,
-  imports: [RouterLink, NutriEmptyStateComponent, NutriButtonComponent],
+  imports: [RouterLink, NutriEmptyStateComponent, NutriButtonComponent, PortalPageSkeletonComponent],
   template: `
     <div class="portal-page">
       <div class="portal-main__header">
@@ -132,7 +133,7 @@ import {
       }
 
       @if (loading()) {
-        <p class="loading-text">Carregando...</p>
+        <app-portal-page-skeleton [cards]="3" [rows]="2" />
       }
     </div>
   `,

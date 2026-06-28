@@ -29,6 +29,34 @@ export interface AdminFinanceMonthPoint {
   totalPlatformRevenueCents: number;
 }
 
+export interface AdminPerformanceEndpoint {
+  method: string;
+  path: string;
+  tier: string;
+  description: string;
+  status: number;
+  p95Ms: number;
+  grade: string;
+  slow: boolean;
+  failed: boolean;
+}
+
+export interface AdminPerformanceSummary {
+  measuredAt: string;
+  environment: string;
+  cacheEnabled: boolean;
+  redisConfigured: boolean;
+  tierSThresholdMs: number;
+  dashboardFlowThresholdMs: number;
+  tierSAvgP95Ms: number;
+  tierSP95Ms: number;
+  dashboardFlowSumP95Ms: number;
+  criticalFailures: number;
+  endpoints: AdminPerformanceEndpoint[];
+  baselineDocPath: string;
+  auditScriptHint: string;
+}
+
 export interface AdminAccessSummary {
   pendingApprovalCount: number;
   loginEnabledCount: number;
@@ -112,6 +140,10 @@ export class AdminApiService {
       `/admin/finance/overview${query ? `?${query}` : ''}`,
       'admin-finance-overview',
     );
+  }
+
+  performanceSummary(): Promise<AdminPerformanceSummary> {
+    return this.get<AdminPerformanceSummary>('/admin/performance/summary', 'admin-performance-summary');
   }
 
   pendingUsers(): Promise<AdminUserAccess[]> {

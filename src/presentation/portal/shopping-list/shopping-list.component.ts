@@ -4,10 +4,12 @@ import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.rep
 import { ShoppingList } from '../../../domain/entities';
 import { isNotFound } from '../../../infrastructure/http/api-error';
 
+import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
+
 @Component({
   selector: 'app-shopping-list',
   standalone: true,
-  imports: [NutriEmptyStateComponent],
+  imports: [NutriEmptyStateComponent, PortalPageSkeletonComponent],
   template: `
     <div class="portal-page">
       <div class="portal-main__header">
@@ -32,7 +34,7 @@ import { isNotFound } from '../../../infrastructure/http/api-error';
     }
 
     @if (loading()) {
-      <p class="loading-text">Carregando...</p>
+      <app-portal-page-skeleton [cards]="1" [rows]="5" />
     }
     </div>
   `,

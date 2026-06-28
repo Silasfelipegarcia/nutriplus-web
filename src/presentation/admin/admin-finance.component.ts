@@ -107,7 +107,11 @@ const MONTH_NAMES = [
     }
 
     @if (loading()) {
-      <p class="admin-page__loading">Carregando...</p>
+      <div class="admin-skeleton-grid" aria-hidden="true">
+        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+          <div class="admin-skeleton-card"></div>
+        }
+      </div>
     }
   `,
   styleUrl: './admin.scss',

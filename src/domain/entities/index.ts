@@ -157,6 +157,8 @@ export interface MealPlanGenerationStatus {
   mealPlanId?: number;
   errorMessage?: string;
   progressHint?: string;
+  progressStep?: number;
+  progressTotalSteps?: number;
 }
 
 export interface TodayMealCheckin {

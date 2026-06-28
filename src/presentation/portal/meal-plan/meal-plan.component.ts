@@ -8,12 +8,12 @@ import { MealPlan, MEAL_TYPE_LABELS, NutritionProfile } from '../../../domain/en
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
 import { isNotFound } from '../../../infrastructure/http/api-error';
 import { isPlanTargetOutOfSync, planTargetMismatchMessage } from '../../core/plan-target-sync';
-import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
+import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
 
 @Component({
   selector: 'app-meal-plan',
   standalone: true,
-  imports: [DecimalPipe, NutriEmptyStateComponent, NutriButtonComponent, DisclaimerBannerComponent, NutriInfoTipComponent],
+  imports: [DecimalPipe, NutriEmptyStateComponent, NutriButtonComponent, DisclaimerBannerComponent, NutriInfoTipComponent, PortalPageSkeletonComponent],
   template: `
     <div class="portal-page">
       <div class="portal-main__header">
@@ -23,7 +23,21 @@ import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nut
 
     @if (generation.phase() === 'generating') {
       <div class="generating-banner">
-        {{ generation.status()?.progressHint ?? 'Gerando seu plano alimentar...' }}
+        <p>{{ generation.status()?.progressHint ?? 'Gerando seu plano alimentar...' }}</p>
+        @if (generation.status()?.progressStep && generation.status()?.progressTotalSteps) {
+          <div class="generation-stepper" role="progressbar"
+            [attr.aria-valuenow]="generation.status()!.progressStep"
+            [attr.aria-valuemax]="generation.status()!.progressTotalSteps">
+            <div class="generation-stepper__track">
+              <div class="generation-stepper__fill"
+                [style.width.%]="(generation.status()!.progressStep! / generation.status()!.progressTotalSteps!) * 100">
+              </div>
+            </div>
+            <span class="generation-stepper__label">
+              Etapa {{ generation.status()!.progressStep }} de {{ generation.status()!.progressTotalSteps }}
+            </span>
+          </div>
+        }
       </div>
     }
 
@@ -70,7 +84,7 @@ import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nut
     }
 
     @if (loading()) {
-      <p class="loading-text">Carregando...</p>
+      <app-portal-page-skeleton [cards]="2" [rows]="4" />
     }
     </div>
   `,

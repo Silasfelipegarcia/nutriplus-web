@@ -21,6 +21,7 @@ import {
   planAdherenceEstimateDisclaimer,
 } from '../../core/plan-adherence';
 import { PortalDataStore } from '../../core/portal-data.store';
+import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
 
 const STATUS_COLORS: Record<string, string> = {
   EXCELLENT: '#2e7d4f',
@@ -46,6 +47,7 @@ type EvolutionView = 'plan' | 'body';
     NutriButtonComponent,
     NutriEmptyStateComponent,
     NutriPlanAdherenceChartComponent,
+    PortalPageSkeletonComponent,
   ],
   template: `
     <div class="portal-page">
@@ -71,7 +73,7 @@ type EvolutionView = 'plan' | 'body';
           </p>
 
           @if (planLoading()) {
-            <p class="loading-text">Carregando...</p>
+            <app-portal-page-skeleton [cards]="2" [rows]="2" />
           } @else if (!hasMealPlan()) {
             <nutri-empty-state
               icon="🍽️"
@@ -277,7 +279,7 @@ type EvolutionView = 'plan' | 'body';
         }
 
         @if (loading()) {
-          <p class="loading-text">Carregando...</p>
+          <app-portal-page-skeleton [cards]="2" [rows]="3" />
         }
       }
     </div>
