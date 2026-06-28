@@ -63,6 +63,13 @@ export interface NutritionistPending {
   marketplaceVisible: boolean;
 }
 
+export interface AdminEmailTestResult {
+  sent: boolean;
+  recipient: string;
+  resendConfigured: boolean;
+  message: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminApiService {
   private readonly http = inject(HttpClient);
@@ -129,6 +136,10 @@ export class AdminApiService {
     sortOrder: number;
   }): Promise<AdminSubscriptionPlan> {
     return this.patch<AdminSubscriptionPlan>(`/admin/subscription-plans/${id}`, body, 'admin-plan-update');
+  }
+
+  sendTestEmail(): Promise<AdminEmailTestResult> {
+    return this.post<AdminEmailTestResult>('/admin/email/test', 'admin-email-test');
   }
 
   private async get<T>(path: string, flowId: string): Promise<T> {

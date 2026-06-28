@@ -79,10 +79,14 @@ export class HttpAuthRepository implements AuthRepository {
   }
 
   async forgotPassword(email: string): Promise<string> {
+    const idempotencyKey = newIdempotencyKey();
     try {
       const response = await firstValueFrom(
         this.http.post<{ message: string }>(`${environment.apiBaseUrl}/auth/forgot-password`, { email }, {
-          headers: { 'Content-Type': 'application/json', ...this.trace.headers('forgot-password') },
+          headers: withIdempotencyKey(
+            { 'Content-Type': 'application/json', ...this.trace.headers('forgot-password') },
+            idempotencyKey,
+          ),
         }),
       );
       return response.message;
@@ -92,10 +96,14 @@ export class HttpAuthRepository implements AuthRepository {
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
+    const idempotencyKey = newIdempotencyKey();
     try {
       await firstValueFrom(
         this.http.post<void>(`${environment.apiBaseUrl}/auth/reset-password`, { token, newPassword }, {
-          headers: { 'Content-Type': 'application/json', ...this.trace.headers('reset-password') },
+          headers: withIdempotencyKey(
+            { 'Content-Type': 'application/json', ...this.trace.headers('reset-password') },
+            idempotencyKey,
+          ),
         }),
       );
     } catch (e) {
