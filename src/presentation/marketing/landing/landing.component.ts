@@ -68,12 +68,14 @@ import { environment } from '../../../environments/environment';
                     analyticsLocation="hero"
                   >Participar do beta</nutri-button>
                 }
-                <nutri-button
-                  variant="outline"
-                  to="/baixar-app"
-                  analyticsCta="baixar_app"
-                  analyticsLocation="hero"
-                >Baixar app</nutri-button>
+                @if (appStoreLinksVisible()) {
+                  <nutri-button
+                    variant="outline"
+                    to="/baixar-app"
+                    analyticsCta="baixar_app"
+                    analyticsLocation="hero"
+                  >Baixar app</nutri-button>
+                }
               </div>
               <p class="hero__trust-note">
                 <app-nutri-icon name="shield" [size]="16" />
@@ -338,39 +340,41 @@ import { environment } from '../../../environments/environment';
           </div>
         </section>
 
-        <section id="download" class="section download">
-          <div class="download__glow" aria-hidden="true"></div>
-          <div class="container" appReveal>
-            <h2 class="section-title section-title--light">Baixe o {{ appName }}</h2>
-            <p class="section-subtitle section-subtitle--center section-subtitle--light">
-              Disponível para iOS e Android. No celular, use o app para a melhor experiência.
-            </p>
-            <div class="download__badges">
-              <a
-                class="store-badge"
-                [href]="appStoreUrl"
-                target="_blank"
-                rel="noopener"
-                appAnalyticsCta="baixar_app_ios"
-                appAnalyticsCtaLocation="download_section"
-              >
-                <span class="store-badge__icon">🍎</span>
-                <span><small>Disponível na</small>App Store</span>
-              </a>
-              <a
-                class="store-badge"
-                [href]="playStoreUrl"
-                target="_blank"
-                rel="noopener"
-                appAnalyticsCta="baixar_app_play"
-                appAnalyticsCtaLocation="download_section"
-              >
-                <span class="store-badge__icon">▶️</span>
-                <span><small>Disponível no</small>Google Play</span>
-              </a>
+        @if (appStoreLinksVisible()) {
+          <section id="download" class="section download">
+            <div class="download__glow" aria-hidden="true"></div>
+            <div class="container" appReveal>
+              <h2 class="section-title section-title--light">Baixe o {{ appName }}</h2>
+              <p class="section-subtitle section-subtitle--center section-subtitle--light">
+                Disponível para iOS e Android. No celular, use o app para a melhor experiência.
+              </p>
+              <div class="download__badges">
+                <a
+                  class="store-badge"
+                  [href]="appStoreUrl"
+                  target="_blank"
+                  rel="noopener"
+                  appAnalyticsCta="baixar_app_ios"
+                  appAnalyticsCtaLocation="download_section"
+                >
+                  <span class="store-badge__icon">🍎</span>
+                  <span><small>Disponível na</small>App Store</span>
+                </a>
+                <a
+                  class="store-badge"
+                  [href]="playStoreUrl"
+                  target="_blank"
+                  rel="noopener"
+                  appAnalyticsCta="baixar_app_play"
+                  appAnalyticsCtaLocation="download_section"
+                >
+                  <span class="store-badge__icon">▶️</span>
+                  <span><small>Disponível no</small>Google Play</span>
+                </a>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        }
       </main>
       <app-marketing-footer />
     </div>
@@ -385,11 +389,18 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   readonly scrollY = signal(0);
   readonly registrationOpen = signal<boolean | null>(null);
+  readonly appStoreLinksVisible = signal(false);
 
   private readonly featureFlags = inject(FeatureFlagService);
 
   ngOnInit(): void {
-    void this.featureFlags.isRegistrationOpen().then((open) => this.registrationOpen.set(open));
+    void Promise.all([
+      this.featureFlags.isRegistrationOpen(),
+      this.featureFlags.isAppStoreLinksVisible(),
+    ]).then(([open, stores]) => {
+      this.registrationOpen.set(open);
+      this.appStoreLinksVisible.set(stores);
+    });
   }
 
   readonly heroStats = [

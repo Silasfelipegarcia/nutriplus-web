@@ -44,14 +44,34 @@ import { environment } from '../../../environments/environment';
             >Cadastrar</a>
           }
         </div>
-        <a
-          class="header-btn header-btn--primary header-btn--sm site-header__mobile-cta"
-          [href]="playStoreUrl"
-          appAnalyticsCta="baixar_app_play"
-          appAnalyticsCtaLocation="header"
-        >
-          Baixar app
-        </a>
+        @if (appStoreLinksVisible()) {
+          <a
+            class="header-btn header-btn--primary header-btn--sm site-header__mobile-cta"
+            [href]="playStoreUrl"
+            appAnalyticsCta="baixar_app_play"
+            appAnalyticsCtaLocation="header"
+          >
+            Baixar app
+          </a>
+        } @else if (registrationOpen() === false) {
+          <a
+            class="header-btn header-btn--beta header-btn--sm site-header__mobile-cta"
+            routerLink="/beta"
+            appAnalyticsCta="participar_beta"
+            appAnalyticsCtaLocation="header"
+          >
+            Participar do beta
+          </a>
+        } @else if (registrationOpen()) {
+          <a
+            class="header-btn header-btn--primary header-btn--sm site-header__mobile-cta"
+            routerLink="/auth/cadastro"
+            appAnalyticsCta="cadastrar"
+            appAnalyticsCtaLocation="header"
+          >
+            Cadastrar
+          </a>
+        }
       </div>
     </header>
   `,
@@ -61,6 +81,7 @@ export class MarketingHeaderComponent implements OnInit {
   readonly playStoreUrl = environment.playStoreUrl;
   readonly scrolled = signal(false);
   readonly registrationOpen = signal<boolean | null>(null);
+  readonly appStoreLinksVisible = signal(false);
 
   private readonly featureFlags = inject(FeatureFlagService);
 
@@ -70,6 +91,12 @@ export class MarketingHeaderComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    void this.featureFlags.isRegistrationOpen().then((open) => this.registrationOpen.set(open));
+    void Promise.all([
+      this.featureFlags.isRegistrationOpen(),
+      this.featureFlags.isAppStoreLinksVisible(),
+    ]).then(([open, stores]) => {
+      this.registrationOpen.set(open);
+      this.appStoreLinksVisible.set(stores);
+    });
   }
 }
