@@ -131,7 +131,26 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
         <div class="checkin-list">
         @for (meal of checkins.meals; track meal.mealId) {
           <div class="checkin-item">
-            <span>{{ meal.mealName }}</span>
+            <div class="checkin-item__body">
+              <div class="checkin-item__head">
+                <strong>{{ meal.mealName }}</strong>
+                @if (meal.mealCalories) {
+                  <span class="checkin-item__kcal">{{ meal.mealCalories | number:'1.0-0' }} kcal</span>
+                }
+              </div>
+              @if (meal.items?.length) {
+                <ul class="checkin-item__foods">
+                  @for (item of meal.items; track item.id ?? item.foodName) {
+                    <li>
+                      <span>{{ item.foodName }}</span>
+                      @if (item.calories) {
+                        <span>{{ item.calories | number:'1.0-0' }} kcal</span>
+                      }
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
             <div class="checkin-actions">
               <button
                 type="button"
