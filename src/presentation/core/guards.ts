@@ -23,9 +23,10 @@ export const guestGuard: CanActivateFn = () => {
   return true;
 };
 
-export const desktopGuard: CanActivateFn = () => {
+export const desktopGuard: CanActivateFn = async () => {
   const router = inject(Router);
-  if (isMobileDevice()) {
+  const flags = inject(FeatureFlagService);
+  if (isMobileDevice() && (await flags.isAppStoreLinksVisible())) {
     return router.createUrlTree(['/baixar-app']);
   }
   return true;
