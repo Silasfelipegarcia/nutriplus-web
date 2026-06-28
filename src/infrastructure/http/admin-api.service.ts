@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import { TokenStorage } from '../auth/token-storage';
 import { TraceService } from '../tracing/trace.service';
 import { ApiError } from './api-error';
+import { newIdempotencyKey, withIdempotencyKey } from './idempotency';
 
 export interface AdminAccessSummary {
   pendingApprovalCount: number;
@@ -108,20 +109,22 @@ export class AdminApiService {
   private async request<T>(method: string, path: string, flowId: string, body?: unknown): Promise<T> {
     const token = this.tokens.getAccessToken();
     if (!token) throw new ApiError('Não autenticado');
+    const idempotencyKey = method === 'GET' ? undefined : newIdempotencyKey();
     const headers: Record<string, string> = {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
       ...this.trace.headers(flowId),
     };
+    const finalHeaders = idempotencyKey ? withIdempotencyKey(headers, idempotencyKey) : headers;
     const url = `${environment.apiBaseUrl}${path}`;
     try {
       if (method === 'GET') {
-        return await firstValueFrom(this.http.get<T>(url, { headers }));
+        return await firstValueFrom(this.http.get<T>(url, { headers: finalHeaders }));
       }
       if (method === 'POST') {
-        return await firstValueFrom(this.http.post<T>(url, body ?? {}, { headers }));
+        return await firstValueFrom(this.http.post<T>(url, body ?? {}, { headers: finalHeaders }));
       }
-      return await firstValueFrom(this.http.patch<T>(url, body, { headers }));
+      return await firstValueFrom(this.http.patch<T>(url, body, { headers: finalHeaders }));
     } catch (e: unknown) {
       if (e && typeof e === 'object' && 'error' in e) {
         const err = e as { error?: { message?: string }; status?: number };
