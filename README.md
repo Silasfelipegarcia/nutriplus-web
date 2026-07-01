@@ -32,7 +32,7 @@ Output: `dist/nutriplus-web/browser`
 2. Configure no Vercel → **Environment Variables** (Production):
    - `API_BASE_URL` = `https://nutriplus-api-production.up.railway.app` (opcional — já é o padrão no build)
    - O build gera `environment.prod.ts` automaticamente via `scripts/generate-environment.mjs`
-3. Domínio: `nutriplus.com.br`
+3. Domínio: `nutriplus.app.br`
 
 ## Rotas
 
@@ -50,7 +50,7 @@ Output: `dist/nutriplus-web/browser`
 Adicione ao `CORS_ALLOWED_ORIGINS` em produção:
 
 ```
-https://nutriplus.com.br,https://www.nutriplus.com.br,https://nutriplus-web-ten.vercel.app,https://nutriplus-web.vercel.app
+https://nutriplus.app.br,https://www.nutriplus.app.br,https://nutriplus-web-ten.vercel.app,https://nutriplus-web.vercel.app
 ```
 
 ## Estrutura

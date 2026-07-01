@@ -7,7 +7,7 @@ export const environment = {
   androidApkDownloadUrl: '/downloads/nutriplus.apk',
   androidApkVersionLabel: 'v1.1.1',
   gaId: 'G-L11DG3Z3ZC',
-  siteUrl: 'https://nutriplus.com.br',
+  siteUrl: 'https://nutriplus.app.br',
   mercadoPagoPublicKey: '',
   termsVersion: '1.0',
   privacyVersion: '1.0',

@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const siteUrl = (process.env.SITE_URL || 'https://nutriplus.com.br').trim().replace(/\/$/, '');
+const siteUrl = (process.env.SITE_URL || 'https://nutriplus.app.br').trim().replace(/\/$/, '');
 const lastmod = new Date().toISOString().slice(0, 10);
 
 const pages = [

@@ -14,7 +14,7 @@ Site marketing + portal do usuário + Nutri+ Pro + admin em **Angular 19**.
 | Framework | Angular 19 (standalone components) |
 | Arquitetura | Clean Architecture + DDD |
 | Design system | `src/design-system/` — tokens alinhados ao Flutter |
-| Deploy | Vercel (`nutriplus.com.br`) |
+| Deploy | Vercel (`nutriplus.app.br`) |
 | API | `nutriplus-api` via `API_BASE_URL` |
 
 ---
