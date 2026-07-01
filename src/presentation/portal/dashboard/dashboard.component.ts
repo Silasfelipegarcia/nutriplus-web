@@ -142,12 +142,13 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
                 type="button"
                 class="checkin-btn"
                 [class.checkin-btn--done]="meal.status === 'DONE'"
-                (click)="markCheckin(meal.mealId, 'DONE')"
+                (click)="toggleDone(meal.mealId, meal.mealName, meal.status)"
               >Feito</button>
               <button
                 type="button"
                 class="checkin-btn"
                 [class.checkin-btn--done]="meal.status === 'SKIPPED'"
+                [disabled]="meal.status === 'DONE'"
                 (click)="markCheckin(meal.mealId, 'SKIPPED')"
               >Pulei</button>
             </div>
@@ -357,6 +358,22 @@ export class DashboardComponent implements OnInit {
     const target = checkins.targetCalories;
     const intake = checkins.totalIntakeCalories ?? 0;
     return target != null && intake > target;
+  }
+
+  async toggleDone(mealId: number, mealName: string, status?: string): Promise<void> {
+    if (status === 'DONE') {
+      await withActionFeedback(
+        this.toast,
+        async () => {
+          await this.nutritionRepo.deleteCheckin(mealId);
+          this.portalData.invalidateCheckins();
+          await this.refreshFromStore(true);
+        },
+        { success: `${mealName} desmarcada` },
+      );
+      return;
+    }
+    await this.markCheckin(mealId, 'DONE');
   }
 
   async markCheckin(mealId: number, status: string): Promise<void> {

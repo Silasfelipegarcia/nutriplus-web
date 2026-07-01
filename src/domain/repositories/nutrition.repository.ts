@@ -5,6 +5,7 @@ import {
   MealPlanGenerationStatus,
   NutritionProfile,
   PlanAdherenceHistory,
+  GoalTimeline,
   ProgressReview,
   ProgressSchedule,
   ShoppingList,
@@ -29,6 +30,7 @@ export interface NutritionRepository {
   getLatestShoppingList(): Promise<ShoppingList>;
   getTodayCheckins(): Promise<TodayCheckins>;
   saveCheckin(mealId: number, status: string, notes?: string): Promise<void>;
+  deleteCheckin(mealId: number): Promise<void>;
   getCheckinStats(): Promise<CheckinStats>;
   getCheckinAdherence(days?: number): Promise<PlanAdherenceHistory>;
   getProgressSchedule(): Promise<ProgressSchedule>;
@@ -37,6 +39,7 @@ export interface NutritionRepository {
   generateProgressReview(): Promise<ProgressReview>;
   getLatestProgressReview(): Promise<ProgressReview>;
   getEvolutionReport(): Promise<EvolutionReport>;
+  getGoalTimeline(): Promise<GoalTimeline>;
   getSportCatalog(): Promise<SportCatalogItem[]>;
   getTrainingProfile(): Promise<TrainingProfile>;
   saveTrainingProfile(athleteModeEnabled: boolean, activities: TrainingProfile['activities']): Promise<TrainingProfile>;

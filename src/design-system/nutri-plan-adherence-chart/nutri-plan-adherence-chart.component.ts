@@ -204,6 +204,7 @@ export class NutriPlanAdherenceChartComponent {
     { key: 'ON_TRACK', label: PLAN_DAY_STATUS_LABELS['ON_TRACK'], color: PLAN_DAY_STATUS_COLORS['ON_TRACK'] },
     { key: 'PARTIAL', label: PLAN_DAY_STATUS_LABELS['PARTIAL'], color: PLAN_DAY_STATUS_COLORS['PARTIAL'] },
     { key: 'OVER', label: PLAN_DAY_STATUS_LABELS['OVER'], color: PLAN_DAY_STATUS_COLORS['OVER'] },
+    { key: 'MISSED', label: PLAN_DAY_STATUS_LABELS['MISSED'], color: PLAN_DAY_STATUS_COLORS['MISSED'] },
     { key: 'NO_DATA', label: PLAN_DAY_STATUS_LABELS['NO_DATA'], color: PLAN_DAY_STATUS_COLORS['NO_DATA'] },
   ];
 
@@ -214,6 +215,7 @@ export class NutriPlanAdherenceChartComponent {
   barHeight(day: DailyAdherencePoint): number {
     const max = this.maxIntake();
     if (max <= 0 || day.dayStatus === 'NO_DATA') return 4;
+    if (day.totalIntakeCalories <= 0 && day.dayStatus === 'MISSED') return 10;
     return Math.max(8, Math.round((day.totalIntakeCalories / max) * 100));
   }
 

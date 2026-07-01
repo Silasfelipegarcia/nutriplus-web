@@ -2,6 +2,7 @@ export const PLAN_DAY_STATUS_LABELS: Record<string, string> = {
   ON_TRACK: 'Em linha',
   PARTIAL: 'Parcial',
   OVER: 'Acima da meta',
+  MISSED: 'Não realizado',
   NO_DATA: 'Sem registro',
 };
 
@@ -9,6 +10,7 @@ export const PLAN_DAY_STATUS_COLORS: Record<string, string> = {
   ON_TRACK: 'var(--nutri-brand)',
   PARTIAL: '#d4a017',
   OVER: '#e07b39',
+  MISSED: '#c62828',
   NO_DATA: '#d0d0d0',
 };
 
@@ -62,4 +64,40 @@ export function planAdherenceHasStarted(
   return daily.some(
     (d) => d.mealsCompleted > 0 || d.mealsSkipped > 0 || (d.extras?.length ?? 0) > 0,
   );
+}
+
+export function goalTimelinePaceLabel(paceStatus: string): string {
+  switch (paceStatus) {
+    case 'AHEAD':
+      return 'Adiantado';
+    case 'ON_TRACK':
+      return 'No prazo';
+    case 'BEHIND':
+      return 'Atrasado';
+    case 'MAINTAIN':
+      return 'Manutenção';
+    default:
+      return 'Calculando…';
+  }
+}
+
+export function goalTimelinePaceColor(paceStatus: string): string {
+  switch (paceStatus) {
+    case 'AHEAD':
+    case 'ON_TRACK':
+      return '#3D8B5F';
+    case 'BEHIND':
+      return '#e65100';
+    case 'MAINTAIN':
+      return '#6B7280';
+    default:
+      return '#6B7280';
+  }
+}
+
+export function formatIsoDatePtBr(iso?: string): string {
+  if (!iso) return '';
+  const d = new Date(iso + 'T12:00:00');
+  if (Number.isNaN(d.getTime())) return iso;
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 }

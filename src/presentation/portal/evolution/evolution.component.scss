@@ -305,6 +305,72 @@
   color: var(--nutri-ink-muted);
 }
 
+.plan-day-detail__missed {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: #c62828;
+}
+
+.plan-day-detail__skipped,
+.plan-day-detail__pending {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: var(--nutri-ink-muted);
+}
+
+.goal-timeline-card {
+  margin-bottom: 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid var(--nutri-border);
+  border-radius: var(--nutri-radius);
+  background: #fff;
+  box-shadow: var(--nutri-shadow);
+}
+
+.goal-timeline-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.goal-timeline-card__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.goal-timeline-card__badge {
+  flex-shrink: 0;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--pace-color, var(--nutri-brand));
+  background: color-mix(in srgb, var(--pace-color, var(--nutri-brand)) 12%, transparent);
+}
+
+.goal-timeline-card__meta,
+.goal-timeline-card__dates {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--nutri-ink-muted);
+  line-height: 1.4;
+}
+
+.goal-timeline-card__weight {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.goal-timeline-card__summary {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
 .plan-disclaimer {
   margin-top: 0.75rem;
   font-size: 0.78rem;

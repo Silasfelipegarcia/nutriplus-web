@@ -208,6 +208,9 @@ export interface DailyAdherencePoint {
   mealsCompleted: number;
   mealsSkipped: number;
   mealsTotal: number;
+  mealsExpected?: number;
+  mealsMissed?: number;
+  mealsPending?: number;
   adherencePercent: number;
   consumedCalories: number;
   extraCalories: number;
@@ -215,6 +218,20 @@ export interface DailyAdherencePoint {
   targetCalories?: number;
   dayStatus: string;
   extras: DailyFoodExtraItem[];
+}
+
+export interface GoalTimeline {
+  journeyStartDate?: string;
+  targetDate?: string;
+  startWeightKg?: number;
+  targetWeightKg?: number;
+  latestWeightKg?: number;
+  requiredRateKgPerWeek?: number;
+  actualRateKgPerWeek?: number;
+  projectedFinishDate?: string;
+  paceStatus: string;
+  daysAheadOrBehind: number;
+  summary: string;
 }
 
 export interface PlanAdherenceHistory {

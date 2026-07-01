@@ -13,6 +13,7 @@ import {
   MealPlanGenerationStatus,
   NutritionProfile,
   PlanAdherenceHistory,
+  GoalTimeline,
   ProgressReview,
   ProgressSchedule,
   ShoppingList,
@@ -144,6 +145,14 @@ export class HttpNutritionRepository implements NutritionRepository {
     await this.post('/checkins', { mealId, status, ...(notes ? { notes } : {}) }, 'checkin-save');
   }
 
+  async deleteCheckin(mealId: number): Promise<void> {
+    await firstValueFrom(
+      this.http.delete(`${environment.apiBaseUrl}/checkins/${mealId}`, {
+        headers: this.trace.headers('checkin-delete'),
+      }),
+    );
+  }
+
   async getCheckinStats(): Promise<CheckinStats> {
     const raw = await this.get<{
       streakDays?: number;
@@ -182,6 +191,10 @@ export class HttpNutritionRepository implements NutritionRepository {
 
   getEvolutionReport(): Promise<EvolutionReport> {
     return this.get('/progress/evolution', 'progress-evolution');
+  }
+
+  getGoalTimeline(): Promise<GoalTimeline> {
+    return this.get('/progress/goal-timeline', 'progress-goal-timeline');
   }
 
   async getSportCatalog(): Promise<SportCatalogItem[]> {

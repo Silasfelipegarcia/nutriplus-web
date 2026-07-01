@@ -10,6 +10,7 @@ import {
   DailyAdherencePoint,
   EvolutionMetric,
   EvolutionReport,
+  GoalTimeline,
   PlanAdherenceHistory,
 } from '../../../domain/entities';
 import { isNotFound } from '../../../infrastructure/http/api-error';
@@ -19,6 +20,9 @@ import {
   PLAN_DAY_STATUS_COLORS,
   PLAN_DAY_STATUS_LABELS,
   planAdherenceEstimateDisclaimer,
+  goalTimelinePaceLabel,
+  goalTimelinePaceColor,
+  formatIsoDatePtBr,
 } from '../../core/plan-adherence';
 import { PortalDataStore } from '../../core/portal-data.store';
 import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
@@ -85,6 +89,35 @@ type EvolutionView = 'plan' | 'body';
               </div>
             </nutri-empty-state>
           } @else if (adherence()) {
+            @if (goalTimeline(); as timeline) {
+              <div class="goal-timeline-card portal-card" [style.--pace-color]="goalTimelinePaceColor(timeline.paceStatus)">
+                <div class="goal-timeline-card__head">
+                  <h3 class="goal-timeline-card__title">Previsão da sua meta</h3>
+                  <span class="goal-timeline-card__badge">{{ goalTimelinePaceLabel(timeline.paceStatus) }}</span>
+                </div>
+                @if (timeline.requiredRateKgPerWeek != null) {
+                  <p class="goal-timeline-card__meta">
+                    Ritmo da meta: ~{{ timeline.requiredRateKgPerWeek | number:'1.1-1' }} kg/semana
+                    @if (timeline.actualRateKgPerWeek != null) {
+                      · atual: ~{{ timeline.actualRateKgPerWeek | number:'1.1-1' }} kg/sem
+                    }
+                  </p>
+                }
+                @if (timeline.journeyStartDate || timeline.targetDate || timeline.projectedFinishDate) {
+                  <p class="goal-timeline-card__dates">
+                    @if (timeline.journeyStartDate) { Início: {{ formatIsoDatePtBr(timeline.journeyStartDate) }} }
+                    @if (timeline.targetDate) { · Prazo: {{ formatIsoDatePtBr(timeline.targetDate) }} }
+                    @if (timeline.projectedFinishDate) { · Previsão: {{ formatIsoDatePtBr(timeline.projectedFinishDate) }} }
+                  </p>
+                }
+                @if (timeline.latestWeightKg != null && timeline.targetWeightKg != null) {
+                  <p class="goal-timeline-card__weight">
+                    Peso: {{ timeline.latestWeightKg | number:'1.1-1' }} kg → meta {{ timeline.targetWeightKg | number:'1.1-1' }} kg
+                  </p>
+                }
+                <p class="goal-timeline-card__summary">{{ timeline.summary }}</p>
+              </div>
+            }
             @if (planAdherenceHasStarted(adherence()!.daily)) {
             <div class="stat-row">
               <div class="stat-card"><strong>{{ adherence()!.streakDays }}</strong><span>Dias seguidos</span></div>
@@ -109,9 +142,21 @@ type EvolutionView = 'plan' | 'body';
               <div class="portal-card plan-day-detail">
                 <h3>{{ formatDay(day.date) }} · {{ planStatusLabel(day.dayStatus) }}</h3>
                 @if (day.dayStatus === 'NO_DATA') {
-                  <p>Nenhuma refeição marcada neste dia.</p>
+                  <p>Antes do plano ou sem registro neste dia.</p>
                 } @else {
-                  <p>{{ day.mealsCompleted }}/{{ day.mealsTotal }} refeições · {{ day.totalIntakeCalories }} kcal</p>
+                  <p>
+                    {{ day.mealsCompleted }}/{{ day.mealsExpected ?? day.mealsTotal }} refeições
+                    · {{ day.totalIntakeCalories }} kcal
+                  </p>
+                  @if ((day.mealsMissed ?? 0) > 0) {
+                    <p class="plan-day-detail__missed">{{ day.mealsMissed }} não realizadas</p>
+                  }
+                  @if ((day.mealsSkipped ?? 0) > 0) {
+                    <p class="plan-day-detail__skipped">{{ day.mealsSkipped }} puladas</p>
+                  }
+                  @if ((day.mealsPending ?? 0) > 0) {
+                    <p class="plan-day-detail__pending">{{ day.mealsPending }} pendentes</p>
+                  }
                   @if (day.extras.length) {
                     @for (extra of day.extras; track extra.id) {
                       <p class="plan-day-detail__extra">{{ extra.description }} (+{{ extra.estimatedCalories }} kcal)</p>
@@ -293,6 +338,7 @@ export class EvolutionComponent implements OnInit {
 
   readonly report = signal<EvolutionReport | null>(null);
   readonly adherence = signal<PlanAdherenceHistory | null>(null);
+  readonly goalTimeline = signal<GoalTimeline | null>(null);
   readonly adherenceDays = signal(7);
   readonly selectedDay = signal<DailyAdherencePoint | null>(null);
   readonly view = signal<EvolutionView>('plan');
@@ -303,6 +349,9 @@ export class EvolutionComponent implements OnInit {
   readonly disclaimer = planAdherenceEstimateDisclaimer;
   readonly formatDay = formatAdherenceDayLabel;
   readonly planAdherenceHasStarted = planAdherenceHasStarted;
+  readonly goalTimelinePaceLabel = goalTimelinePaceLabel;
+  readonly goalTimelinePaceColor = goalTimelinePaceColor;
+  readonly formatIsoDatePtBr = formatIsoDatePtBr;
 
   readonly legendItems = [
     { status: 'EXCELLENT', label: 'Ótimo', color: STATUS_COLORS['EXCELLENT'], desc: 'Acima da meta esperada' },
@@ -316,7 +365,7 @@ export class EvolutionComponent implements OnInit {
     if (qView === 'body') this.view.set('body');
 
     await this.portalData.loadTodayCheckins();
-    await Promise.all([this.loadBody(), this.loadAdherence(this.adherenceDays())]);
+    await Promise.all([this.loadBody(), this.loadAdherence(this.adherenceDays()), this.loadGoalTimeline()]);
   }
 
   hasMealPlan(): boolean {
@@ -338,6 +387,15 @@ export class EvolutionComponent implements OnInit {
       this.adherence.set(null);
     } finally {
       this.planLoading.set(false);
+    }
+  }
+
+  private async loadGoalTimeline(): Promise<void> {
+    try {
+      this.goalTimeline.set(await this.nutritionRepo.getGoalTimeline());
+    } catch (e) {
+      if (!isNotFound(e)) throw e;
+      this.goalTimeline.set(null);
     }
   }
 
