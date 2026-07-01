@@ -32,6 +32,11 @@ export class RegisterComponent implements OnInit {
   private readonly featureFlags = inject(FeatureFlagService);
 
   ngOnInit(): void {
-    void this.featureFlags.isRegistrationOpen().then((open) => this.registrationOpen.set(open));
+    this.syncRegistrationFlag();
+    void this.featureFlags.prefetch().then(() => this.syncRegistrationFlag());
+  }
+
+  private syncRegistrationFlag(): void {
+    this.registrationOpen.set(this.featureFlags.isRegistrationOpenSync());
   }
 }

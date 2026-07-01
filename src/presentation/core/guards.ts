@@ -24,10 +24,10 @@ export const guestGuard: CanActivateFn = () => {
   return true;
 };
 
-export const desktopGuard: CanActivateFn = async () => {
+export const desktopGuard: CanActivateFn = () => {
   const router = inject(Router);
   const flags = inject(FeatureFlagService);
-  if (isMobileDevice() && ((await flags.isAppStoreLinksVisible()) || hasAnyMobileDownload)) {
+  if (isMobileDevice() && (flags.isAppStoreLinksVisibleSync() || hasAnyMobileDownload)) {
     return router.createUrlTree(['/baixar-app']);
   }
   return true;
@@ -81,8 +81,8 @@ export const portalReadyGuard: CanActivateFn = () => {
 export const openRegistrationGuard: CanActivateFn = async () => {
   const flags = inject(FeatureFlagService);
   const router = inject(Router);
-  const open = await flags.isRegistrationOpen();
-  if (!open) {
+  await flags.prefetch();
+  if (!flags.isRegistrationOpenSync()) {
     return router.createUrlTree(['/beta']);
   }
   return true;
@@ -91,8 +91,8 @@ export const openRegistrationGuard: CanActivateFn = async () => {
 export const betaRegistrationGuard: CanActivateFn = async () => {
   const flags = inject(FeatureFlagService);
   const router = inject(Router);
-  const open = await flags.isRegistrationOpen();
-  if (open) {
+  await flags.prefetch();
+  if (flags.isRegistrationOpenSync()) {
     return router.createUrlTree(['/auth/cadastro']);
   }
   return true;
@@ -101,7 +101,8 @@ export const betaRegistrationGuard: CanActivateFn = async () => {
 export const shoppingFinanceGuard: CanActivateFn = async () => {
   const flags = inject(FeatureFlagService);
   const router = inject(Router);
-  if (!(await flags.isShoppingFinanceEnabled())) {
+  await flags.prefetch();
+  if (!flags.isShoppingFinanceEnabledSync()) {
     return router.createUrlTree(['/app/dashboard']);
   }
   return true;

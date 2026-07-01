@@ -46,9 +46,15 @@ function bootstrapCookieConsent(): () => void {
   };
 }
 
-function bootstrapFeatureFlags(): () => Promise<void> {
+function bootstrapFeatureFlags(): () => void {
   const featureFlags = inject(FeatureFlagService);
-  return () => featureFlags.list().then(() => undefined);
+  const platformId = inject(PLATFORM_ID);
+
+  return () => {
+    if (isPlatformBrowser(platformId)) {
+      void featureFlags.prefetch();
+    }
+  };
 }
 
 function bootstrapAnalytics(): () => void {
@@ -95,9 +101,9 @@ export const appConfig: ApplicationConfig = {
     ChunkLoadRecovery,
     provideChunkLoadRecovery(),
     {
-      provide: APP_INITIALIZER,
-      useFactory: bootstrapFeatureFlags,
+      provide: APP_BOOTSTRAP_LISTENER,
       multi: true,
+      useFactory: bootstrapFeatureFlags,
     },
     {
       provide: APP_INITIALIZER,

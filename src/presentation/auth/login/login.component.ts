@@ -66,7 +66,12 @@ export class LoginComponent implements OnInit {
   infoMessage = (history.state?.registerMessage as string | undefined) ?? null;
 
   ngOnInit(): void {
-    void this.featureFlags.isRegistrationOpen().then((open) => this.registrationOpen.set(open));
+    this.syncRegistrationFlag();
+    void this.featureFlags.prefetch().then(() => this.syncRegistrationFlag());
+  }
+
+  private syncRegistrationFlag(): void {
+    this.registrationOpen.set(this.featureFlags.isRegistrationOpenSync());
   }
 
   get authErrorMessage(): string | null {
