@@ -18,13 +18,23 @@ import { AnalyticsService } from '../../infrastructure/analytics/analytics.servi
   template: `
     <!-- Slot fixo fora do @if: o Angular só projeta conteúdo no primeiro ng-content estável -->
     <span class="nutri-btn__source" hidden aria-hidden="true"><ng-content /></span>
-    @if (href || to) {
+    @if (to) {
       <a
         [class]="classes"
         [routerLink]="to"
+        [attr.aria-disabled]="disabled || null"
+        [class.nutri-btn--disabled]="disabled"
+        (click)="onLinkClick($event)"
+      >
+        <span class="nutri-btn__label">{{ labelText() }}</span>
+      </a>
+    } @else if (href) {
+      <a
+        [class]="classes"
         [href]="href"
-        [attr.target]="external && href ? '_blank' : null"
-        [attr.rel]="external && href ? 'noopener noreferrer' : null"
+        [attr.download]="download || null"
+        [attr.target]="linkTarget"
+        [attr.rel]="linkRel"
         [attr.aria-disabled]="disabled || null"
         [class.nutri-btn--disabled]="disabled"
         (click)="onLinkClick($event)"
@@ -49,6 +59,8 @@ export class NutriButtonComponent implements AfterContentInit {
   @Input() disabled = false;
   @Input() to?: string | string[];
   @Input() href?: string;
+  /** Same-tab file download (ex.: APK). Evita target=_blank no Android. */
+  @Input() download?: string;
   @Input() external = false;
   /** Texto explícito (opcional). Se omitido, usa o conteúdo projetado. */
   @Input() label?: string;
@@ -66,6 +78,18 @@ export class NutriButtonComponent implements AfterContentInit {
     ]
       .filter(Boolean)
       .join(' ');
+  }
+
+  /** APK e arquivos locais: mesma aba dispara o gerenciador de downloads no Android. */
+  get linkTarget(): string | null {
+    if (this.download) return null;
+    if (this.external && this.href) return '_blank';
+    return null;
+  }
+
+  get linkRel(): string | null {
+    if (this.linkTarget === '_blank') return 'noopener noreferrer';
+    return null;
   }
 
   ngAfterContentInit(): void {

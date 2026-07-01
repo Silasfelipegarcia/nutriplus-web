@@ -1,0 +1,28 @@
+---
+description: Guardrails de latência no portal web — não sobrecarregar a API
+alwaysApply: true
+---
+
+# Latência no portal (Nutri+ Web)
+
+A API tem SLAs em `nutriplus-api/docs/PERFORMANCE.md`. O frontend não pode anular isso.
+
+## Regras
+
+1. **Abertura de tela** — preferir 1 request agregado (`/app/bootstrap`) ou `Promise.all` paralelo; evitar cascata sequencial de 5+ GETs.
+2. **Polling** — mínimo **8 s** (chat Pro/paciente); nunca < 3 s sem justificativa.
+3. **Feature flags** — usar cache `sessionStorage`/defaults; **não** bloquear login com `APP_INITIALIZER` síncrono na API.
+4. **Listas** — paginação ou limite; não carregar histórico completo no mount.
+5. **Marketplace / Pro** — dados públicos podem cachear na sessão; invalidar só após mutação.
+
+## Antes de merge
+
+- Nova tela que chama API → contar requests no Network (meta: ≤ 3 no first paint).
+- Loading states: usuário vê conteúdo em < 1 s com cache; spinner só para dados novos.
+- Não adicionar retry em loop sem backoff.
+
+## Impacto no cliente
+
+Toda feature nova deve responder: *quantos ms e quantas chamadas adiciona ao fluxo crítico (login → dashboard)?*
+
+Se não souber, medir contra homolog/prod warm, não só localhost.

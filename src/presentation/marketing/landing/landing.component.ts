@@ -362,7 +362,7 @@ import { hasDirectAndroidApkDownload, androidApkDownloadUrl, androidApkVersionLa
                   <a
                     class="store-badge"
                     [href]="androidApkDownloadUrl"
-                    download
+                    download="nutriplus.apk"
                     appAnalyticsCta="baixar_app_apk"
                     appAnalyticsCtaLocation="download_section"
                   >

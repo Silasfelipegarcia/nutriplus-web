@@ -36,14 +36,16 @@ import { APP_NAME } from '../core/constants';
                 variant="primary"
                 [block]="true"
                 [href]="androidApkDownloadUrl"
-                [external]="true"
+                download="nutriplus.apk"
                 analyticsCta="baixar_app_apk"
                 analyticsLocation="baixar_app"
               >
                 Baixar Android{{ apkVersionLabel ? ' (' + apkVersionLabel + ')' : '' }}
               </nutri-button>
               <p class="download-page__hint">
-                Instalação direta (APK). Ative “fontes desconhecidas” se o Android solicitar.
+                Toque em Baixar e confira a barra de notificações ou a pasta <strong>Downloads</strong>
+                (Arquivos → Downloads). Abra <strong>nutriplus.apk</strong> para instalar.
+                Se pedir, permita instalar de “fontes desconhecidas” para o Chrome ou Arquivos.
               </p>
             } @else if (storeLinksVisible()) {
               <nutri-button
