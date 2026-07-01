@@ -11,8 +11,14 @@ export const TERMS_BODY =
   'O NutriPlus utiliza inteligência artificial para sugerir planos alimentares e organizar suas metas. ' +
   'Essas recomendações têm caráter informativo e de apoio — não substituem consulta, diagnóstico ou ' +
   'tratamento com nutricionista ou médico.\n\n' +
-  'Ao continuar, você declara estar ciente de que as sugestões são geradas automaticamente e que ' +
-  'decisões sobre sua saúde devem considerar orientação profissional individualizada.';
+  'Ao continuar, você declara ter 18 anos ou mais, estar ciente de que as sugestões são geradas automaticamente e que ' +
+  'decisões sobre sua saúde devem considerar orientação profissional individualizada.\n\n' +
+  'Planos automáticos por IA não estão disponíveis para gestantes, lactantes ou perfis com impedimentos ' +
+  'indicados no questionário de elegibilidade.';
+
+export const HEALTH_ELIGIBILITY_SUMMARY =
+  'Confirmo ter 18 anos ou mais, que as informações de saúde informadas são verdadeiras e que estou elegível ' +
+  'para usar as sugestões automáticas de plano alimentar, conforme a Declaração de Elegibilidade.';
 
 export const LUNA_TIPS = [
   'Pequenos passos constroem grandes mudanças. Você está no caminho certo!',

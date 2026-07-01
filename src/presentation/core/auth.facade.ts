@@ -121,8 +121,13 @@ export class AuthFacade {
     }
   }
 
-  async acceptTerms(termsVersion: string, privacyVersion: string): Promise<void> {
-    const updated = await this.authRepo.acceptTerms(termsVersion, privacyVersion);
+  async acceptTerms(params: {
+    termsVersion: string;
+    privacyVersion: string;
+    healthEligibilityVersion: string;
+    healthEligibilityAccepted: boolean;
+  }): Promise<void> {
+    const updated = await this.authRepo.acceptTerms(params);
     this.user.set(updated);
   }
 

@@ -47,8 +47,9 @@ export const environment = {
   gaId: '${gaId}',
   siteUrl: '${siteUrl}',
   mercadoPagoPublicKey: '${mpPublicKey}',
-  termsVersion: '1.0',
-  privacyVersion: '1.0',
+  termsVersion: '2026-06-2',
+  privacyVersion: '2026-06-2',
+  healthEligibilityVersion: '2026-06-2',
 };
 `;
 

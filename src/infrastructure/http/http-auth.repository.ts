@@ -56,10 +56,21 @@ export class HttpAuthRepository implements AuthRepository {
     return this.authorizedGet<User>('/users/me', 'users-me');
   }
 
-  async acceptTerms(termsVersion: string, privacyVersion: string): Promise<User> {
+  async acceptTerms(params: {
+    termsVersion: string;
+    privacyVersion: string;
+    healthEligibilityVersion: string;
+    healthEligibilityAccepted: boolean;
+  }): Promise<User> {
     return this.authorizedPost<User>(
       '/users/me/accept-terms',
-      { termsVersion, privacyVersion },
+      {
+        termsVersion: params.termsVersion,
+        privacyVersion: params.privacyVersion,
+        healthEligibilityVersion: params.healthEligibilityVersion,
+        healthEligibilityAccepted: params.healthEligibilityAccepted,
+        appPlatform: 'WEB',
+      },
       'accept-terms',
     );
   }

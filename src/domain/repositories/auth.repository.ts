@@ -23,7 +23,12 @@ export interface AuthRepository {
   betaRequestNutritionist(data: NutritionistRegisterData): Promise<RegisterResponse>;
   refreshToken(refreshToken: string): Promise<AuthResponse>;
   getMe(): Promise<User>;
-  acceptTerms(termsVersion: string, privacyVersion: string): Promise<User>;
+  acceptTerms(params: {
+    termsVersion: string;
+    privacyVersion: string;
+    healthEligibilityVersion: string;
+    healthEligibilityAccepted: boolean;
+  }): Promise<User>;
   changePassword(currentPassword: string, newPassword: string): Promise<AuthResponse>;
   updateProfile(data: { name?: string; photoUrl?: string }): Promise<User>;
   forgotPassword(email: string): Promise<string>;

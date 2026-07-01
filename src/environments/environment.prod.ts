@@ -12,6 +12,7 @@ export const environment = {
   gaId: 'G-L11DG3Z3ZC',
   siteUrl: 'https://nutriplus.app.br',
   mercadoPagoPublicKey: '',
-  termsVersion: '1.0',
-  privacyVersion: '1.0',
+  termsVersion: '2026-06-2',
+  privacyVersion: '2026-06-2',
+  healthEligibilityVersion: '2026-06-2',
 };
