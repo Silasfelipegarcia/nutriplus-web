@@ -29,6 +29,7 @@ const BASE_NAV_ITEMS: PortalNavItem[] = [
   { path: '/app/assinatura', label: 'Assinatura', icon: '💳' },
   { path: '/app/perfil', label: 'Perfil', icon: '👤' },
   { path: '/app/nutricionistas', label: 'Nutricionista', icon: '🩺' },
+  { path: '/app/conversas', label: 'Conversas', icon: '💬' },
 ];
 
 @Component({

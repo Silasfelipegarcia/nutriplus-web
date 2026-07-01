@@ -21,6 +21,8 @@ import {
   ProPricingUpdate,
   ProProfileUpdate,
   StripeConnectResult,
+  NutritionistPortfolioItem,
+  PortfolioItemInput,
 } from '../../domain/entities';
 import { ProRepository } from '../../domain/repositories/pro.repository';
 
@@ -88,20 +90,35 @@ export class HttpProRepository implements ProRepository {
     return this.put(`/pro/patients/${patientId}/nutrition-profile`, data, 'pro-nutrition-update');
   }
 
-  generatePatientMealPlan(patientId: number): Promise<MealPlanGenerationStatus> {
-    return this.post(`/pro/patients/${patientId}/meal-plans/generate`, {}, 'pro-generate-plan');
+  generatePatientMealPlan(patientId: number, nutritionistNotes?: string): Promise<MealPlanGenerationStatus> {
+    return this.post(
+      `/pro/patients/${patientId}/meal-plans/generate`,
+      nutritionistNotes ? { nutritionistNotes } : {},
+      'pro-generate-plan',
+    );
   }
 
   listPatientMealPlans(patientId: number): Promise<MealPlan[]> {
     return this.get(`/pro/patients/${patientId}/meal-plans`, 'pro-meal-plans');
   }
 
-  publishMealPlan(patientId: number, mealPlanId: number, notes?: string): Promise<MealPlan> {
+  publishMealPlan(patientId: number, mealPlanId: number, notes?: string, changesSummary?: string): Promise<MealPlan> {
     return this.put(
       `/pro/patients/${patientId}/meal-plans/${mealPlanId}/publish`,
-      { reviewNotes: notes ?? '' },
+      {
+        reviewNotes: notes ?? '',
+        ...(changesSummary ? { changesSummary } : {}),
+      },
       'pro-publish-plan',
     );
+  }
+
+  getPortfolio(): Promise<NutritionistPortfolioItem[]> {
+    return this.get('/pro/portfolio', 'pro-portfolio');
+  }
+
+  updatePortfolio(items: PortfolioItemInput[]): Promise<NutritionistPortfolioItem[]> {
+    return this.put('/pro/portfolio', { items }, 'pro-portfolio-update');
   }
 
   createInvite(maxUses = 10, expiresInDays = 30): Promise<ProInvite> {

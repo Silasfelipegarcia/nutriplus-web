@@ -4,11 +4,14 @@ import {
   CareRating,
   CareRelationship,
   Conversation,
+  PaymentIntentResult,
   MealPlan,
   MealPlanGenerationStatus,
   NutritionistPublic,
   NutritionistRatingsSummary,
   NutritionProfile,
+  NutritionistPortfolioItem,
+  PortfolioItemInput,
   PatientDossier,
   ProDashboard,
   ProInvite,
@@ -29,9 +32,11 @@ export interface ProRepository {
   getDossier(patientId: number): Promise<PatientDossier>;
   recordMeasurement(patientId: number, measurement: BodyMeasurement): Promise<BodyMeasurement>;
   updatePatientNutrition(patientId: number, data: ProPatientNutritionUpdate): Promise<NutritionProfile>;
-  generatePatientMealPlan(patientId: number): Promise<MealPlanGenerationStatus>;
+  generatePatientMealPlan(patientId: number, nutritionistNotes?: string): Promise<MealPlanGenerationStatus>;
   listPatientMealPlans(patientId: number): Promise<MealPlan[]>;
-  publishMealPlan(patientId: number, mealPlanId: number, notes?: string): Promise<MealPlan>;
+  publishMealPlan(patientId: number, mealPlanId: number, notes?: string, changesSummary?: string): Promise<MealPlan>;
+  getPortfolio(): Promise<NutritionistPortfolioItem[]>;
+  updatePortfolio(items: PortfolioItemInput[]): Promise<NutritionistPortfolioItem[]>;
   createInvite(maxUses?: number, expiresInDays?: number): Promise<ProInvite>;
   listConversations(): Promise<Conversation[]>;
   getConversation(threadId: number): Promise<Conversation>;
@@ -44,8 +49,12 @@ export interface CareRepository {
   getNutritionistRatings(id: number): Promise<NutritionistRatingsSummary>;
   getMyCare(): Promise<CareRelationship[]>;
   acceptInvite(code: string, consentVersion: string): Promise<CareRelationship>;
-  requestCare(nutritionistId: number): Promise<CareRelationship>;
+  requestCare(nutritionistId: number, preferredCareMode?: string): Promise<CareRelationship>;
+  payConsultation(nutritionistId: number): Promise<PaymentIntentResult>;
   rateCare(careRelationshipId: number, stars: number, comment?: string): Promise<CareRating>;
+  listConversations(): Promise<Conversation[]>;
+  getConversation(threadId: number): Promise<Conversation>;
+  sendMessage(threadId: number, body: string): Promise<void>;
 }
 
 export const PRO_REPOSITORY = new InjectionToken<ProRepository>('PRO_REPOSITORY');

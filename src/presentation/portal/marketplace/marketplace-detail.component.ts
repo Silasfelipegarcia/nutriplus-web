@@ -53,6 +53,18 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
           <div class="portal-card">
             <p>{{ nutritionist()!.bio || 'Sem bio cadastrada.' }}</p>
             <p><strong>Especialidades:</strong> {{ nutritionist()!.specialties || '—' }}</p>
+            @if (nutritionist()!.formation) {
+              <p><strong>Formação:</strong> {{ nutritionist()!.formation }}</p>
+            }
+            @if (nutritionist()!.experienceYears) {
+              <p><strong>Experiência:</strong> {{ nutritionist()!.experienceYears }} anos</p>
+            }
+            @if (nutritionist()!.approach) {
+              <p><strong>Abordagem:</strong> {{ nutritionist()!.approach }}</p>
+            }
+            @if (nutritionist()!.languages?.length) {
+              <p><strong>Idiomas:</strong> {{ nutritionist()!.languages!.join(', ') }}</p>
+            }
             <p>
               <strong>Consulta:</strong>
               R$ {{ nutritionist()!.consultationPriceCents / 100 | number:'1.2-2' }}
@@ -60,6 +72,21 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
             </p>
           </div>
         </nutri-section>
+
+        @if (nutritionist()!.portfolioItems?.length) {
+          <nutri-section title="Casos e resultados">
+            <div class="portal-list">
+              @for (item of nutritionist()!.portfolioItems!; track item.id) {
+                <div class="portal-list-item">
+                  <div class="portal-list-item__main">
+                    <strong>{{ item.title }}</strong>
+                    <span>{{ item.summary }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </nutri-section>
+        }
 
         @if (ratings()?.recent?.length) {
           <nutri-section title="Avaliações recentes">
@@ -78,8 +105,8 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
 
         <div class="portal-actions">
           <nutri-button variant="ghost" to="/app/nutricionistas">Voltar</nutri-button>
-          <nutri-button variant="primary" [disabled]="requesting()" (click)="request()">
-            {{ requesting() ? 'Solicitando...' : 'Solicitar acompanhamento' }}
+          <nutri-button variant="primary" [disabled]="requesting() || paying()" (click)="hire()">
+            {{ paying() ? 'Processando pagamento...' : requesting() ? 'Solicitando...' : 'Contratar e pagar' }}
           </nutri-button>
         </div>
       }
@@ -98,6 +125,7 @@ export class MarketplaceDetailComponent implements OnInit {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly requesting = signal(false);
+  readonly paying = signal(false);
 
   async ngOnInit(): Promise<void> {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -115,18 +143,34 @@ export class MarketplaceDetailComponent implements OnInit {
     }
   }
 
-  async request(): Promise<void> {
+  async hire(): Promise<void> {
     const n = this.nutritionist();
     if (!n) return;
     this.requesting.set(true);
-    await withActionFeedback(
+    const requested = await withActionFeedback(
       this.toast,
       async () => {
         await this.careRepo.requestCare(n.id);
         this.analytics.trackCareRequestSubmitted();
       },
-      { success: 'Solicitação enviada. Siga as instruções de pagamento quando disponíveis.' },
+      { success: 'Solicitação registrada' },
     );
     this.requesting.set(false);
+    if (!requested) return;
+
+    this.paying.set(true);
+    await withActionFeedback(
+      this.toast,
+      async () => {
+        const payment = await this.careRepo.payConsultation(n.id);
+        if (payment.mockMode) {
+          this.toast.success('Consulta contratada! (pagamento simulado em dev)');
+        } else {
+          this.toast.info('Complete o pagamento no fluxo Stripe quando disponível.');
+        }
+      },
+      { success: 'Pagamento iniciado' },
+    );
+    this.paying.set(false);
   }
 }

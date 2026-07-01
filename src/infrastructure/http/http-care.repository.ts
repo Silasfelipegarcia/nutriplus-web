@@ -8,8 +8,10 @@ import { newIdempotencyKey, withIdempotencyKey } from './idempotency';
 import {
   CareRating,
   CareRelationship,
+  Conversation,
   NutritionistPublic,
   NutritionistRatingsSummary,
+  PaymentIntentResult,
 } from '../../domain/entities';
 import { CareRepository } from '../../domain/repositories/pro.repository';
 
@@ -46,12 +48,19 @@ export class HttpCareRepository implements CareRepository {
     );
   }
 
-  requestCare(nutritionistId: number): Promise<CareRelationship> {
+  requestCare(nutritionistId: number, preferredCareMode?: string): Promise<CareRelationship> {
     return this.post(
       `/care/request/${nutritionistId}`,
-      { consentDataSharing: true },
+      {
+        consentDataSharing: true,
+        ...(preferredCareMode ? { preferredCareMode } : {}),
+      },
       'care-request',
     );
+  }
+
+  payConsultation(nutritionistId: number): Promise<PaymentIntentResult> {
+    return this.post('/consultations/pay', { nutritionistId }, 'consultation-pay');
   }
 
   rateCare(careRelationshipId: number, stars: number, comment?: string): Promise<CareRating> {
@@ -60,6 +69,18 @@ export class HttpCareRepository implements CareRepository {
       { stars, ...(comment ? { comment } : {}) },
       'care-rate',
     );
+  }
+
+  listConversations(): Promise<Conversation[]> {
+    return this.get('/conversations', 'patient-conversations');
+  }
+
+  getConversation(threadId: number): Promise<Conversation> {
+    return this.get(`/conversations/${threadId}`, 'patient-conversation');
+  }
+
+  async sendMessage(threadId: number, body: string): Promise<void> {
+    await this.post(`/conversations/${threadId}/messages`, { body }, 'patient-message');
   }
 
   private async get<T>(path: string, flowId: string): Promise<T> {

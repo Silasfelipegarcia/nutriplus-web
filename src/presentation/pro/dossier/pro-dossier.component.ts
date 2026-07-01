@@ -103,12 +103,18 @@ const DIET_OPTIONS = [
                 </div>
                 <nutri-input label="Notas de refeição" type="textarea" [(ngModel)]="editMealNotes" name="mealNotes" />
                 <nutri-input label="Notas de saúde" type="textarea" [(ngModel)]="editHealthNotes" name="healthNotes" />
+                <nutri-input
+                  label="Orientações para o plano (enviadas à IA)"
+                  type="textarea"
+                  [(ngModel)]="nutritionistPlanNotes"
+                  name="nutritionistPlanNotes"
+                />
                 <div class="portal-actions" style="margin-top: 0; padding-top: 0; border: none">
                   <nutri-button variant="primary" type="submit" [disabled]="savingNutrition">
                     {{ savingNutrition ? 'Salvando...' : 'Salvar ajustes' }}
                   </nutri-button>
                   <nutri-button variant="secondary" [disabled]="generatingPlan" (click)="generatePlan()">
-                    {{ generatingPlan ? 'Gerando...' : 'Gerar novo plano' }}
+                    {{ generatingPlan ? 'Gerando...' : 'Regenerar com IA' }}
                   </nutri-button>
                 </div>
               </form>
@@ -180,7 +186,7 @@ const DIET_OPTIONS = [
                     <span>{{ plan.totalCalories | number:'1.0-0' }} kcal · {{ plan.meals.length }} refeições</span>
                   </div>
                   <nutri-button variant="secondary" size="sm" [disabled]="publishingId === plan.id" (click)="publish(plan.id)">
-                    {{ publishingId === plan.id ? 'Publicando...' : 'Publicar' }}
+                    {{ publishingId === plan.id ? 'Publicando...' : 'Publicar revisão' }}
                   </nutri-button>
                 </div>
               }
@@ -222,6 +228,7 @@ export class ProDossierComponent implements OnInit {
   editDiet = 'OMNIVORE';
   editMealNotes = '';
   editHealthNotes = '';
+  nutritionistPlanNotes = '';
   measurementDate = new Date().toISOString().slice(0, 10);
   measurementWeight = 0;
   measurementBodyFat: number | null = null;
@@ -280,7 +287,10 @@ export class ProDossierComponent implements OnInit {
     await withActionFeedback(
       this.toast,
       async () => {
-        await this.proRepo.generatePatientMealPlan(patientId);
+        await this.proRepo.generatePatientMealPlan(
+          patientId,
+          this.nutritionistPlanNotes.trim() || undefined,
+        );
         this.plans.set(await this.proRepo.listPatientMealPlans(patientId));
         this.analytics.trackProPlanGenerated();
       },
@@ -317,7 +327,12 @@ export class ProDossierComponent implements OnInit {
     await withActionFeedback(
       this.toast,
       async () => {
-        await this.proRepo.publishMealPlan(patientId, mealPlanId);
+        await this.proRepo.publishMealPlan(
+          patientId,
+          mealPlanId,
+          this.nutritionistPlanNotes.trim() || undefined,
+          this.nutritionistPlanNotes.trim() || undefined,
+        );
       },
       { success: 'Plano publicado' },
     );

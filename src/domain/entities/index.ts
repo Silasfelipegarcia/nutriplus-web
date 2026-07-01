@@ -431,6 +431,18 @@ export interface NutritionistPublic {
   whatsappPhone?: string;
   averageRating: number;
   ratingCount: number;
+  formation?: string;
+  experienceYears?: number;
+  approach?: string;
+  languages?: string[];
+  portfolioItems?: NutritionistPortfolioItem[];
+}
+
+export interface NutritionistPortfolioItem {
+  id: number;
+  title: string;
+  summary: string;
+  sortOrder: number;
 }
 
 export interface CareRating {
@@ -457,6 +469,23 @@ export interface ProProfileUpdate {
   stateCode?: string;
   neighborhood?: string;
   whatsappPhone?: string;
+  formation?: string;
+  experienceYears?: number;
+  approach?: string;
+  languages?: string[];
+}
+
+export interface PortfolioItemInput {
+  title: string;
+  summary: string;
+}
+
+export interface PaymentIntentResult {
+  clientSecret: string;
+  paymentIntentId: string;
+  amountCents: number;
+  publishableKey: string;
+  mockMode: boolean;
 }
 
 export interface ProPricingUpdate {

@@ -4,13 +4,13 @@ import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { interval } from 'rxjs';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
-import { PRO_REPOSITORY } from '../../../domain/repositories/pro.repository';
+import { CARE_REPOSITORY } from '../../../domain/repositories/pro.repository';
 import { Conversation } from '../../../domain/entities';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { withActionFeedback } from '../../core/action-feedback';
 
 @Component({
-  selector: 'app-pro-chat',
+  selector: 'app-patient-chat',
   standalone: true,
   imports: [FormsModule, NutriButtonComponent],
   template: `
@@ -21,7 +21,7 @@ import { withActionFeedback } from '../../core/action-feedback';
         </div>
         <div class="portal-card chat-thread">
           @for (m of conversation()!.messages; track m.id) {
-            <div class="chat-bubble" [class.chat-bubble--mine]="m.senderRole === 'NUTRITIONIST'">
+            <div class="chat-bubble" [class.chat-bubble--mine]="m.senderRole === 'PATIENT'">
               <p>{{ m.body }}</p>
               <small>{{ m.sentAt }}</small>
             </div>
@@ -62,8 +62,8 @@ import { withActionFeedback } from '../../core/action-feedback';
     }
   `,
 })
-export class ProChatComponent implements OnInit {
-  private readonly proRepo = inject(PRO_REPOSITORY);
+export class PatientChatComponent implements OnInit {
+  private readonly careRepo = inject(CARE_REPOSITORY);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(NutriToastService);
   private readonly destroyRef = inject(DestroyRef);
@@ -81,7 +81,7 @@ export class ProChatComponent implements OnInit {
 
   private async refresh(threadId: number): Promise<void> {
     try {
-      this.conversation.set(await this.proRepo.getConversation(threadId));
+      this.conversation.set(await this.careRepo.getConversation(threadId));
     } catch {
       // polling silencioso
     }
@@ -95,9 +95,9 @@ export class ProChatComponent implements OnInit {
     const ok = await withActionFeedback(
       this.toast,
       async () => {
-        await this.proRepo.sendMessage(threadId, body);
+        await this.careRepo.sendMessage(threadId, body);
         this.draft = '';
-        this.conversation.set(await this.proRepo.getConversation(threadId));
+        this.conversation.set(await this.careRepo.getConversation(threadId));
       },
       { success: 'Mensagem enviada' },
     );

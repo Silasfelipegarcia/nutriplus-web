@@ -313,6 +313,16 @@ export const routes: Routes = [
         data: mon(2, 'marketplace_detail_view'),
       },
       {
+        path: 'conversas',
+        loadComponent: () => import('../presentation/portal/conversations/patient-conversations.component').then(m => m.PatientConversationsComponent),
+        data: mon(3, 'patient_conversations_view'),
+      },
+      {
+        path: 'conversas/:id',
+        loadComponent: () => import('../presentation/portal/conversations/patient-chat.component').then(m => m.PatientChatComponent),
+        data: mon(3, 'patient_chat_view'),
+      },
+      {
         path: 'planos',
         loadComponent: () => import('../presentation/portal/plans/portal-plans.component').then(m => m.PortalPlansComponent),
         data: mon(3, 'portal_plans_view'),
