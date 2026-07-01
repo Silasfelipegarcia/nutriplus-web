@@ -29,6 +29,9 @@ const gaId = (process.env.GA_MEASUREMENT_ID || 'G-L11DG3Z3ZC').trim();
 const siteUrl = (process.env.SITE_URL || 'https://nutriplus.app.br').trim().replace(/\/$/, '');
 
 const mpPublicKey = (process.env.MERCADOPAGO_PUBLIC_KEY || '').trim();
+const iosTestFlightUrl = (process.env.IOS_TESTFLIGHT_URL || '').trim();
+const iosAdHocManifestPath = (process.env.IOS_ADHOC_MANIFEST_PATH || '').trim();
+const iosVersionLabel = (process.env.IOS_VERSION_LABEL || 'v1.1.1').trim();
 
 const content = `// Gerado por scripts/generate-environment.mjs — não edite manualmente em CI.
 export const environment = {
@@ -38,9 +41,9 @@ export const environment = {
   playStoreUrl: 'https://play.google.com/store/apps/details?id=br.com.nutriplus',
   androidApkDownloadUrl: '/downloads/nutriplus.apk',
   androidApkVersionLabel: 'v1.1.1',
-  iosTestFlightUrl: (process.env.IOS_TESTFLIGHT_URL || '').trim(),
-  iosAdHocManifestPath: (process.env.IOS_ADHOC_MANIFEST_PATH || '').trim(),
-  iosVersionLabel: (process.env.IOS_VERSION_LABEL || 'v1.1.1').trim(),
+  iosTestFlightUrl: '${iosTestFlightUrl}',
+  iosAdHocManifestPath: '${iosAdHocManifestPath}',
+  iosVersionLabel: '${iosVersionLabel}',
   gaId: '${gaId}',
   siteUrl: '${siteUrl}',
   mercadoPagoPublicKey: '${mpPublicKey}',
