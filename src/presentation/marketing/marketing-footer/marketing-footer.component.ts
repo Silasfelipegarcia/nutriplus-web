@@ -4,7 +4,7 @@ import { NutriLogoComponent } from '../../../design-system/nutri-logo/nutri-logo
 import { CookieConsentService } from '../../../infrastructure/analytics/cookie-consent.service';
 import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
 import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
-import { hasDirectAndroidApkDownload } from '../../core/app-download.config';
+import { hasDirectAndroidApkDownload, hasAnyMobileDownload } from '../../core/app-download.config';
 import { TAGLINE, APP_NAME } from '../../core/constants';
 
 @Component({
@@ -74,7 +74,7 @@ export class MarketingFooterComponent implements OnInit {
   ngOnInit(): void {
     void this.featureFlags.isAppStoreLinksVisible().then((visible) => {
       this.appStoreLinksVisible.set(visible);
-      this.appDownloadVisible.set(visible || hasDirectAndroidApkDownload);
+      this.appDownloadVisible.set(visible || hasAnyMobileDownload);
     });
   }
 

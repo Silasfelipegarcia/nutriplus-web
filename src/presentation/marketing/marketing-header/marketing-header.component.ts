@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { NutriLogoComponent } from '../../../design-system/nutri-logo/nutri-logo.component';
 import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
 import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
-import { hasDirectAndroidApkDownload } from '../../core/app-download.config';
+import { hasDirectAndroidApkDownload, hasAnyMobileDownload } from '../../core/app-download.config';
 
 @Component({
   selector: 'app-marketing-header',
@@ -97,7 +97,7 @@ export class MarketingHeaderComponent implements OnInit {
     ]).then(([open, stores]) => {
       this.registrationOpen.set(open);
       this.appStoreLinksVisible.set(stores);
-      this.appDownloadVisible.set(stores || hasDirectAndroidApkDownload);
+      this.appDownloadVisible.set(stores || hasAnyMobileDownload);
     });
   }
 }

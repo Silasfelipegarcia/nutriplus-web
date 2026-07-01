@@ -3,7 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { FeatureFlagService } from '../../infrastructure/http/feature-flag.service';
 import { AuthFacade } from '../core/auth.facade';
 import { isMobileDevice } from '../core/device.util';
-import { hasDirectAndroidApkDownload } from '../core/app-download.config';
+import { hasAnyMobileDownload } from '../core/app-download.config';
 export { nutritionistGuard, adminGuard } from '../core/jwt.util';
 
 export const authGuard: CanActivateFn = () => {
@@ -27,7 +27,7 @@ export const guestGuard: CanActivateFn = () => {
 export const desktopGuard: CanActivateFn = async () => {
   const router = inject(Router);
   const flags = inject(FeatureFlagService);
-  if (isMobileDevice() && ((await flags.isAppStoreLinksVisible()) || hasDirectAndroidApkDownload)) {
+  if (isMobileDevice() && ((await flags.isAppStoreLinksVisible()) || hasAnyMobileDownload)) {
     return router.createUrlTree(['/baixar-app']);
   }
   return true;

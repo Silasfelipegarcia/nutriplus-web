@@ -10,7 +10,7 @@ import { NutriIconComponent } from './nutri-icon.component';
 import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
 import { TAGLINE, APP_NAME } from '../../core/constants';
 import { environment } from '../../../environments/environment';
-import { hasDirectAndroidApkDownload, androidApkDownloadUrl, androidApkVersionLabel } from '../../core/app-download.config';
+import { hasDirectAndroidApkDownload, androidApkDownloadUrl, androidApkVersionLabel, hasAnyMobileDownload, hasIosAdHocDownload, hasIosTestFlightDownload, iosAdHocInstallUrl, iosTestFlightUrl, iosVersionLabel } from '../../core/app-download.config';
 
 @Component({
   selector: 'app-landing',
@@ -347,8 +347,12 @@ import { hasDirectAndroidApkDownload, androidApkDownloadUrl, androidApkVersionLa
             <div class="container" appReveal>
               <h2 class="section-title section-title--light">Baixe o {{ appName }}</h2>
               <p class="section-subtitle section-subtitle--center section-subtitle--light">
-                @if (hasApkDownload) {
-                  Android disponível para download direto. iOS em breve na App Store.
+                @if (hasApkDownload && (hasIosTestFlight || hasIosAdHoc)) {
+                  Download direto para Android e iPhone (beta).
+                } @else if (hasApkDownload) {
+                  Android disponível para download direto. iOS em breve.
+                } @else if (hasIosTestFlight || hasIosAdHoc) {
+                  iPhone disponível via TestFlight ou beta cadastrado.
                 } @else {
                   Disponível para iOS e Android. No celular, use o app para a melhor experiência.
                 }
@@ -378,7 +382,29 @@ import { hasDirectAndroidApkDownload, androidApkDownloadUrl, androidApkVersionLa
                     <span><small>Disponível no</small>Google Play</span>
                   </a>
                 }
-                @if (appStoreLinksVisible()) {
+                @if (hasIosTestFlight) {
+                  <a
+                    class="store-badge"
+                    [href]="iosTestFlightUrl"
+                    target="_blank"
+                    rel="noopener"
+                    appAnalyticsCta="baixar_app_testflight"
+                    appAnalyticsCtaLocation="download_section"
+                  >
+                    <span class="store-badge__icon">🍎</span>
+                    <span><small>TestFlight</small>iPhone {{ iosVersionLabel || '' }}</span>
+                  </a>
+                } @else if (hasIosAdHoc) {
+                  <a
+                    class="store-badge"
+                    [href]="iosAdHocInstallUrl"
+                    appAnalyticsCta="baixar_app_ios_adhoc"
+                    appAnalyticsCtaLocation="download_section"
+                  >
+                    <span class="store-badge__icon">🍎</span>
+                    <span><small>Instalar no iPhone</small>{{ iosVersionLabel || 'Beta iOS' }}</span>
+                  </a>
+                } @else if (appStoreLinksVisible()) {
                   <a
                     class="store-badge"
                     [href]="appStoreUrl"
@@ -409,6 +435,11 @@ export class LandingComponent implements OnInit, OnDestroy {
   readonly androidApkDownloadUrl = androidApkDownloadUrl;
   readonly apkVersionLabel = androidApkVersionLabel;
   readonly hasApkDownload = hasDirectAndroidApkDownload;
+  readonly hasIosTestFlight = hasIosTestFlightDownload;
+  readonly hasIosAdHoc = hasIosAdHocDownload;
+  readonly iosTestFlightUrl = iosTestFlightUrl;
+  readonly iosAdHocInstallUrl = iosAdHocInstallUrl;
+  readonly iosVersionLabel = iosVersionLabel;
 
   readonly scrollY = signal(0);
   readonly registrationOpen = signal<boolean | null>(null);
@@ -424,7 +455,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     ]).then(([open, stores]) => {
       this.registrationOpen.set(open);
       this.appStoreLinksVisible.set(stores);
-      this.appDownloadVisible.set(stores || hasDirectAndroidApkDownload);
+      this.appDownloadVisible.set(stores || hasAnyMobileDownload);
     });
   }
 

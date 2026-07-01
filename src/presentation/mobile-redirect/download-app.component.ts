@@ -7,6 +7,12 @@ import {
   androidApkDownloadUrl,
   androidApkVersionLabel,
   hasDirectAndroidApkDownload,
+  hasIosAdHocDownload,
+  hasIosTestFlightDownload,
+  hasAnyMobileDownload,
+  iosAdHocInstallUrl,
+  iosTestFlightUrl,
+  iosVersionLabel,
 } from '../core/app-download.config';
 import { APP_NAME } from '../core/constants';
 
@@ -51,7 +57,32 @@ import { APP_NAME } from '../core/constants';
                 Google Play
               </nutri-button>
             }
-            @if (storeLinksVisible()) {
+            @if (hasIosTestFlight) {
+              <nutri-button
+                variant="secondary"
+                [block]="true"
+                [href]="iosTestFlightUrl"
+                [external]="true"
+                analyticsCta="baixar_app_testflight"
+                analyticsLocation="baixar_app"
+              >
+                iPhone — TestFlight{{ iosVersion ? ' (' + iosVersion + ')' : '' }}
+              </nutri-button>
+            } @else if (hasIosAdHoc) {
+              <nutri-button
+                variant="secondary"
+                [block]="true"
+                [href]="iosAdHocInstallUrl"
+                [external]="true"
+                analyticsCta="baixar_app_ios_adhoc"
+                analyticsLocation="baixar_app"
+              >
+                iPhone — instalar{{ iosVersion ? ' (' + iosVersion + ')' : '' }}
+              </nutri-button>
+              <p class="download-page__hint">
+                Abra no Safari do iPhone. Disponível apenas para aparelhos cadastrados no beta iOS.
+              </p>
+            } @else if (storeLinksVisible()) {
               <nutri-button
                 variant="secondary"
                 [block]="true"
@@ -64,7 +95,7 @@ import { APP_NAME } from '../core/constants';
               </nutri-button>
             }
           </div>
-          @if (storeLinksVisible() && !hasApkDownload) {
+          @if (storeLinksVisible() && !hasApkDownload && !hasIosTestFlight && !hasIosAdHoc) {
             <div class="download-page__qr">
               Escaneie o QR code na loja ou acesse diretamente pelo link acima.
             </div>
@@ -95,7 +126,12 @@ export class DownloadAppComponent implements OnInit {
   readonly playStoreUrl = environment.playStoreUrl;
   readonly androidApkDownloadUrl = androidApkDownloadUrl;
   readonly apkVersionLabel = androidApkVersionLabel;
+  readonly iosTestFlightUrl = iosTestFlightUrl;
+  readonly iosAdHocInstallUrl = iosAdHocInstallUrl;
+  readonly iosVersion = iosVersionLabel;
   readonly hasApkDownload = hasDirectAndroidApkDownload;
+  readonly hasIosTestFlight = hasIosTestFlightDownload;
+  readonly hasIosAdHoc = hasIosAdHocDownload;
   readonly storeLinksVisible = signal(false);
   readonly downloadVisible = signal(false);
   readonly registrationOpen = signal<boolean | null>(null);
@@ -109,7 +145,7 @@ export class DownloadAppComponent implements OnInit {
     ]).then(([stores, registration]) => {
       this.storeLinksVisible.set(stores);
       this.registrationOpen.set(registration);
-      this.downloadVisible.set(stores || hasDirectAndroidApkDownload);
+      this.downloadVisible.set(stores || hasAnyMobileDownload);
     });
   }
 }
