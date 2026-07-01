@@ -3,16 +3,15 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
-import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { NutriMealRoutinePickerComponent } from '../../../design-system/nutri-meal-routine-picker/nutri-meal-routine-picker.component';
 import { hasAnyMealRoutine, MealRoutineState } from '../../core/meal-routine';
 import { OnboardingDraftService } from '../onboarding-draft.service';
 import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 const BUDGET_OPTIONS = [
-  { value: 'ECONOMIC', label: 'Econômico', subtitle: 'Prioriza custo baixo — frango, ovos, tilápia, legumes da estação.' },
-  { value: 'MODERATE', label: 'Moderado', subtitle: 'Equilíbrio entre preço e variedade.' },
-  { value: 'FLEXIBLE', label: 'Flexível', subtitle: 'Mais liberdade — itens premium quando couber.' },
+  { value: 'ECONOMIC', label: 'Econômico' },
+  { value: 'MODERATE', label: 'Moderado' },
+  { value: 'FLEXIBLE', label: 'Flexível' },
 ] as const;
 
 @Component({
@@ -22,7 +21,6 @@ const BUDGET_OPTIONS = [
     FormsModule,
     NutriButtonComponent,
     NutriInputComponent,
-    NutriInfoTipComponent,
     NutriMealRoutinePickerComponent,
   ],
   template: `
@@ -30,10 +28,7 @@ const BUDGET_OPTIONS = [
       <form class="onboarding__card" (ngSubmit)="continue()">
         <p class="onboarding__step">Passo {{ stepLabel }} de 8</p>
         <h1>Preferências alimentares</h1>
-        <p class="onboarding__lead">Ajude a IA a personalizar seu plano com o que você gosta e evita.</p>
-        <nutri-info-tip
-          message="Quanto mais contexto você der, melhor a IA monta refeições que você realmente vai comer."
-        />
+        <p class="onboarding__lead">O que você gosta e evita.</p>
         <div class="form-grid form-grid--full">
           <div class="form-grid--full">
             <label class="field-label">Orçamento alimentar</label>
@@ -46,7 +41,6 @@ const BUDGET_OPTIONS = [
                   (click)="budget = opt.value"
                 >
                   <h3>{{ opt.label }}</h3>
-                  <p>{{ opt.subtitle }}</p>
                 </button>
               }
             </div>

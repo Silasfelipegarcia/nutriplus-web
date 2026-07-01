@@ -3,7 +3,6 @@ import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriEmptyStateComponent } from '../../../design-system/nutri-empty-state/nutri-empty-state.component';
-import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { NutriPlanAdherenceChartComponent } from '../../../design-system/nutri-plan-adherence-chart/nutri-plan-adherence-chart.component';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
 import { PlanAdherenceHistory } from '../../../domain/entities';
@@ -13,6 +12,8 @@ import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toas
 import { withActionFeedback } from '../../core/action-feedback';
 import { isNotFound } from '../../../infrastructure/http/api-error';
 import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
+import { APP_COPY } from '../../core/app-copy';
+import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,7 +23,6 @@ import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
     RouterLink,
     NutriButtonComponent,
     NutriEmptyStateComponent,
-    NutriInfoTipComponent,
     NutriPlanAdherenceChartComponent,
     PortalPageSkeletonComponent,
   ],
@@ -42,21 +42,12 @@ import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
     @if (generation.showReadyNotice()) {
       <div class="plan-ready-notice">
         <div class="plan-ready-notice__content">
-          <p class="plan-ready-notice__title">Plano alimentar disponível</p>
-          <p class="plan-ready-notice__body">
-            Seu cardápio personalizado foi gerado e está pronto para consulta.
-          </p>
+          <p class="plan-ready-notice__title">{{ planReadyTitle }}</p>
         </div>
         <div class="plan-ready-notice__actions">
-          <a routerLink="/app/plano" class="plan-ready-notice__link">Ver plano</a>
+          <a routerLink="/app/plano" class="plan-ready-notice__link">{{ planReadyAction }}</a>
           <button type="button" class="plan-ready-notice__dismiss" (click)="dismissPlanNotice()">×</button>
         </div>
-      </div>
-    }
-
-    @if (generation.phase() === 'generating') {
-      <div class="generating-banner">
-        {{ generation.status()?.progressHint ?? 'Gerando seu plano alimentar...' }}
       </div>
     }
 
@@ -85,12 +76,6 @@ import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
           }
         }
       </div>
-    }
-
-    @if (!portalData.todayCheckins() && !loading() && portalData.nutritionProfile()) {
-      <nutri-info-tip
-        message="Gere seu plano alimentar para registrar refeições e acompanhar a meta diária."
-      />
     }
 
     @if (portalData.nutritionProfile(); as profile) {
@@ -194,11 +179,11 @@ import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
     } @else if (!loading()) {
       <nutri-empty-state
         icon="🍽️"
-        title="Nenhum plano ainda"
-        message="Gere seu plano alimentar para registrar refeições e acompanhar a meta diária."
+        [title]="planEmptyTitle"
+        [message]="planEmptyMessage"
       >
         <nutri-button variant="primary" (click)="generate()" [disabled]="generation.phase() === 'generating'">
-          Gerar plano alimentar
+          {{ planEmptyAction }}
         </nutri-button>
       </nutri-empty-state>
     }
@@ -273,6 +258,12 @@ import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
   styleUrl: '../portal.scss',
 })
 export class DashboardComponent implements OnInit {
+  readonly planReadyTitle = APP_COPY.planReadyBannerTitle;
+  readonly planReadyAction = APP_COPY.planReadyBannerAction;
+  readonly planEmptyTitle = APP_COPY.planEmptyTitle;
+  readonly planEmptyMessage = APP_COPY.planEmptyMessage;
+  readonly planEmptyAction = APP_COPY.planEmptyAction;
+
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
   private readonly toast = inject(NutriToastService);
   private readonly analytics = inject(AnalyticsService);

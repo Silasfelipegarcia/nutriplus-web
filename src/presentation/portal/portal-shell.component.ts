@@ -4,6 +4,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { NutriLogoComponent } from '../../design-system/nutri-logo/nutri-logo.component';
 import { NutriButtonComponent } from '../../design-system/nutri-button/nutri-button.component';
 import { AssistantPanelComponent } from './assistant/assistant-panel.component';
+import { PlanGeneratingBannerComponent } from '../../design-system/plan-generating-banner/plan-generating-banner.component';
 import { AuthFacade } from '../core/auth.facade';
 import { MealPlanGenerationFacade } from '../core/meal-plan-generation.facade';
 import { PortalDataStore } from '../core/portal-data.store';
@@ -40,6 +41,7 @@ const BASE_NAV_ITEMS: PortalNavItem[] = [
     NutriLogoComponent,
     NutriButtonComponent,
     AssistantPanelComponent,
+    PlanGeneratingBannerComponent,
   ],
   template: `
     <div class="portal-shell">
@@ -55,6 +57,7 @@ const BASE_NAV_ITEMS: PortalNavItem[] = [
         </div>
       </aside>
       <main class="portal-main">
+        <app-plan-generating-banner />
         <router-outlet />
       </main>
       <div class="portal-assistant">

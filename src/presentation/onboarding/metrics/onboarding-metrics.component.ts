@@ -18,10 +18,7 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
       <form class="onboarding__card" (ngSubmit)="continue()">
         <p class="onboarding__step">Passo {{ stepLabel }} de 8</p>
         <h1>Suas métricas</h1>
-        <p class="onboarding__lead">Usamos esses dados para calcular seus macros e metas calóricas.</p>
-        <nutri-info-tip
-          message="Peso, altura e data de nascimento entram no cálculo de gasto basal. Cidade e estado ajudam a contextualizar recomendações."
-        />
+        <p class="onboarding__lead">Para calcular macros e metas calóricas.</p>
         <div class="form-grid">
           <nutri-input label="Data de nascimento" type="date" [(ngModel)]="birthDate" name="birthDate" />
           <div>

@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
-import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-banner/disclaimer-banner.component';
+import { APP_COPY } from '../../core/app-copy';
 import { TERMS_BODY } from '../../core/constants';
 import { AuthFacade } from '../../core/auth.facade';
 import { environment } from '../../../environments/environment';
@@ -12,17 +12,16 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
 @Component({
   selector: 'app-onboarding-terms',
   standalone: true,
-  imports: [FormsModule, NutriButtonComponent, DisclaimerBannerComponent],
+  imports: [FormsModule, NutriButtonComponent],
   template: `
     <div class="onboarding">
       <div class="onboarding__card">
         <h1>Termos de uso e IA</h1>
         <p class="onboarding__lead">Leia e aceite para continuar.</p>
         <div class="terms-box">{{ termsBody }}</div>
-        <nutri-disclaimer />
         <label class="terms-check">
           <input type="checkbox" [(ngModel)]="accepted" />
-          <span>Li e aceito os termos de uso, política de privacidade e o aviso sobre IA.</span>
+          <span>{{ termsCheckboxLabel }}</span>
         </label>
         @if (error) {
           <div class="auth-card__error">{{ error }}</div>
@@ -44,6 +43,7 @@ export class OnboardingTermsComponent {
   private readonly analytics = inject(AnalyticsService);
 
   readonly termsBody = TERMS_BODY;
+  readonly termsCheckboxLabel = APP_COPY.termsCheckboxShort;
   accepted = false;
   saving = false;
   error: string | null = null;

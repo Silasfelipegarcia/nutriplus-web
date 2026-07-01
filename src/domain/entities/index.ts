@@ -81,6 +81,8 @@ export interface MealItem {
   id?: number;
   foodName: string;
   quantityG: number;
+  quantityDisplay?: string;
+  unitKind?: string;
   calories?: number;
   proteinG?: number;
   carbsG?: number;

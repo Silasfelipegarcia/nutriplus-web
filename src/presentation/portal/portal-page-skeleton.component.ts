@@ -14,7 +14,7 @@ import { Component, input } from '@angular/core';
       }
     </div>
   `,
-  styleUrl: '../portal.scss',
+  styleUrl: './portal.scss',
 })
 export class PortalPageSkeletonComponent {
   readonly cards = input(2);
