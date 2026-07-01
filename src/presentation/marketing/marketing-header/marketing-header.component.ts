@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { NutriLogoComponent } from '../../../design-system/nutri-logo/nutri-logo.component';
 import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
 import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
-import { environment } from '../../../environments/environment';
+import { hasDirectAndroidApkDownload } from '../../core/app-download.config';
 
 @Component({
   selector: 'app-marketing-header',
@@ -44,11 +44,11 @@ import { environment } from '../../../environments/environment';
             >Cadastrar</a>
           }
         </div>
-        @if (appStoreLinksVisible()) {
+        @if (appDownloadVisible()) {
           <a
             class="header-btn header-btn--primary header-btn--sm site-header__mobile-cta"
-            [href]="playStoreUrl"
-            appAnalyticsCta="baixar_app_play"
+            routerLink="/baixar-app"
+            appAnalyticsCta="baixar_app"
             appAnalyticsCtaLocation="header"
           >
             Baixar app
@@ -78,10 +78,10 @@ import { environment } from '../../../environments/environment';
   styleUrl: './marketing-header.component.scss',
 })
 export class MarketingHeaderComponent implements OnInit {
-  readonly playStoreUrl = environment.playStoreUrl;
   readonly scrolled = signal(false);
   readonly registrationOpen = signal<boolean | null>(null);
   readonly appStoreLinksVisible = signal(false);
+  readonly appDownloadVisible = signal(false);
 
   private readonly featureFlags = inject(FeatureFlagService);
 
@@ -97,6 +97,7 @@ export class MarketingHeaderComponent implements OnInit {
     ]).then(([open, stores]) => {
       this.registrationOpen.set(open);
       this.appStoreLinksVisible.set(stores);
+      this.appDownloadVisible.set(stores || hasDirectAndroidApkDownload);
     });
   }
 }

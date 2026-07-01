@@ -10,6 +10,7 @@ import { NutriIconComponent } from './nutri-icon.component';
 import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
 import { TAGLINE, APP_NAME } from '../../core/constants';
 import { environment } from '../../../environments/environment';
+import { hasDirectAndroidApkDownload, androidApkDownloadUrl, androidApkVersionLabel } from '../../core/app-download.config';
 
 @Component({
   selector: 'app-landing',
@@ -68,7 +69,7 @@ import { environment } from '../../../environments/environment';
                     analyticsLocation="hero"
                   >Participar do beta</nutri-button>
                 }
-                @if (appStoreLinksVisible()) {
+                @if (appDownloadVisible()) {
                   <nutri-button
                     variant="outline"
                     to="/baixar-app"
@@ -340,37 +341,56 @@ import { environment } from '../../../environments/environment';
           </div>
         </section>
 
-        @if (appStoreLinksVisible()) {
+        @if (appDownloadVisible()) {
           <section id="download" class="section download">
             <div class="download__glow" aria-hidden="true"></div>
             <div class="container" appReveal>
               <h2 class="section-title section-title--light">Baixe o {{ appName }}</h2>
               <p class="section-subtitle section-subtitle--center section-subtitle--light">
-                Disponível para iOS e Android. No celular, use o app para a melhor experiência.
+                @if (hasApkDownload) {
+                  Android disponível para download direto. iOS em breve na App Store.
+                } @else {
+                  Disponível para iOS e Android. No celular, use o app para a melhor experiência.
+                }
               </p>
               <div class="download__badges">
-                <a
-                  class="store-badge"
-                  [href]="appStoreUrl"
-                  target="_blank"
-                  rel="noopener"
-                  appAnalyticsCta="baixar_app_ios"
-                  appAnalyticsCtaLocation="download_section"
-                >
-                  <span class="store-badge__icon">🍎</span>
-                  <span><small>Disponível na</small>App Store</span>
-                </a>
-                <a
-                  class="store-badge"
-                  [href]="playStoreUrl"
-                  target="_blank"
-                  rel="noopener"
-                  appAnalyticsCta="baixar_app_play"
-                  appAnalyticsCtaLocation="download_section"
-                >
-                  <span class="store-badge__icon">▶️</span>
-                  <span><small>Disponível no</small>Google Play</span>
-                </a>
+                @if (hasApkDownload) {
+                  <a
+                    class="store-badge"
+                    [href]="androidApkDownloadUrl"
+                    download
+                    appAnalyticsCta="baixar_app_apk"
+                    appAnalyticsCtaLocation="download_section"
+                  >
+                    <span class="store-badge__icon">📲</span>
+                    <span><small>Download direto</small>Android {{ apkVersionLabel || 'APK' }}</span>
+                  </a>
+                } @else if (appStoreLinksVisible()) {
+                  <a
+                    class="store-badge"
+                    [href]="playStoreUrl"
+                    target="_blank"
+                    rel="noopener"
+                    appAnalyticsCta="baixar_app_play"
+                    appAnalyticsCtaLocation="download_section"
+                  >
+                    <span class="store-badge__icon">▶️</span>
+                    <span><small>Disponível no</small>Google Play</span>
+                  </a>
+                }
+                @if (appStoreLinksVisible()) {
+                  <a
+                    class="store-badge"
+                    [href]="appStoreUrl"
+                    target="_blank"
+                    rel="noopener"
+                    appAnalyticsCta="baixar_app_ios"
+                    appAnalyticsCtaLocation="download_section"
+                  >
+                    <span class="store-badge__icon">🍎</span>
+                    <span><small>Disponível na</small>App Store</span>
+                  </a>
+                }
               </div>
             </div>
           </section>
@@ -386,10 +406,14 @@ export class LandingComponent implements OnInit, OnDestroy {
   readonly appName = APP_NAME;
   readonly appStoreUrl = environment.appStoreUrl;
   readonly playStoreUrl = environment.playStoreUrl;
+  readonly androidApkDownloadUrl = androidApkDownloadUrl;
+  readonly apkVersionLabel = androidApkVersionLabel;
+  readonly hasApkDownload = hasDirectAndroidApkDownload;
 
   readonly scrollY = signal(0);
   readonly registrationOpen = signal<boolean | null>(null);
   readonly appStoreLinksVisible = signal(false);
+  readonly appDownloadVisible = signal(false);
 
   private readonly featureFlags = inject(FeatureFlagService);
 
@@ -400,6 +424,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     ]).then(([open, stores]) => {
       this.registrationOpen.set(open);
       this.appStoreLinksVisible.set(stores);
+      this.appDownloadVisible.set(stores || hasDirectAndroidApkDownload);
     });
   }
 

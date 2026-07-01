@@ -3,6 +3,11 @@ import { NutriButtonComponent } from '../../design-system/nutri-button/nutri-but
 import { NutriLogoComponent } from '../../design-system/nutri-logo/nutri-logo.component';
 import { FeatureFlagService } from '../../infrastructure/http/feature-flag.service';
 import { environment } from '../../environments/environment';
+import {
+  androidApkDownloadUrl,
+  androidApkVersionLabel,
+  hasDirectAndroidApkDownload,
+} from '../core/app-download.config';
 import { APP_NAME } from '../core/constants';
 
 @Component({
@@ -13,37 +18,57 @@ import { APP_NAME } from '../core/constants';
     <div class="download-page">
       <div class="download-page__card">
         <nutri-logo />
-        @if (storeLinksVisible()) {
+        @if (downloadVisible()) {
           <h1>O {{ appName }} foi feito para o seu celular</h1>
           <p>
             Para a melhor experiência com planos alimentares, check-ins e sua assistente Luna ou Bruno,
             baixe o app gratuito.
           </p>
           <div class="download-page__badges">
-            <nutri-button
-              variant="primary"
-              [block]="true"
-              [href]="playStoreUrl"
-              [external]="true"
-              analyticsCta="baixar_app_play"
-              analyticsLocation="baixar_app"
-            >
-              Google Play
-            </nutri-button>
-            <nutri-button
-              variant="secondary"
-              [block]="true"
-              [href]="appStoreUrl"
-              [external]="true"
-              analyticsCta="baixar_app_ios"
-              analyticsLocation="baixar_app"
-            >
-              App Store
-            </nutri-button>
+            @if (hasApkDownload) {
+              <nutri-button
+                variant="primary"
+                [block]="true"
+                [href]="androidApkDownloadUrl"
+                [external]="true"
+                analyticsCta="baixar_app_apk"
+                analyticsLocation="baixar_app"
+              >
+                Baixar Android{{ apkVersionLabel ? ' (' + apkVersionLabel + ')' : '' }}
+              </nutri-button>
+              <p class="download-page__hint">
+                Instalação direta (APK). Ative “fontes desconhecidas” se o Android solicitar.
+              </p>
+            } @else if (storeLinksVisible()) {
+              <nutri-button
+                variant="primary"
+                [block]="true"
+                [href]="playStoreUrl"
+                [external]="true"
+                analyticsCta="baixar_app_play"
+                analyticsLocation="baixar_app"
+              >
+                Google Play
+              </nutri-button>
+            }
+            @if (storeLinksVisible()) {
+              <nutri-button
+                variant="secondary"
+                [block]="true"
+                [href]="appStoreUrl"
+                [external]="true"
+                analyticsCta="baixar_app_ios"
+                analyticsLocation="baixar_app"
+              >
+                App Store
+              </nutri-button>
+            }
           </div>
-          <div class="download-page__qr">
-            Escaneie o QR code na loja ou acesse diretamente pelo link acima.
-          </div>
+          @if (storeLinksVisible() && !hasApkDownload) {
+            <div class="download-page__qr">
+              Escaneie o QR code na loja ou acesse diretamente pelo link acima.
+            </div>
+          }
         } @else {
           <h1>App em breve nas lojas</h1>
           <p>
@@ -68,7 +93,11 @@ export class DownloadAppComponent implements OnInit {
   readonly appName = APP_NAME;
   readonly appStoreUrl = environment.appStoreUrl;
   readonly playStoreUrl = environment.playStoreUrl;
+  readonly androidApkDownloadUrl = androidApkDownloadUrl;
+  readonly apkVersionLabel = androidApkVersionLabel;
+  readonly hasApkDownload = hasDirectAndroidApkDownload;
   readonly storeLinksVisible = signal(false);
+  readonly downloadVisible = signal(false);
   readonly registrationOpen = signal<boolean | null>(null);
 
   private readonly featureFlags = inject(FeatureFlagService);
@@ -80,6 +109,7 @@ export class DownloadAppComponent implements OnInit {
     ]).then(([stores, registration]) => {
       this.storeLinksVisible.set(stores);
       this.registrationOpen.set(registration);
+      this.downloadVisible.set(stores || hasDirectAndroidApkDownload);
     });
   }
 }

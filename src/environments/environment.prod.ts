@@ -4,6 +4,8 @@ export const environment = {
   apiBaseUrl: 'https://nutriplus-api-production.up.railway.app',
   appStoreUrl: 'https://apps.apple.com/app/nutriplus',
   playStoreUrl: 'https://play.google.com/store/apps/details?id=br.com.nutriplus',
+  androidApkDownloadUrl: '/downloads/nutriplus.apk',
+  androidApkVersionLabel: 'v1.1.1',
   gaId: 'G-L11DG3Z3ZC',
   siteUrl: 'https://nutriplus.com.br',
   mercadoPagoPublicKey: '',

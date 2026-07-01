@@ -36,6 +36,8 @@ export const environment = {
   apiBaseUrl: '${resolved}',
   appStoreUrl: 'https://apps.apple.com/app/nutriplus',
   playStoreUrl: 'https://play.google.com/store/apps/details?id=br.com.nutriplus',
+  androidApkDownloadUrl: '/downloads/nutriplus.apk',
+  androidApkVersionLabel: 'v1.1.1',
   gaId: '${gaId}',
   siteUrl: '${siteUrl}',
   mercadoPagoPublicKey: '${mpPublicKey}',

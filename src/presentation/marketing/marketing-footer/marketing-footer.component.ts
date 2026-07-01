@@ -4,6 +4,7 @@ import { NutriLogoComponent } from '../../../design-system/nutri-logo/nutri-logo
 import { CookieConsentService } from '../../../infrastructure/analytics/cookie-consent.service';
 import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
 import { AnalyticsCtaDirective } from '../../analytics/analytics-cta.directive';
+import { hasDirectAndroidApkDownload } from '../../core/app-download.config';
 import { TAGLINE, APP_NAME } from '../../core/constants';
 
 @Component({
@@ -24,7 +25,7 @@ import { TAGLINE, APP_NAME } from '../../core/constants';
             <ul>
               <li><a href="#recursos">Recursos</a></li>
               <li><a href="#como-funciona">Como funciona</a></li>
-              @if (appStoreLinksVisible()) {
+              @if (appDownloadVisible()) {
                 <li><a href="#download">Download</a></li>
               }
             </ul>
@@ -68,10 +69,12 @@ export class MarketingFooterComponent implements OnInit {
   readonly appName = APP_NAME;
   readonly year = new Date().getFullYear();
   readonly appStoreLinksVisible = signal(false);
+  readonly appDownloadVisible = signal(false);
 
   ngOnInit(): void {
     void this.featureFlags.isAppStoreLinksVisible().then((visible) => {
       this.appStoreLinksVisible.set(visible);
+      this.appDownloadVisible.set(visible || hasDirectAndroidApkDownload);
     });
   }
 
