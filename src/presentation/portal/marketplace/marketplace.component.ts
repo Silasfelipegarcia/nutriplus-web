@@ -3,7 +3,6 @@ import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriEmptyStateComponent } from '../../../design-system/nutri-empty-state/nutri-empty-state.component';
-import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { CARE_REPOSITORY } from '../../../domain/repositories/pro.repository';
 import { NutritionistPublic } from '../../../domain/entities';
 import { parseApiError } from '../../../infrastructure/http/api-error';
@@ -13,16 +12,13 @@ import { withActionFeedback } from '../../core/action-feedback';
 @Component({
   selector: 'app-marketplace',
   standalone: true,
-  imports: [DecimalPipe, RouterLink, NutriButtonComponent, NutriEmptyStateComponent, NutriInfoTipComponent],
+  imports: [DecimalPipe, RouterLink, NutriButtonComponent, NutriEmptyStateComponent],
   template: `
     <div class="portal-page">
       <div class="portal-main__header">
         <h1>Buscar nutricionista</h1>
-        <p>Contrate acompanhamento humano opcional — a IA continua disponível.</p>
+        <p>Acompanhamento humano opcional.</p>
       </div>
-      <nutri-info-tip
-        message="Nutricionistas revisam seu dossiê e podem publicar planos. Você mantém Luna/Bruno para o dia a dia."
-      />
 
       @if (loading()) {
         <p class="loading-text">Carregando nutricionistas...</p>

@@ -3,13 +3,12 @@ import { Router, RouterLink } from '@angular/router';
 import { agentDisplayName } from '../../../domain/entities';
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
 import { PortalDataStore } from '../../core/portal-data.store';
-import { LUNA_TIPS, BRUNO_TIPS, APP_NAME } from '../../core/constants';
-import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-banner/disclaimer-banner.component';
+import { APP_NAME } from '../../core/constants';
 
 @Component({
   selector: 'app-assistant-panel',
   standalone: true,
-  imports: [RouterLink, DisclaimerBannerComponent],
+  imports: [RouterLink],
   template: `
     <aside class="assistant-panel">
       <div class="assistant-panel__header">
@@ -30,7 +29,7 @@ import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-ban
 
       @if (generation.phase() === 'generating') {
         <p class="assistant-greeting">
-          {{ displayName() }} está preparando seu plano alimentar...
+          Preparando seu plano…
         </p>
       }
 
@@ -50,12 +49,6 @@ import { DisclaimerBannerComponent } from '../../../design-system/disclaimer-ban
           Marcar refeições de hoje
         </a>
       </div>
-
-      <p class="assistant-tip">"{{ currentTip() }}"</p>
-
-      <div class="assistant-disclaimer">
-        <nutri-disclaimer />
-      </div>
     </aside>
   `,
   styleUrl: './assistant-panel.component.scss',
@@ -67,24 +60,12 @@ export class AssistantPanelComponent implements OnInit {
   private readonly router = inject(Router);
 
   readonly persona = computed(() => this.portalData.nutritionProfile()?.agentPersona ?? 'LUNA');
-  readonly adherence = computed(() => this.portalData.checkinStats()?.weekAdherencePercent ?? 0);
-
   readonly displayName = computed(() => agentDisplayName(this.persona()));
   readonly greeting = computed(() => {
     const hour = new Date().getHours();
     const period = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
     const name = this.displayName();
-    const pct = this.adherence();
-    if (pct > 0) {
-      return `${period}! ${name} está com você — sua aderência esta semana está em ${pct}%.`;
-    }
-    return `${period}! ${name} está com você na organização alimentar.`;
-  });
-
-  readonly currentTip = computed(() => {
-    const tips = this.persona() === 'BRUNO' ? BRUNO_TIPS : LUNA_TIPS;
-    const idx = new Date().getDate() % tips.length;
-    return tips[idx];
+    return `${period}, ${name}!`;
   });
 
   async ngOnInit(): Promise<void> {

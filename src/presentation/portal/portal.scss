@@ -502,12 +502,27 @@
   border: 1px solid rgba(61, 139, 95, 0.3);
   border-radius: var(--nutri-radius-sm);
   padding: 1rem 1.25rem;
-  margin-bottom: 1.5rem;
-  font-weight: 600;
+  margin: 0 0 1.5rem;
   color: var(--nutri-brand);
 
-  p {
+  &__title {
+    margin: 0 0 0.35rem;
+    font-weight: 800;
+    font-size: 1.05rem;
+  }
+
+  &__hint {
     margin: 0 0 0.75rem;
+    font-weight: 500;
+    color: var(--nutri-ink-muted, #5c6b63);
+    line-height: 1.4;
+  }
+
+  &__note {
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+    color: var(--nutri-ink-muted, #5c6b63);
+    line-height: 1.35;
   }
 }
 
@@ -516,6 +531,25 @@
   border-radius: 999px;
   background: rgba(61, 139, 95, 0.15);
   overflow: hidden;
+
+  &--indeterminate {
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      width: 40%;
+      background: var(--nutri-brand);
+      border-radius: 999px;
+      animation: generation-indeterminate 1.2s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes generation-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
 }
 
 .generation-stepper__fill {

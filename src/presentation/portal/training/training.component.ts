@@ -45,10 +45,6 @@ import {
       } @else if (error()) {
         <div class="auth-card__error">{{ error() }}</div>
       } @else {
-        <nutri-info-tip
-          message="Configure depois do onboarding. O nível de atividade geral continua no perfil; aqui você detalha esportes para ajustar calorias do plano."
-        />
-
         @if (showActivateDialog()) {
           <div class="training-dialog-backdrop" (click)="cancelActivateDialog()">
             <div class="training-dialog" role="dialog" (click)="$event.stopPropagation()">

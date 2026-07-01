@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
-import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { OnboardingDraftService } from '../onboarding-draft.service';
 import { APP_NAME } from '../../core/constants';
 import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
@@ -9,16 +8,13 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
 @Component({
   selector: 'app-onboarding-profile-type',
   standalone: true,
-  imports: [RouterLink, NutriButtonComponent, NutriInfoTipComponent],
+  imports: [RouterLink, NutriButtonComponent],
   template: `
     <div class="onboarding">
       <div class="onboarding__card">
         <p class="onboarding__step">Passo 2 de 8</p>
         <h1>Seu perfil</h1>
         <p class="onboarding__lead">Como você quer usar o {{ appName }}?</p>
-        <nutri-info-tip
-          message="O modo atleta ajusta calorias e macros conforme seus treinos. Você pode mudar depois no perfil."
-        />
         <div class="agent-options">
           <button
             type="button"
@@ -27,7 +23,7 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
             (click)="select(false)"
           >
             <h3>Uso geral</h3>
-            <p>Organização alimentar do dia a dia, sem foco em performance esportiva.</p>
+            <p>Organização alimentar do dia a dia.</p>
           </button>
           <button
             type="button"
@@ -36,7 +32,7 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
             (click)="select(true)"
           >
             <h3>Modo atleta</h3>
-            <p>Treinos, gasto extra e ajuste de macros conforme sua rotina esportiva.</p>
+            <p>Treinos e ajuste de macros.</p>
           </button>
         </div>
         <div class="onboarding__actions">

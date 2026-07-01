@@ -2,23 +2,19 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
-import { NutriInfoTipComponent } from '../../../design-system/nutri-info-tip/nutri-info-tip.component';
 import { OnboardingDraftService } from '../onboarding-draft.service';
 import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 @Component({
   selector: 'app-onboarding-diet',
   standalone: true,
-  imports: [FormsModule, NutriButtonComponent, NutriInfoTipComponent],
+  imports: [FormsModule, NutriButtonComponent],
   template: `
     <div class="onboarding">
       <form class="onboarding__card" (ngSubmit)="continue()">
         <p class="onboarding__step">Passo {{ stepLabel }} de 8</p>
         <h1>Dieta e restrições</h1>
-        <p class="onboarding__lead">Defina o estilo alimentar que a IA deve respeitar no plano.</p>
-        <nutri-info-tip
-          message="Restrições de lactose e glúten são validadas automaticamente no plano e na lista de compras."
-        />
+        <p class="onboarding__lead">Estilo alimentar para o plano.</p>
         <div class="form-grid">
           <div>
             <label class="field-label">Estilo alimentar</label>

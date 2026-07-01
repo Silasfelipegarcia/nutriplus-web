@@ -52,11 +52,7 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
         <section class="portal-section">
           <h2 class="portal-section__title">{{ canEditToday() ? 'Alterar medição de hoje' : 'Nova medição' }}</h2>
           <div class="portal-card">
-            @if (canEditToday()) {
-              <nutri-info-tip
-                message="Você pode corrigir os valores de hoje. Depois de amanhã, a medição fica registrada até o próximo ciclo."
-              />
-            } @else {
+            @if (!canEditToday()) {
               <p class="portal-card__lead">Preencha o que tiver disponível — peso é o campo principal.</p>
             }
             <div class="form-grid">
