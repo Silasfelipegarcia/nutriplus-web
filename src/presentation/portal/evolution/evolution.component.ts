@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriEmptyStateComponent } from '../../../design-system/nutri-empty-state/nutri-empty-state.component';
 import { NutriPlanAdherenceChartComponent } from '../../../design-system/nutri-plan-adherence-chart/nutri-plan-adherence-chart.component';
+import { NutriGoalTimelineChartComponent } from '../../../design-system/nutri-goal-timeline-chart/nutri-goal-timeline-chart.component';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
 import {
   BodyMeasurement,
@@ -51,6 +52,7 @@ type EvolutionView = 'plan' | 'body';
     NutriButtonComponent,
     NutriEmptyStateComponent,
     NutriPlanAdherenceChartComponent,
+    NutriGoalTimelineChartComponent,
     PortalPageSkeletonComponent,
   ],
   template: `
@@ -95,24 +97,41 @@ type EvolutionView = 'plan' | 'body';
                   <h3 class="goal-timeline-card__title">Previsão da sua meta</h3>
                   <span class="goal-timeline-card__badge">{{ goalTimelinePaceLabel(timeline.paceStatus) }}</span>
                 </div>
-                @if (timeline.requiredRateKgPerWeek != null) {
-                  <p class="goal-timeline-card__meta">
-                    Ritmo da meta: ~{{ timeline.requiredRateKgPerWeek | number:'1.1-1' }} kg/semana
-                    @if (timeline.actualRateKgPerWeek != null) {
-                      · atual: ~{{ timeline.actualRateKgPerWeek | number:'1.1-1' }} kg/sem
+                @if (timeline.currentPlanStartDate || timeline.journeyStartDate) {
+                  <p
+                    class="goal-timeline-card__plan-banner"
+                    [class.goal-timeline-card__plan-banner--new]="(timeline.previousPlanCount ?? 0) > 0"
+                  >
+                    @if ((timeline.previousPlanCount ?? 0) > 0) {
+                      Novo plano desde {{ formatIsoDatePtBr(timeline.currentPlanStartDate ?? timeline.journeyStartDate!) }}
+                      · projeção usa só dados deste plano
+                    } @else {
+                      Plano desde {{ formatIsoDatePtBr(timeline.currentPlanStartDate ?? timeline.journeyStartDate!) }}
                     }
                   </p>
                 }
-                @if (timeline.journeyStartDate || timeline.targetDate || timeline.projectedFinishDate) {
-                  <p class="goal-timeline-card__dates">
-                    @if (timeline.journeyStartDate) { Início: {{ formatIsoDatePtBr(timeline.journeyStartDate) }} }
-                    @if (timeline.targetDate) { · Prazo: {{ formatIsoDatePtBr(timeline.targetDate) }} }
-                    @if (timeline.projectedFinishDate) { · Previsão: {{ formatIsoDatePtBr(timeline.projectedFinishDate) }} }
-                  </p>
-                }
+                <nutri-goal-timeline-chart [timeline]="timeline" />
+                <div class="goal-timeline-card__chips">
+                  @if (timeline.requiredRateKgPerWeek != null) {
+                    <span class="goal-timeline-card__chip">Meta ~{{ timeline.requiredRateKgPerWeek | number:'1.1-1' }} kg/sem</span>
+                  }
+                  @if (timeline.actualRateKgPerWeek != null) {
+                    <span class="goal-timeline-card__chip goal-timeline-card__chip--accent">
+                      Atual ~{{ timeline.actualRateKgPerWeek | number:'1.1-1' }} kg/sem
+                    </span>
+                  }
+                  @if (timeline.targetDate) {
+                    <span class="goal-timeline-card__chip">Prazo {{ formatIsoDatePtBr(timeline.targetDate) }}</span>
+                  }
+                  @if (timeline.projectedFinishDate) {
+                    <span class="goal-timeline-card__chip goal-timeline-card__chip--accent">
+                      Previsão {{ formatIsoDatePtBr(timeline.projectedFinishDate) }}
+                    </span>
+                  }
+                </div>
                 @if (timeline.latestWeightKg != null && timeline.targetWeightKg != null) {
                   <p class="goal-timeline-card__weight">
-                    Peso: {{ timeline.latestWeightKg | number:'1.1-1' }} kg → meta {{ timeline.targetWeightKg | number:'1.1-1' }} kg
+                    {{ timeline.latestWeightKg | number:'1.1-1' }} kg agora → meta {{ timeline.targetWeightKg | number:'1.1-1' }} kg
                   </p>
                 }
                 <p class="goal-timeline-card__summary">{{ timeline.summary }}</p>

@@ -351,6 +351,42 @@
   background: color-mix(in srgb, var(--pace-color, var(--nutri-brand)) 12%, transparent);
 }
 
+.goal-timeline-card__plan-banner {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--nutri-radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--nutri-brand) 8%, transparent);
+  color: var(--nutri-brand);
+}
+
+.goal-timeline-card__plan-banner--new {
+  background: color-mix(in srgb, #e65100 10%, transparent);
+  color: #bf360c;
+}
+
+.goal-timeline-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.goal-timeline-card__chip {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--nutri-border);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--nutri-ink-muted);
+}
+
+.goal-timeline-card__chip--accent {
+  border-color: color-mix(in srgb, var(--pace-color, var(--nutri-brand)) 40%, transparent);
+  color: var(--pace-color, var(--nutri-brand));
+}
+
 .goal-timeline-card__meta,
 .goal-timeline-card__dates {
   margin: 0 0 0.5rem;

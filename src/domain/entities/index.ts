@@ -220,6 +220,23 @@ export interface DailyAdherencePoint {
   extras: DailyFoodExtraItem[];
 }
 
+export interface GoalTimelineWeightPoint {
+  date: string;
+  weightKg: number;
+  currentPlanPeriod: boolean;
+}
+
+export interface GoalTimelinePlanEra {
+  planId?: number;
+  startDate: string;
+  current: boolean;
+}
+
+export interface GoalTimelineChartPoint {
+  date: string;
+  weightKg: number;
+}
+
 export interface GoalTimeline {
   journeyStartDate?: string;
   targetDate?: string;
@@ -232,6 +249,13 @@ export interface GoalTimeline {
   paceStatus: string;
   daysAheadOrBehind: number;
   summary: string;
+  currentPlanId?: number;
+  currentPlanStartDate?: string;
+  previousPlanCount?: number;
+  weightHistory?: GoalTimelineWeightPoint[];
+  planEras?: GoalTimelinePlanEra[];
+  requiredPaceLine?: GoalTimelineChartPoint[];
+  projectionLine?: GoalTimelineChartPoint[];
 }
 
 export interface PlanAdherenceHistory {
