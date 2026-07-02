@@ -63,9 +63,13 @@ export class PaymentService {
     return this.http.get<SavedCard[]>(`${this.apiBase}/payments/cards`).pipe(catchError(this.tratarErro));
   }
 
-  salvarCartao(token: string): Observable<SavedCard> {
+  salvarCartao(token: string, cpf?: string): Observable<SavedCard> {
     const headers = withIdempotencyKey({}, newIdempotencyKey());
-    return this.http.post<SavedCard>(`${this.apiBase}/payments/cards`, { token }, { headers }).pipe(
+    const body: { token: string; cpf?: string } = { token };
+    if (cpf?.trim()) {
+      body.cpf = cpf.trim();
+    }
+    return this.http.post<SavedCard>(`${this.apiBase}/payments/cards`, body, { headers }).pipe(
       catchError(this.tratarErro),
     );
   }

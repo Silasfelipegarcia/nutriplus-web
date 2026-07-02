@@ -97,7 +97,7 @@ export class CardRegisterComponent implements OnInit {
         identificationNumber: cpf,
       });
 
-      this.payment.salvarCartao(tokenId).subscribe({
+      this.payment.salvarCartao(tokenId, cpf).subscribe({
         next: (card) => {
           this.salvando.set(false);
           this.limparFormulario();

@@ -72,6 +72,7 @@ export interface ChargePlanResponse {
   orderId: string;
   status: string;
   statusLabel: string;
+  statusDetail?: string;
   planNome: string;
 }
 
