@@ -49,13 +49,29 @@ export function planosDisponiveis(
   return catalogo.filter((item) => podeAssinarPlano(item, sub, billingEnabled));
 }
 
+/** Quem já tem assinatura pode mudar de plano mesmo com billing desligado no catálogo público. */
+export function cobrancaEfetivaParaMudanca(
+  sub: SubscriptionStatus | null | undefined,
+  billingEnabled: boolean,
+): boolean {
+  return billingEnabled || temAssinaturaAtiva(sub);
+}
+
+export function planosParaMudanca(
+  catalogo: PlanCatalogItem[],
+  sub: SubscriptionStatus | null | undefined,
+  billingEnabled: boolean,
+): PlanCatalogItem[] {
+  return planosDisponiveis(catalogo, sub, cobrancaEfetivaParaMudanca(sub, billingEnabled));
+}
+
 /** Sugestão curta de upgrade (ex.: mensal → anual). */
 export function sugestaoUpgrade(
   catalogo: PlanCatalogItem[],
   sub: SubscriptionStatus | null | undefined,
   billingEnabled: boolean,
 ): PlanCatalogItem | null {
-  const opcoes = planosDisponiveis(catalogo, sub, billingEnabled);
+  const opcoes = planosParaMudanca(catalogo, sub, billingEnabled);
   if (opcoes.length === 0) return null;
 
   const current = sub?.plan;
@@ -73,8 +89,15 @@ export function sugestaoUpgrade(
 
 export function estaEmTrial(sub: SubscriptionStatus | null | undefined): boolean {
   if (!sub) return false;
+  const status = (sub.status ?? '').toUpperCase();
+  if (status === 'CANCELLED_PENDING' || sub.podeReativar) return false;
   if (sub.emTrial) return true;
-  return (sub.status ?? '').toUpperCase() === 'TRIAL';
+  return status === 'TRIAL';
+}
+
+/** Trial em andamento com renovação automática ainda ativa (antes de cancelar). */
+export function estaEmTrialAtivo(sub: SubscriptionStatus | null | undefined): boolean {
+  return estaEmTrial(sub);
 }
 
 /** Botão de trial só para quem ainda não assinou e nunca usou o período de teste. */

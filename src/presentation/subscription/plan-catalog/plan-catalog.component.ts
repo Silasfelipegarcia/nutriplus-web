@@ -15,6 +15,7 @@ import {
   SubscriptionStatus,
 } from '../../../domain/entities/payment.model';
 import {
+  cobrancaEfetivaParaMudanca,
   isPlanoAtualSub,
   podeAssinarPlano,
   podeIniciarTrial,
@@ -66,7 +67,11 @@ export class PlanCatalogComponent implements OnInit {
       return items;
     }
     if (modo === 'upgrade' || modo === 'contratar') {
-      return planosDisponiveis(items, this.assinatura(), this.cobrancaHabilitada());
+      const billing =
+        modo === 'upgrade'
+          ? cobrancaEfetivaParaMudanca(this.assinatura(), this.cobrancaHabilitada())
+          : this.cobrancaHabilitada();
+      return planosDisponiveis(items, this.assinatura(), billing);
     }
     return items;
   });
@@ -136,7 +141,11 @@ export class PlanCatalogComponent implements OnInit {
   }
 
   podeAssinar(item: PlanCatalogItem): boolean {
-    return podeAssinarPlano(item, this.assinatura(), this.cobrancaHabilitada());
+    const billing =
+      this.modo() === 'upgrade'
+        ? cobrancaEfetivaParaMudanca(this.assinatura(), this.cobrancaHabilitada())
+        : this.cobrancaHabilitada();
+    return podeAssinarPlano(item, this.assinatura(), billing);
   }
 
   readonly podeIniciarTrial = podeIniciarTrial;

@@ -34,7 +34,7 @@
       </div>
 
       <dl class="subscription-current__meta">
-        @if (sub()!.validUntil || (estaEmTrial(sub()) && sub()!.daysRemaining > 0)) {
+        @if (sub()!.validUntil || (estaEmTrialAtivo(sub()) && sub()!.daysRemaining > 0)) {
           <div>
             <dt>{{ rotuloValidadeAssinatura(sub()!) }}</dt>
             <dd>
@@ -52,7 +52,7 @@
             <dd>{{ sub()!.daysRemaining }}</dd>
           </div>
         }
-        @if (!estaEmTrial(sub()!)) {
+        @if (!estaEmTrialAtivo(sub()!)) {
           <div>
             <dt>Renovação automática</dt>
             <dd>{{ sub()!.autoRenew ? 'Ativa' : 'Desativada' }}</dd>
@@ -65,13 +65,23 @@
         }
       </dl>
 
-      @if (estaEmTrial(sub()!)) {
+      @if (estaEmTrialAtivo(sub()!)) {
         <p class="subscription-current__trial-note">
           Você está no período de teste gratuito. Cancele antes do fim se não quiser ser cobrado.
         </p>
       }
+      @if (sub()!.podeReativar) {
+        <p class="subscription-current__cancel-note">
+          Renovação cancelada. Você mantém o acesso até o fim do período sem nova cobrança no cartão.
+        </p>
+      }
 
       <div class="subscription-page__actions">
+        @if (temUpgradeDisponivel()) {
+          <nutri-button variant="primary" size="sm" (click)="abrirUpgrade()">
+            Mudar de plano
+          </nutri-button>
+        }
         @if (podeIniciarTrial(sub()!)) {
           <nutri-button variant="outline" size="sm" [disabled]="processando()" (click)="iniciarTrial()">
             Testar 7 dias grátis
@@ -84,6 +94,35 @@
         }
       </div>
     </article>
+
+    @if (temUpgradeDisponivel()) {
+      <section class="subscription-upgrade" id="upgrade">
+        @if (!mostrarUpgrade()) {
+          <div class="upgrade-teaser">
+            <div class="upgrade-teaser__copy">
+              <h2 class="upgrade-teaser__title">Quer evoluir seu plano?</h2>
+              @if (sugestaoUpgradeItem()) {
+                <p class="upgrade-teaser__text">
+                  Se quiser mudar de plano ou de periodicidade, você pode ver as opções disponíveis.
+                </p>
+              } @else {
+                <p class="upgrade-teaser__text">Veja outras opções do Nutri+ quando fizer sentido para você.</p>
+              }
+            </div>
+            <nutri-button variant="outline" (click)="abrirUpgrade()">Ver opções</nutri-button>
+          </div>
+        } @else {
+          <div class="upgrade-panel">
+            <div class="upgrade-panel__header">
+              <h2 class="upgrade-panel__title">Mudar de plano</h2>
+              <button type="button" class="upgrade-panel__close" (click)="mostrarUpgrade.set(false)">Fechar</button>
+            </div>
+            <p class="upgrade-panel__hint">Você mantém o acesso atual até confirmar o novo plano.</p>
+            <app-plan-catalog modo="upgrade" [ocultarTrial]="true" />
+          </div>
+        }
+      </section>
+    }
 
     <section class="subscription-section" id="cartoes">
       <h2 class="subscription-section__title">Forma de pagamento</h2>
@@ -137,44 +176,19 @@
       }
     </section>
 
-    @if (sub()!.podeCancelar) {
+    @if (podeCancelarRenovacao()) {
       <section class="subscription-danger">
         <h2 class="subscription-danger__title">Renovação automática</h2>
         <p class="subscription-danger__text">
-          Prefere não renovar? Você mantém o acesso até o fim do período já pago e pode reativar quando quiser.
+          @if (estaEmTrialAtivo(sub()!)) {
+            Prefere não continuar após o trial? Você mantém o acesso até o fim do período de teste e não será cobrado.
+          } @else {
+            Prefere não renovar? Você mantém o acesso até o fim do período já pago e pode reativar quando quiser.
+          }
         </p>
         <button type="button" class="subscription-danger__link" (click)="abrirCancelamento()">
           Quero cancelar a renovação automática
         </button>
-      </section>
-    }
-
-    @if (temUpgradeDisponivel()) {
-      <section class="subscription-upgrade" id="upgrade">
-        @if (!mostrarUpgrade()) {
-          <div class="upgrade-teaser">
-            <div class="upgrade-teaser__copy">
-              <h2 class="upgrade-teaser__title">Quer evoluir seu plano?</h2>
-              @if (sugestaoUpgradeItem()) {
-                <p class="upgrade-teaser__text">
-                  Se quiser mudar de plano ou de periodicidade, você pode ver as opções disponíveis.
-                </p>
-              } @else {
-                <p class="upgrade-teaser__text">Veja outras opções do Nutri+ quando fizer sentido para você.</p>
-              }
-            </div>
-            <nutri-button variant="outline" (click)="abrirUpgrade()">Ver opções</nutri-button>
-          </div>
-        } @else {
-          <div class="upgrade-panel">
-            <div class="upgrade-panel__header">
-              <h2 class="upgrade-panel__title">Mudar de plano</h2>
-              <button type="button" class="upgrade-panel__close" (click)="mostrarUpgrade.set(false)">Fechar</button>
-            </div>
-            <p class="upgrade-panel__hint">Você mantém o acesso atual até confirmar o novo plano.</p>
-            <app-plan-catalog modo="upgrade" [ocultarTrial]="true" />
-          </div>
-        }
       </section>
     }
   }
@@ -197,12 +211,16 @@
       </header>
 
       <p class="cancel-sheet__lead">
-        @if (sub()?.validUntil) {
+        @if (estaEmTrialAtivo(sub())) {
           Você continua com acesso até <strong>{{ sub()!.validUntil | date: 'dd/MM/yyyy' }}</strong>.
+          Depois disso, não haverá cobrança no cartão cadastrado.
+        } @else if (sub()?.validUntil) {
+          Você continua com acesso até <strong>{{ sub()!.validUntil | date: 'dd/MM/yyyy' }}</strong>.
+          Depois disso, não haverá nova cobrança no cartão cadastrado.
         } @else {
           Você continua com acesso até o fim do período já pago.
+          Depois disso, não haverá nova cobrança no cartão cadastrado.
         }
-        Depois disso, não haverá nova cobrança no cartão cadastrado.
       </p>
 
       <ul class="cancel-sheet__list">

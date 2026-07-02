@@ -13,7 +13,8 @@ import {
 import { paymentStatusLabel, subscriptionStatusLabel } from '../../core/subscription-labels';
 import {
   estaEmTrial,
-  planosDisponiveis,
+  estaEmTrialAtivo,
+  planosParaMudanca,
   podeIniciarTrial,
   rotuloDiasRestantes,
   rotuloValidadeAssinatura,
@@ -36,6 +37,7 @@ export class PortalSubscriptionComponent implements OnInit {
   readonly subscriptionStatusLabel = subscriptionStatusLabel;
   readonly paymentStatusLabel = paymentStatusLabel;
   readonly estaEmTrial = estaEmTrial;
+  readonly estaEmTrialAtivo = estaEmTrialAtivo;
   readonly podeIniciarTrial = podeIniciarTrial;
   readonly rotuloValidadeAssinatura = rotuloValidadeAssinatura;
   readonly rotuloDiasRestantes = rotuloDiasRestantes;
@@ -67,13 +69,19 @@ export class PortalSubscriptionComponent implements OnInit {
     return expected.length > 0 && typed === expected;
   });
 
+  podeCancelarRenovacao = computed(() => {
+    const s = this.sub();
+    if (!s?.podeCancelar) return false;
+    return !s.podeReativar;
+  });
+
   precisaContratar = computed(() => {
     if (!this.cobrancaHabilitada()) return false;
     return !temAssinaturaAtiva(this.sub());
   });
 
   temUpgradeDisponivel = computed(() =>
-    planosDisponiveis(this.catalogo(), this.sub(), this.cobrancaHabilitada()).length > 0,
+    planosParaMudanca(this.catalogo(), this.sub(), this.cobrancaHabilitada()).length > 0,
   );
 
   sugestaoUpgradeItem = computed(() =>
@@ -174,15 +182,28 @@ export class PortalSubscriptionComponent implements OnInit {
       return;
     }
     this.processando.set(true);
+    this.erro.set('');
     this.payment.cancelarAssinatura().subscribe({
       next: (s) => {
         this.sub.set(s);
-        this.mensagem.set('Renovação automática cancelada. Acesso até o fim do período.');
+        this.mensagem.set(
+          s.podeReativar
+            ? 'Renovação automática cancelada. Acesso até o fim do período.'
+            : 'Renovação automática cancelada.',
+        );
         this.processando.set(false);
         this.fecharCancelamento();
+        this.carregar();
       },
       error: (msg: string) => {
-        this.erro.set(msg);
+        const normalized = msg.toLowerCase();
+        if (normalized.includes('já está cancelada') || normalized.includes('cancelada')) {
+          this.carregar();
+          this.mensagem.set('Renovação automática já estava cancelada.');
+          this.fecharCancelamento();
+        } else {
+          this.erro.set(msg);
+        }
         this.processando.set(false);
       },
     });
