@@ -401,6 +401,14 @@
   font-weight: 600;
 }
 
+.goal-timeline-card__trend-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  font-style: italic;
+  color: var(--ink-muted, #6b7280);
+}
+
 .goal-timeline-card__summary {
   margin: 0.75rem 0 0;
   font-size: 0.9rem;

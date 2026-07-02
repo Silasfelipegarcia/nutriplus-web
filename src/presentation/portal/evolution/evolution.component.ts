@@ -134,6 +134,9 @@ type EvolutionView = 'plan' | 'body';
                     {{ timeline.latestWeightKg | number:'1.1-1' }} kg agora → meta {{ timeline.targetWeightKg | number:'1.1-1' }} kg
                   </p>
                 }
+                <p class="goal-timeline-card__trend-hint">
+                  A linha tracejada (Tendência) combina peso e calorias dos últimos dias.
+                </p>
                 <p class="goal-timeline-card__summary">{{ timeline.summary }}</p>
               </div>
             }
