@@ -1,66 +1,31 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Component, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { NutriCardComponent } from '../../../design-system/nutri-card/nutri-card.component';
 import { CardRegisterComponent } from '../../subscription/card-register/card-register.component';
-import { PaymentService } from '../../../infrastructure/http/payment.service';
-import { PaymentHistoryItem, SavedCard } from '../../../domain/entities/payment.model';
+import { SavedCard } from '../../../domain/entities/payment.model';
 
 @Component({
   selector: 'app-portal-billing',
   standalone: true,
-  imports: [CommonModule, CardRegisterComponent, RouterLink],
-  template: `
-    <section class="page">
-      <h1>Cobrança</h1>
-      <h2>Cartões</h2>
-      @if (cartoes().length === 0) {
-        <p>Nenhum cartão cadastrado.</p>
-      } @else {
-        <ul>
-          @for (c of cartoes(); track c.id) {
-            <li>{{ c.brand }} •••• {{ c.lastFourDigits }}
-              <button type="button" (click)="remover(c.id)">Remover</button>
-            </li>
-          }
-        </ul>
-      }
-      <h3>Cadastrar cartão</h3>
-      <app-card-register (cardSaved)="onCardSaved($event)" />
-      <h2>Histórico</h2>
-      @if (historico().length === 0) {
-        <p>Sem pagamentos registrados.</p>
-      } @else {
-        <ul>
-          @for (h of historico(); track h.id) {
-            <li>{{ h.createdAt | date:'dd/MM/yyyy' }} — {{ h.planNome }} — {{ h.amountLabel }} ({{ h.statusLabel }})</li>
-          }
-        </ul>
-      }
-      <p><a routerLink="/app/planos">Ver planos</a></p>
-    </section>
-  `,
-  styles: [`.page { padding: 1.5rem; max-width: 640px; }`],
+  imports: [RouterLink, NutriCardComponent, CardRegisterComponent],
+  templateUrl: './portal-billing.component.html',
+  styleUrl: './portal-billing.component.scss',
 })
-export class PortalBillingComponent implements OnInit {
-  private readonly payment = inject(PaymentService);
+export class PortalBillingComponent {
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
-  cartoes = signal<SavedCard[]>([]);
-  historico = signal<PaymentHistoryItem[]>([]);
-
-  ngOnInit(): void {
-    this.recarregar();
-  }
-
-  recarregar(): void {
-    this.payment.listarCartoes().subscribe({ next: (c) => this.cartoes.set(c) });
-    this.payment.listarHistorico().subscribe({ next: (h) => this.historico.set(h) });
-  }
+  mensagem = signal('');
 
   onCardSaved(_card: SavedCard): void {
-    this.recarregar();
-  }
-
-  remover(cardId: string): void {
-    this.payment.removerCartao(cardId).subscribe({ next: () => this.recarregar() });
+    const trial = this.route.snapshot.queryParamMap.get('trial') === '1';
+    this.mensagem.set('Cartão salvo! Voltando para assinatura…');
+    setTimeout(() => {
+      void this.router.navigate(['/app/assinatura'], {
+        queryParams: trial ? { trial: '1' } : {},
+        fragment: 'cartoes',
+        state: { cardSaved: true },
+      });
+    }, 600);
   }
 }

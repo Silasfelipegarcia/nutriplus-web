@@ -1,64 +1,136 @@
 @if (carregando()) {
-  <p class="loading">Carregando planos...</p>
+  <p class="plan-catalog__loading">Carregando planos...</p>
 } @else {
-  @if (!cobrancaHabilitada()) {
-    <div class="alert alert-info">
-      Durante o beta, todos os recursos estão liberados. Quando a cobrança for ativada, o plano gratuito terá 1 plano/mês.
-    </div>
-  }
-
-  @if (auth.isAuthenticated() && cobrancaHabilitada() && assinatura()?.trialDisponivel && !somentePublico()) {
-    <button type="button" class="btn btn-outline trial-banner" (click)="iniciarTrial()" [disabled]="!!processando()">
-      @if (processando() === 'trial') { Ativando trial... }
-      @else { Testar Nutri+ 7 dias grátis (acesso completo) }
-    </button>
-  }
-
-  @if (mensagem()) {
-    <div class="alert alert-info">{{ mensagem() }}</div>
-  }
-  @if (erro()) {
-    <div class="alert alert-error">{{ erro() }}</div>
-  }
-
-  @if (auth.isAuthenticated() && cobrancaHabilitada() && cartoes().length > 0) {
-    <section class="payment-prefs card">
-      <h3>Cartão salvo</h3>
-      <div class="payment-prefs__row">
-        <select [ngModel]="cartaoSelecionado()" (ngModelChange)="cartaoSelecionado.set($event)">
-          @for (card of cartoes(); track card.id) {
-            <option [value]="card.id">{{ card.brand }} •••• {{ card.lastFourDigits }}</option>
-          }
-        </select>
-        <input type="password" inputmode="numeric" maxlength="4" placeholder="CVV"
-          [value]="cvv()" (input)="onCvvInput($event)" />
+  <div class="plan-catalog">
+    @if (!cobrancaHabilitada()) {
+      <div class="plan-catalog__alert plan-catalog__alert--info">
+        Durante o beta, todos os recursos estão liberados. Quando a cobrança for ativada, o plano gratuito terá 1 plano/mês.
       </div>
-    </section>
-  } @else if (auth.isAuthenticated() && cobrancaHabilitada()) {
-    <p class="hint"><a routerLink="/app/cobranca">Cadastre um cartão</a> para pagar sem sair do app.</p>
-  }
-
-  <div class="plans-grid">
-    @for (item of planosPagos(); track item.plan) {
-      <article class="plan-card" [class.plan-card--current]="isPlanoAtual(item.plan)">
-        <h2>{{ item.nome }}</h2>
-        <p class="plan-price">{{ item.priceLabel }}</p>
-        <p class="plan-desc">{{ item.descricao }}</p>
-        <ul>
-          @for (b of item.beneficios; track b) {
-            <li>{{ b }}</li>
-          }
-        </ul>
-        @if (isPlanoAtual(item.plan)) {
-          <span class="badge">Seu plano</span>
-        } @else if (podeAssinar(item)) {
-          <button type="button" class="btn btn-primary" (click)="assinarItem(item)"
-            [disabled]="!!processando()">
-            @if (processando() === item.plan) { Processando... }
-            @else { Assinar }
-          </button>
-        }
-      </article>
     }
+
+    @if (auth.isAuthenticated() && cobrancaHabilitada() && podeIniciarTrial(assinatura()) && !somentePublico() && !ocultarTrial()) {
+      <nutri-button variant="outline" class="plan-catalog__trial" [disabled]="!!processando()" (click)="iniciarTrial()">
+        @if (processando() === 'trial') { Ativando trial... }
+        @else { Testar 7 dias grátis }
+      </nutri-button>
+    }
+
+    @if (mensagem()) {
+      <div class="plan-catalog__alert plan-catalog__alert--success">{{ mensagem() }}</div>
+    }
+    @if (erro() && !checkoutAberto()) {
+      <div class="plan-catalog__alert plan-catalog__alert--error">{{ erro() }}</div>
+    }
+
+    <div class="plans-grid">
+      @for (item of planosExibidos(); track item.plan) {
+        <article
+          class="plan-card"
+          [class.plan-card--current]="isPlanoAtual(item.plan)"
+          [class.plan-card--featured]="isAnual(item.plan) && modo() !== 'upgrade'"
+        >
+          @if (isAnual(item.plan) && modo() !== 'upgrade') {
+            <span class="plan-card__tag">Melhor valor</span>
+          }
+          <h2 class="plan-card__name">{{ item.nome }}</h2>
+          <p class="plan-card__price">{{ item.priceLabel }}</p>
+          <p class="plan-card__desc">{{ item.descricao }}</p>
+          <ul class="plan-card__benefits">
+            @for (b of item.beneficios; track b) {
+              <li>{{ b }}</li>
+            }
+          </ul>
+          @if (isPlanoAtual(item.plan)) {
+            <span class="plan-card__current">Seu plano atual</span>
+          } @else if (podeAssinar(item)) {
+            <nutri-button
+              variant="primary"
+              [block]="true"
+              [disabled]="!!processando()"
+              (click)="iniciarCheckout(item)"
+            >
+              @if (processando() === item.plan) { Processando... }
+              @else if (modo() === 'upgrade') { Mudar para este plano }
+              @else { Assinar plano }
+            </nutri-button>
+          }
+        </article>
+      }
+    </div>
+  </div>
+}
+
+@if (checkoutAberto() && planoSelecionado(); as plano) {
+  <div class="checkout-overlay" (click)="fecharCheckout()" role="presentation">
+    <div
+      class="checkout-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="checkout-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="checkout-sheet__header">
+        <div>
+          <p class="checkout-sheet__step">Passo 2 de 2</p>
+          <h2 id="checkout-title">Finalizar assinatura</h2>
+        </div>
+        <button type="button" class="checkout-sheet__close" (click)="fecharCheckout()" aria-label="Fechar">
+          ×
+        </button>
+      </header>
+
+      <div class="checkout-sheet__plan">
+        <span class="checkout-sheet__plan-label">Plano escolhido</span>
+        <strong>{{ plano.nome }}</strong>
+        <span class="checkout-sheet__plan-price">{{ plano.priceLabel }}</span>
+      </div>
+
+      @if (erroCheckout()) {
+        <p class="checkout-sheet__erro">{{ erroCheckout() }}</p>
+      }
+
+      @if (cartoes().length > 0) {
+        <label class="checkout-sheet__field">
+          <span>Forma de pagamento</span>
+          <select [ngModel]="cartaoSelecionado()" (ngModelChange)="cartaoSelecionado.set($event)">
+            @for (card of cartoes(); track card.id) {
+              <option [value]="card.id">{{ card.brand }} •••• {{ card.lastFourDigits }}</option>
+            }
+          </select>
+        </label>
+        <label class="checkout-sheet__field checkout-sheet__field--cvv">
+          <span>CVV</span>
+          <input
+            type="password"
+            inputmode="numeric"
+            maxlength="4"
+            placeholder="•••"
+            [value]="cvv()"
+            (input)="onCvvInput($event)"
+          />
+        </label>
+        <p class="checkout-sheet__secure">Pagamento seguro. Você pode cancelar a renovação quando quiser.</p>
+
+        <div class="checkout-sheet__actions">
+          <nutri-button variant="outline" [block]="true" [disabled]="!!processando()" (click)="fecharCheckout()">
+            Voltar
+          </nutri-button>
+          <nutri-button variant="primary" [block]="true" [disabled]="!!processando()" (click)="confirmarAssinatura()">
+            @if (processando() === plano.plan) { Confirmando... }
+            @else { Confirmar e assinar }
+          </nutri-button>
+        </div>
+      } @else {
+        <p class="checkout-sheet__no-card">
+          Para assinar, cadastre um cartão de crédito ou débito.
+        </p>
+        <div class="checkout-sheet__actions">
+          <nutri-button variant="outline" [block]="true" (click)="fecharCheckout()">Voltar</nutri-button>
+          <nutri-button variant="primary" [block]="true" routerLink="/app/cobranca" (click)="fecharCheckout()">
+            Cadastrar cartão
+          </nutri-button>
+        </div>
+      }
+    </div>
   </div>
 }

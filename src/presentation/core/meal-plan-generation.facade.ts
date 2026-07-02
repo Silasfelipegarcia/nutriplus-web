@@ -6,6 +6,13 @@ import { parseApiError } from '../../infrastructure/http/api-error';
 import { AnalyticsService } from '../../infrastructure/analytics/analytics.service';
 import { PortalDataStore } from './portal-data.store';
 import {
+  isAiPlanEligible,
+  planRegenLockedMessage,
+  PlanRegenerationReasons,
+  resolvePlanRegenerationReason,
+  ResolvePlanRegenerationOptions,
+} from './plan-regeneration';
+import {
   setAcknowledgedPlanReadyId,
   shouldNotifyPlanReady,
 } from './plan-ready-storage';
@@ -46,20 +53,56 @@ export class MealPlanGenerationFacade {
     }
   }
 
-  async generate(source = 'unknown'): Promise<void> {
+  async generate(source = 'unknown', options: ResolvePlanRegenerationOptions = {}): Promise<boolean> {
     this.analytics.trackMealPlanGenerateStart(source);
     this.error.set(null);
-    this.phase.set('generating');
-    this.showReadyNotice.set(false);
+
+    let eligibility;
     try {
-      const s = await this.nutritionRepo.requestMealPlanGeneration();
-      this.status.set(s);
-      this.startPolling();
+      eligibility = await this.nutritionRepo.getPlanRegenerationEligibility();
     } catch (e) {
       const message = parseApiError(e).message;
       this.phase.set('failed');
       this.error.set(message);
       this.toast.error(message);
+      return false;
+    }
+
+    if (!isAiPlanEligible(eligibility)) {
+      const message = planRegenLockedMessage(eligibility);
+      this.phase.set('failed');
+      this.error.set(message);
+      this.toast.error(message);
+      return false;
+    }
+
+    const reason = resolvePlanRegenerationReason(eligibility, options);
+    if (!reason) {
+      const message = planRegenLockedMessage(eligibility);
+      this.phase.set('failed');
+      this.error.set(message);
+      this.toast.error(message);
+      return false;
+    }
+
+    const reviewId =
+      reason === PlanRegenerationReasons.cycleReview
+        ? eligibility.pendingCycleReviewId ?? undefined
+        : undefined;
+
+    this.phase.set('generating');
+    this.showReadyNotice.set(false);
+    try {
+      const s = await this.nutritionRepo.requestMealPlanGeneration(reason, reviewId);
+      this.status.set(s);
+      this.startPolling();
+      return true;
+    } catch (e) {
+      const message = parseApiError(e).message;
+      this.phase.set('failed');
+      this.error.set(message);
+      this.toast.error(message);
+      return false;
     }
   }
 

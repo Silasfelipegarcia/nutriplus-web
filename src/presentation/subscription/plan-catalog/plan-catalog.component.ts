@@ -1,14 +1,12 @@
-import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthFacade } from '../../core/auth.facade';
+import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { PaymentService } from '../../../infrastructure/http/payment.service';
 import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
 import {
-  CHECKOUT_ORDER_STORAGE_KEY,
-  CheckoutResponse,
-  isAthletePlan,
   isPaidPlan,
   PaidPlanCode,
   PlanCatalogItem,
@@ -16,11 +14,17 @@ import {
   SavedCard,
   SubscriptionStatus,
 } from '../../../domain/entities/payment.model';
+import {
+  isPlanoAtualSub,
+  podeAssinarPlano,
+  podeIniciarTrial,
+  planosDisponiveis,
+} from '../../core/subscription-plan-rules';
 
 @Component({
   selector: 'app-plan-catalog',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, NutriButtonComponent],
   templateUrl: './plan-catalog.component.html',
   styleUrl: './plan-catalog.component.scss',
 })
@@ -31,6 +35,9 @@ export class PlanCatalogComponent implements OnInit {
   private readonly router = inject(Router);
 
   somentePublico = input(false);
+  ocultarTrial = input(false);
+  /** contratar = sem plano; upgrade = só mudanças disponíveis; todos = catálogo completo (marketing). */
+  modo = input<'contratar' | 'upgrade' | 'todos'>('todos');
 
   catalogo = signal<PlanCatalogItem[]>([]);
   cobrancaHabilitada = signal(false);
@@ -44,11 +51,25 @@ export class PlanCatalogComponent implements OnInit {
   cartaoSelecionado = signal('');
   cvv = signal('');
   pagamentosConfigurados = signal(true);
-  mpPublicKey = signal('');
   cotacoes = signal<Partial<Record<PaidPlanCode, PlanQuote>>>({});
   assinatura = signal<SubscriptionStatus | null>(null);
+  planoSelecionado = signal<PlanCatalogItem | null>(null);
+  checkoutAberto = signal(false);
+  erroCheckout = signal('');
 
   planosPagos = computed(() => this.catalogo().filter((i) => isPaidPlan(i.plan)));
+
+  planosExibidos = computed(() => {
+    const items = this.planosPagos();
+    const modo = this.modo();
+    if (this.somentePublico() || modo === 'todos') {
+      return items;
+    }
+    if (modo === 'upgrade' || modo === 'contratar') {
+      return planosDisponiveis(items, this.assinatura(), this.cobrancaHabilitada());
+    }
+    return items;
+  });
 
   ngOnInit(): void {
     void this.featureFlags.isRegistrationOpen().then((open) => this.registrationOpen.set(open));
@@ -68,7 +89,6 @@ export class PlanCatalogComponent implements OnInit {
     if (this.auth.isAuthenticated()) {
       this.payment.obterConfig().subscribe({
         next: (config) => {
-          this.mpPublicKey.set(config.publicKey ?? '');
           this.pagamentosConfigurados.set(config.configured && !!config.publicKey);
         },
         error: () => this.pagamentosConfigurados.set(false),
@@ -109,29 +129,25 @@ export class PlanCatalogComponent implements OnInit {
   }
 
   isPlanoAtual(plan?: PlanCatalogItem['plan']): boolean {
-    if (!plan || plan === 'FREE') return plan === 'FREE';
-    const sub = this.assinatura();
-    return sub?.plan === plan && (sub.status === 'ACTIVE' || sub.status === 'TRIAL' || sub.status === 'CANCELLED_PENDING');
+    return isPlanoAtualSub(plan, this.assinatura());
   }
 
   podeAssinar(item: PlanCatalogItem): boolean {
-    if (!this.cobrancaHabilitada()) return false;
-    if (item.contatoComercial || !isPaidPlan(item.plan)) return false;
-    const current = this.assinatura()?.plan;
-    if (current === 'ATHLETE_YEARLY' && item.plan !== 'ATHLETE_YEARLY') return false;
-    if (current === 'ESSENTIAL_YEARLY' && isAthletePlan(item.plan) && item.plan === 'ATHLETE_MONTHLY') return true;
-    if (item.plan === 'ESSENTIAL_MONTHLY' && current === 'ESSENTIAL_YEARLY') return false;
-    if (item.plan === 'ATHLETE_MONTHLY' && current === 'ATHLETE_YEARLY') return false;
-    return !this.isPlanoAtual(item.plan);
+    return podeAssinarPlano(item, this.assinatura(), this.cobrancaHabilitada());
   }
 
+  readonly podeIniciarTrial = podeIniciarTrial;
+
   iniciarTrial(): void {
+    if (!podeIniciarTrial(this.assinatura())) {
+      return;
+    }
     if (!this.auth.isAuthenticated()) {
-      void this.router.navigate(['/auth/login'], { queryParams: { redirect: '/app/planos' } });
+      void this.router.navigate(['/auth/login'], { queryParams: { redirect: '/app/assinatura' } });
       return;
     }
     if (this.cartoes().length === 0) {
-      void this.router.navigate(['/app/cobranca'], { queryParams: { redirect: '/app/planos', trial: '1' } });
+      void this.router.navigate(['/app/cobranca'], { queryParams: { trial: '1' } });
       return;
     }
     this.processando.set('trial');
@@ -148,16 +164,47 @@ export class PlanCatalogComponent implements OnInit {
     });
   }
 
-  assinarItem(item: PlanCatalogItem): void {
-    if (isPaidPlan(item.plan)) {
-      this.assinar(item.plan);
-    }
+  isAnual(plan: PlanCatalogItem['plan']): boolean {
+    return plan === 'ESSENTIAL_YEARLY' || plan === 'ATHLETE_YEARLY';
   }
 
-  assinar(plan: PaidPlanCode): void {
+  iniciarCheckout(item: PlanCatalogItem): void {
+    if (!isPaidPlan(item.plan) || !this.podeAssinar(item) || this.processando()) return;
+
     if (!this.auth.isAuthenticated()) {
       const path = this.registrationOpen() ? '/auth/cadastro' : '/beta';
-      void this.router.navigate([path], { queryParams: { redirect: '/planos' } });
+      void this.router.navigate([path], { queryParams: { redirect: '/app/assinatura' } });
+      return;
+    }
+    if (!this.pagamentosConfigurados()) {
+      this.erro.set('Pagamentos não configurados no servidor.');
+      return;
+    }
+
+    this.planoSelecionado.set(item);
+    this.erro.set('');
+    this.erroCheckout.set('');
+    this.cvv.set('');
+    this.checkoutAberto.set(true);
+  }
+
+  fecharCheckout(): void {
+    if (this.processando()) return;
+    this.checkoutAberto.set(false);
+    this.planoSelecionado.set(null);
+    this.erroCheckout.set('');
+    this.cvv.set('');
+  }
+
+  confirmarAssinatura(): void {
+    const plano = this.planoSelecionado();
+    if (!plano || !isPaidPlan(plano.plan)) return;
+    this.cobrarComCartaoSalvo(plano.plan);
+  }
+
+  cobrarComCartaoSalvo(plan: PaidPlanCode): void {
+    if (!this.auth.isAuthenticated()) {
+      void this.router.navigate(['/auth/login'], { queryParams: { redirect: '/app/assinatura' } });
       return;
     }
     const item = this.catalogo().find((i) => i.plan === plan);
@@ -167,64 +214,37 @@ export class PlanCatalogComponent implements OnInit {
       this.erro.set('Pagamentos não configurados no servidor.');
       return;
     }
-
-    this.processando.set(plan);
-    this.erro.set('');
-    this.mensagem.set('');
-
-    if (this.cartoes().length > 0) {
-      const cardId = this.cartaoSelecionado();
-      if (!cardId) {
-        this.erro.set('Selecione um cartão salvo.');
-        this.processando.set(null);
-        return;
-      }
-      this.payment.cobrarPlano({ plan, cardId, securityCode: this.cvv() }).subscribe({
-        next: (res) => {
-          this.processando.set(null);
-          if (res.status?.toUpperCase() === 'APPROVED') {
-            this.mensagem.set(`Plano ${res.planNome} ativado!`);
-            this.payment.obterAssinatura().subscribe({ next: (s) => this.assinatura.set(s) });
-          } else {
-            this.erro.set(res.statusLabel || 'Pagamento pendente ou recusado.');
-          }
-        },
-        error: (msg: string) => {
-          this.erro.set(msg);
-          this.processando.set(null);
-          this.abrirCheckout(plan);
-        },
-      });
+    if (this.cartoes().length === 0) {
+      this.erro.set('Cadastre um cartão em Assinatura antes de cobrar.');
+      return;
+    }
+    const cardId = this.cartaoSelecionado();
+    if (!cardId) {
+      this.erro.set('Selecione um cartão salvo.');
       return;
     }
 
-    this.abrirCheckout(plan);
-  }
+    this.processando.set(plan);
+    this.erro.set('');
+    this.erroCheckout.set('');
+    this.mensagem.set('');
 
-  private abrirCheckout(plan: PaidPlanCode): void {
-    this.payment.criarCheckout(plan).subscribe({
-      next: (checkout) => {
-        sessionStorage.setItem(CHECKOUT_ORDER_STORAGE_KEY, checkout.orderId);
-        const url = this.urlCheckout(checkout);
-        if (url) {
-          window.location.href = url;
+    this.payment.cobrarPlano({ plan, cardId, securityCode: this.cvv() }).subscribe({
+      next: (res) => {
+        this.processando.set(null);
+        if (res.status?.toUpperCase() === 'APPROVED') {
+          this.mensagem.set(`Plano ${res.planNome} ativado!`);
+          this.fecharCheckout();
+          this.payment.obterAssinatura().subscribe({ next: (s) => this.assinatura.set(s) });
         } else {
-          this.erro.set('Não foi possível abrir o checkout.');
-          this.processando.set(null);
+          this.erroCheckout.set(res.statusLabel || 'Pagamento pendente ou recusado.');
         }
       },
       error: (msg: string) => {
-        this.erro.set(msg);
+        this.erroCheckout.set(msg);
         this.processando.set(null);
       },
     });
-  }
-
-  private urlCheckout(checkout: CheckoutResponse): string | null {
-    const isTeste = this.mpPublicKey().startsWith('TEST-');
-    const sandbox = checkout.sandboxInitPoint;
-    const producao = checkout.initPoint;
-    return isTeste ? sandbox || producao || null : producao || sandbox || null;
   }
 
   onCvvInput(event: Event): void {
@@ -232,5 +252,12 @@ export class PlanCatalogComponent implements OnInit {
     const digits = input.value.replace(/\D/g, '').slice(0, 4);
     this.cvv.set(digits);
     input.value = digits;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.checkoutAberto()) {
+      this.fecharCheckout();
+    }
   }
 }

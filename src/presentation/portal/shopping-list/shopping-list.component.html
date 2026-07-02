@@ -1,0 +1,108 @@
+<div class="portal-page shopping-list-page">
+  <div class="portal-main__header">
+    <h1>Lista de compras</h1>
+    <p>Itens da semana baseados no seu plano alimentar.</p>
+  </div>
+
+  @if (list()) {
+    @if (weekPeriodLabel()) {
+      <p class="shopping-list-page__period">{{ weekPeriodLabel() }}</p>
+    }
+
+    @if (finance()) {
+      <section class="shopping-budget-card">
+        <div class="shopping-budget-card__top">
+          <h2 class="shopping-budget-card__title">Orçamento da semana (7 dias)</h2>
+          <span class="shopping-budget-card__level">Perfil {{ finance()!.budgetLevel.toLowerCase() }}</span>
+        </div>
+        <div class="shopping-budget-card__metrics">
+          <div>
+            <span class="shopping-budget-card__metric-label">Faixa estimada</span>
+            <strong>{{ formatBrlRange(finance()!.budgetReference.weeklyMinCents, finance()!.budgetReference.weeklyMaxCents) }}</strong>
+            <span class="shopping-budget-card__metric-hint">Referência para 1 pessoa</span>
+          </div>
+          <div>
+            <span class="shopping-budget-card__metric-label">Estimativa central</span>
+            <strong>{{ formatBrl(finance()!.adjustedWeeklyMidCents) }}</strong>
+            <span class="shopping-budget-card__metric-hint">
+              @if (finance()!.appliedSavingsCents > 0) {
+                Com trocas aplicadas na lista
+              } @else {
+                Com base no seu perfil de orçamento
+              }
+            </span>
+          </div>
+        </div>
+        @if (finance()!.budgetSummary) {
+          <p class="shopping-budget-card__summary">{{ finance()!.budgetSummary }}</p>
+        }
+        <p class="shopping-budget-card__disclaimer">
+          Valores são estimativas de referência — use como bússola, não como recibo de mercado.
+        </p>
+      </section>
+    }
+
+    @if (list()!.pendingSwapReview) {
+      <div class="shopping-swap-banner">
+        <strong>Há trocas sugeridas nesta lista</strong>
+        <p>Alguns itens têm alternativas mais econômicas no mercado. Toque em um item para ver opções.</p>
+      </div>
+    }
+
+    <h2 class="shopping-list-page__section-title">Lista da semana</h2>
+
+    @for (group of groupedItems(); track group.category) {
+      <div class="shopping-category">
+        <h3>{{ group.category }}</h3>
+        @for (item of group.items; track item.id ?? item.itemName) {
+          <button type="button" class="shopping-item-row" (click)="abrirDetalhe(item)">
+            <div class="shopping-item-row__main">
+              <span class="shopping-item-row__name">{{ item.itemName }}</span>
+              <span class="shopping-item-row__subtitle">
+                {{ shoppingItemListSubtitle(item) }}
+                @if (shoppingItemHasSwapChoices(item)) {
+                  · Tem alternativas no mercado
+                }
+              </span>
+            </div>
+            <span class="shopping-item-row__qty">{{ item.quantity }}</span>
+          </button>
+        }
+      </div>
+    }
+
+    @if (list()!.guidance?.satietyTips?.length) {
+      <section class="shopping-satiety">
+        <h2 class="shopping-list-page__section-title">Saciedade sem culpa</h2>
+        <p class="shopping-satiety__lead">Sugestões educativas — escolha o que fizer sentido para você.</p>
+        <div class="shopping-satiety__chips">
+          @for (tip of list()!.guidance!.satietyTips!; track tip.title) {
+            <button type="button" class="shopping-satiety__chip" (click)="dicaAberta.set(tip)">
+              💡 {{ tip.title }}
+            </button>
+          }
+        </div>
+      </section>
+    }
+  } @else if (!loading()) {
+    <nutri-empty-state icon="🛒" title="Lista vazia" message="Gere um plano alimentar para criar sua lista de compras." />
+  }
+
+  @if (loading()) {
+    <app-portal-page-skeleton [cards]="2" [rows]="5" />
+  }
+</div>
+
+@if (itemSelecionado()) {
+  <app-shopping-item-detail [item]="itemSelecionado()" (fechar)="itemSelecionado.set(null)" />
+}
+
+@if (dicaAberta(); as tip) {
+  <div class="shopping-tip-overlay" (click)="dicaAberta.set(null)" role="presentation">
+    <div class="shopping-tip-dialog" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <h2>{{ tip.title }}</h2>
+      <p>{{ tip.description }}</p>
+      <button type="button" class="shopping-tip-dialog__close" (click)="dicaAberta.set(null)">Entendi</button>
+    </div>
+  </div>
+}

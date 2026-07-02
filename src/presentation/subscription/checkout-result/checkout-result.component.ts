@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { AuthFacade } from '../../core/auth.facade';
 import { PaymentService } from '../../../infrastructure/http/payment.service';
 import { CHECKOUT_ORDER_STORAGE_KEY, CheckoutSyncRequest } from '../../../domain/entities/payment.model';
@@ -8,15 +9,15 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-checkout-result',
   standalone: true,
-  imports: [RouterLink],
+  imports: [NutriButtonComponent],
   template: `
     <div class="result-page">
       <h1>{{ tipo === 'sucesso' ? 'Pagamento recebido' : 'Pagamento pendente' }}</h1>
       <p>{{ mensagemStatus }}</p>
       @if (avisoLocal) { <p class="aviso">{{ avisoLocal }}</p> }
       <div class="actions">
-        <a routerLink="/app/dashboard" class="btn btn-primary">Ir para o painel</a>
-        <a routerLink="/app/assinatura" class="btn btn-outline">Ver assinatura</a>
+        <nutri-button variant="primary" to="/app/dashboard">Ir para o painel</nutri-button>
+        <nutri-button variant="outline" to="/app/assinatura">Assinatura e pagamento</nutri-button>
       </div>
     </div>
   `,

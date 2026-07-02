@@ -1,0 +1,250 @@
+<section class="subscription-page">
+  <header class="subscription-page__header">
+    <div>
+      <h1>Assinatura</h1>
+      <p class="subscription-page__lead">
+        @if (precisaContratar()) {
+          Escolha um plano para começar.
+        } @else {
+          Seu plano, forma de pagamento e cobranças.
+        }
+      </p>
+    </div>
+  </header>
+
+  @if (mensagem()) {
+    <p class="subscription-page__ok">{{ mensagem() }}</p>
+  }
+  @if (erro()) {
+    <p class="subscription-page__erro">{{ erro() }}</p>
+  }
+
+  @if (precisaContratar()) {
+    <app-plan-catalog modo="contratar" [ocultarTrial]="false" />
+  } @else if (sub()) {
+    <article class="subscription-current">
+      <div class="subscription-current__top">
+        <div>
+          <p class="subscription-current__label">Plano atual</p>
+          <h2 class="subscription-current__name">{{ sub()!.planNome || sub()!.plan || 'Grátis' }}</h2>
+        </div>
+        <span class="subscription-page__status-badge" [class]="statusBadgeClass(sub()!.status)">
+          {{ subscriptionStatusLabel(sub()!.statusLabel || sub()!.status) }}
+        </span>
+      </div>
+
+      <dl class="subscription-current__meta">
+        @if (sub()!.validUntil || (estaEmTrial(sub()) && sub()!.daysRemaining > 0)) {
+          <div>
+            <dt>{{ rotuloValidadeAssinatura(sub()!) }}</dt>
+            <dd>
+              @if (sub()!.validUntil) {
+                {{ sub()!.validUntil | date: 'dd/MM/yyyy' }}
+              } @else {
+                —
+              }
+            </dd>
+          </div>
+        }
+        @if (sub()!.daysRemaining > 0) {
+          <div>
+            <dt>{{ rotuloDiasRestantes(sub()!) }}</dt>
+            <dd>{{ sub()!.daysRemaining }}</dd>
+          </div>
+        }
+        @if (!estaEmTrial(sub()!)) {
+          <div>
+            <dt>Renovação automática</dt>
+            <dd>{{ sub()!.autoRenew ? 'Ativa' : 'Desativada' }}</dd>
+          </div>
+        } @else {
+          <div>
+            <dt>Após o trial</dt>
+            <dd>Cobrança do {{ sub()!.planNome || 'Essencial Mensal' }}</dd>
+          </div>
+        }
+      </dl>
+
+      @if (estaEmTrial(sub()!)) {
+        <p class="subscription-current__trial-note">
+          Você está no período de teste gratuito. Cancele antes do fim se não quiser ser cobrado.
+        </p>
+      }
+
+      <div class="subscription-page__actions">
+        @if (podeIniciarTrial(sub()!)) {
+          <nutri-button variant="outline" size="sm" [disabled]="processando()" (click)="iniciarTrial()">
+            Testar 7 dias grátis
+          </nutri-button>
+        }
+        @if (sub()!.podeReativar) {
+          <nutri-button variant="primary" size="sm" [disabled]="processando()" (click)="reativar()">
+            Reativar renovação
+          </nutri-button>
+        }
+      </div>
+    </article>
+
+    <section class="subscription-section" id="cartoes">
+      <h2 class="subscription-section__title">Forma de pagamento</h2>
+      @if (cartoes().length > 0) {
+        <div class="saved-cards">
+          @for (card of cartoes(); track card.id) {
+            <div class="saved-card" [class.saved-card--default]="card.defaultCard">
+              <div class="saved-card__meta">
+                <span class="saved-card__brand">
+                  {{ card.brand }} •••• {{ card.lastFourDigits }}
+                  @if (card.defaultCard) {
+                    <span class="saved-card__badge">Padrão</span>
+                  }
+                </span>
+                <span class="saved-card__exp">
+                  {{ card.holderName }} — validade {{ card.expirationMonth }}/{{ card.expirationYear }}
+                </span>
+              </div>
+              <nutri-button variant="outline" size="sm" (click)="removerCartao(card.id)">Remover</nutri-button>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="subscription-section__empty">Nenhum cartão cadastrado.</p>
+      }
+      <div class="subscription-section__actions">
+        <nutri-button variant="outline" size="sm" routerLink="/app/cobranca">
+          {{ cartoes().length === 0 ? 'Cadastrar cartão' : 'Adicionar outro cartão' }}
+        </nutri-button>
+      </div>
+    </section>
+
+    <section class="subscription-section">
+      <h2 class="subscription-section__title">Histórico de pagamentos</h2>
+      @if (historico().length === 0) {
+        <p class="subscription-section__empty">Nenhuma cobrança registrada ainda.</p>
+      } @else {
+        <ul class="history-list">
+          @for (item of historico(); track item.id) {
+            <li class="history-item">
+              <div class="history-item__main">
+                <strong>{{ item.planNome }}</strong>
+                <span>{{ item.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <span class="history-item__status" [class]="statusClass(item.status)">
+                {{ item.amountLabel }} · {{ paymentStatusLabel(item.status, item.statusLabel) }}
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    @if (sub()!.podeCancelar) {
+      <section class="subscription-danger">
+        <h2 class="subscription-danger__title">Renovação automática</h2>
+        <p class="subscription-danger__text">
+          Prefere não renovar? Você mantém o acesso até o fim do período já pago e pode reativar quando quiser.
+        </p>
+        <button type="button" class="subscription-danger__link" (click)="abrirCancelamento()">
+          Quero cancelar a renovação automática
+        </button>
+      </section>
+    }
+
+    @if (temUpgradeDisponivel()) {
+      <section class="subscription-upgrade" id="upgrade">
+        @if (!mostrarUpgrade()) {
+          <div class="upgrade-teaser">
+            <div class="upgrade-teaser__copy">
+              <h2 class="upgrade-teaser__title">Quer evoluir seu plano?</h2>
+              @if (sugestaoUpgradeItem()) {
+                <p class="upgrade-teaser__text">
+                  Se quiser mudar de plano ou de periodicidade, você pode ver as opções disponíveis.
+                </p>
+              } @else {
+                <p class="upgrade-teaser__text">Veja outras opções do Nutri+ quando fizer sentido para você.</p>
+              }
+            </div>
+            <nutri-button variant="outline" (click)="abrirUpgrade()">Ver opções</nutri-button>
+          </div>
+        } @else {
+          <div class="upgrade-panel">
+            <div class="upgrade-panel__header">
+              <h2 class="upgrade-panel__title">Mudar de plano</h2>
+              <button type="button" class="upgrade-panel__close" (click)="mostrarUpgrade.set(false)">Fechar</button>
+            </div>
+            <p class="upgrade-panel__hint">Você mantém o acesso atual até confirmar o novo plano.</p>
+            <app-plan-catalog modo="upgrade" [ocultarTrial]="true" />
+          </div>
+        }
+      </section>
+    }
+  }
+</section>
+
+@if (mostrarCancelamento()) {
+  <div class="cancel-overlay" (click)="fecharCancelamento()" role="presentation">
+    <div
+      class="cancel-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cancel-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="cancel-sheet__header">
+        <h2 id="cancel-title">Cancelar renovação automática?</h2>
+        <button type="button" class="cancel-sheet__close" (click)="fecharCancelamento()" aria-label="Fechar">
+          ×
+        </button>
+      </header>
+
+      <p class="cancel-sheet__lead">
+        @if (sub()?.validUntil) {
+          Você continua com acesso até <strong>{{ sub()!.validUntil | date: 'dd/MM/yyyy' }}</strong>.
+        } @else {
+          Você continua com acesso até o fim do período já pago.
+        }
+        Depois disso, não haverá nova cobrança no cartão cadastrado.
+      </p>
+
+      <ul class="cancel-sheet__list">
+        <li>Seu plano e histórico permanecem salvos.</li>
+        <li>Você pode reativar a renovação a qualquer momento nesta página.</li>
+      </ul>
+
+      <label class="cancel-sheet__confirm">
+        <input
+          type="checkbox"
+          [checked]="confirmarCancelamentoChecked()"
+          (change)="confirmarCancelamentoChecked.set($any($event.target).checked)"
+        />
+        <span>Entendo que a renovação automática será desativada</span>
+      </label>
+
+      <label class="cancel-sheet__field">
+        <span>Digite <strong>{{ nomePlanoAtual() }}</strong> para confirmar</span>
+        <input
+          type="text"
+          [value]="confirmarCancelamentoTexto()"
+          (input)="confirmarCancelamentoTexto.set($any($event.target).value)"
+          autocomplete="off"
+          spellcheck="false"
+          [attr.placeholder]="nomePlanoAtual()"
+        />
+      </label>
+
+      <div class="cancel-sheet__actions">
+        <nutri-button variant="primary" [block]="true" [disabled]="processando()" (click)="fecharCancelamento()">
+          Manter assinatura
+        </nutri-button>
+        <nutri-button
+          variant="outline"
+          [block]="true"
+          [disabled]="!podeConfirmarCancelamento() || processando()"
+          (click)="confirmarCancelamento()"
+        >
+          @if (processando()) { Cancelando... }
+          @else { Sim, cancelar renovação }
+        </nutri-button>
+      </div>
+    </div>
+  </div>
+}

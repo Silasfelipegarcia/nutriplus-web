@@ -1,0 +1,18 @@
+<section class="billing-page">
+  <a class="billing-page__back" routerLink="/app/assinatura">← Voltar para assinatura</a>
+
+  <header class="billing-page__header">
+    <h1>Adicionar cartão</h1>
+    <p class="billing-page__lead">
+      Cadastre um cartão para assinar planos, trial ou renovação automática.
+    </p>
+  </header>
+
+  @if (mensagem()) {
+    <p class="billing-page__ok">{{ mensagem() }}</p>
+  }
+
+  <nutri-card title="Dados do cartão">
+    <app-card-register (cardSaved)="onCardSaved($event)" />
+  </nutri-card>
+</section>

@@ -1,6 +1,8 @@
 import { Component, OnInit, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { loadMercadoPago } from '@mercadopago/sdk-js';
+import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
+import { environment } from '../../../environments/environment';
+import { createMercadoPagoCardToken } from '../../../infrastructure/payment/mercado-pago-card-tokenizer';
 import { PaymentService } from '../../../infrastructure/http/payment.service';
 import { cpfDigitsOnly, formatCpfInput, isValidCpf } from '../../core/date.util';
 import { SavedCard } from '../../../domain/entities/payment.model';
@@ -8,36 +10,21 @@ import { SavedCard } from '../../../domain/entities/payment.model';
 @Component({
   selector: 'app-card-register',
   standalone: true,
-  imports: [FormsModule],
-  template: `
-    @if (carregando()) {
-      <p>Carregando formulário...</p>
-    } @else if (erro()) {
-      <p class="erro">{{ erro() }}</p>
-    } @else {
-      <form class="card-form" (ngSubmit)="salvar()">
-        <label>CPF<input [(ngModel)]="cpf" name="cpf" placeholder="000.000.000-00" (input)="onCpfInput($event)" required /></label>
-        <label>Nome no cartão<input [(ngModel)]="cardholderName" name="name" required /></label>
-        <label>Número<input [(ngModel)]="cardNumber" name="number" (input)="onCardNumberInput($event)" required /></label>
-        <label>Validade (MM/AA)<input [(ngModel)]="expiration" name="exp" (input)="onExpirationInput($event)" required /></label>
-        <label>CVV<input [(ngModel)]="securityCode" name="cvv" type="password" maxlength="4" required /></label>
-        <button type="submit" [disabled]="salvando()">{{ salvando() ? 'Salvando...' : 'Salvar cartão' }}</button>
-      </form>
-    }
-  `,
-  styles: [`
-    .card-form { display: flex; flex-direction: column; gap: 0.75rem; max-width: 24rem; }
-    .erro { color: #b91c1c; }
-  `],
+  imports: [FormsModule, NutriButtonComponent],
+  templateUrl: './card-register.component.html',
+  styleUrl: './card-register.component.scss',
 })
 export class CardRegisterComponent implements OnInit {
   readonly cardSaved = output<SavedCard>();
+
+  readonly environment = environment;
 
   private readonly payment = inject(PaymentService);
 
   carregando = signal(true);
   salvando = signal(false);
   erro = signal('');
+  erroInicial = signal('');
 
   cpf = '';
   cardNumber = '';
@@ -45,40 +32,53 @@ export class CardRegisterComponent implements OnInit {
   expiration = '';
   securityCode = '';
 
-  private mp: import('../../../types/mercadopago').MercadoPagoInstance | null = null;
+  private mpPublicKey = '';
+  sandboxTestCards = signal(true);
+  cardVaultMock = signal(false);
 
   ngOnInit(): void {
     this.payment.obterConfig().subscribe({
-      next: async (config) => {
+      next: (config) => {
         if (!config.configured || !config.publicKey) {
-          this.erro.set('Pagamentos não configurados na API.');
-          this.carregando.set(false);
-          return;
-        }
-        try {
-          await loadMercadoPago();
-          this.mp = new window.MercadoPago(config.publicKey, { locale: 'pt-BR' });
-        } catch {
-          this.erro.set('Não foi possível carregar o Mercado Pago.');
+          this.erroInicial.set(
+            'Pagamentos não configurados na API. Reinicie o nutriplus-api com MERCADOPAGO_PUBLIC_KEY e MERCADOPAGO_ACCESS_TOKEN no arquivo .env.',
+          );
+        } else {
+          this.mpPublicKey = config.publicKey;
+          this.sandboxTestCards.set(config.sandboxTestCards !== false);
+          this.cardVaultMock.set(config.cardVaultMock === true);
         }
         this.carregando.set(false);
       },
       error: (msg: string) => {
-        this.erro.set(msg);
+        this.erroInicial.set(msg);
         this.carregando.set(false);
       },
     });
   }
 
   async salvar(): Promise<void> {
-    if (!this.mp || this.salvando()) return;
+    if (!this.mpPublicKey || this.salvando()) return;
 
     const digits = this.cardNumber.replace(/\D/g, '');
     const [month, yearShort] = this.expiration.split('/').map((p) => p.trim());
     const year = yearShort?.length === 2 ? `20${yearShort}` : yearShort;
     const cpf = cpfDigitsOnly(this.cpf);
+
     if (!isValidCpf(this.cpf)) {
       this.erro.set('Informe um CPF válido.');
+      return;
+    }
+    if (digits.length < 13) {
+      this.erro.set('Informe o número do cartão completo.');
+      return;
+    }
+    if (!month || !year) {
+      this.erro.set('Informe a validade no formato MM/AA.');
+      return;
+    }
+    if (!this.securityCode.trim()) {
+      this.erro.set('Informe o CVV.');
       return;
     }
 
@@ -86,22 +86,20 @@ export class CardRegisterComponent implements OnInit {
     this.erro.set('');
 
     try {
-      const tokenResult = await this.mp.createCardToken({
+      const tokenId = await createMercadoPagoCardToken(this.mpPublicKey, {
         cardNumber: digits,
         cardholderName: this.cardholderName.trim(),
-        cardExpirationMonth: month.padStart(2, '0'),
-        cardExpirationYear: year,
-        securityCode: this.securityCode,
+        expirationMonth: month.padStart(2, '0'),
+        expirationYear: year,
+        securityCode: this.securityCode.trim(),
         identificationType: 'CPF',
         identificationNumber: cpf,
       });
 
-      const tokenId = tokenResult?.id;
-      if (!tokenId) throw new Error('Não foi possível validar o cartão.');
-
       this.payment.salvarCartao(tokenId).subscribe({
         next: (card) => {
           this.salvando.set(false);
+          this.limparFormulario();
           this.cardSaved.emit(card);
         },
         error: (msg: string) => {
@@ -113,6 +111,14 @@ export class CardRegisterComponent implements OnInit {
       this.erro.set(e instanceof Error ? e.message : 'Erro ao tokenizar cartão');
       this.salvando.set(false);
     }
+  }
+
+  private limparFormulario(): void {
+    this.cpf = '';
+    this.cardNumber = '';
+    this.cardholderName = '';
+    this.expiration = '';
+    this.securityCode = '';
   }
 
   onCardNumberInput(event: Event): void {

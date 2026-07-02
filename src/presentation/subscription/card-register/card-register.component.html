@@ -1,0 +1,101 @@
+@if (carregando()) {
+  <p class="card-register__loading">Preparando formulário...</p>
+} @else if (erroInicial()) {
+  <p class="card-register__erro">{{ erroInicial() }}</p>
+} @else {
+  <form class="card-register" (ngSubmit)="salvar()">
+    <p class="card-register__hint">
+      Os dados do cartão são tokenizados com segurança — não armazenamos número nem CVV.
+    </p>
+
+    @if (cardVaultMock()) {
+      <p class="card-register__aviso card-register__aviso--info">
+        <strong>Modo desenvolvimento:</strong> o cartão é salvo localmente para você testar a assinatura.
+      </p>
+    } @else if (!sandboxTestCards()) {
+      <p class="card-register__aviso">
+        Cartões de teste não podem ser salvos com as credenciais atuais do servidor.
+      </p>
+    }
+
+    <label class="card-register__field">
+      <span>CPF do titular</span>
+      <input
+        [(ngModel)]="cpf"
+        name="cpf"
+        placeholder="000.000.000-00"
+        inputmode="numeric"
+        autocomplete="off"
+        (input)="onCpfInput($event)"
+        required
+      />
+    </label>
+
+    <label class="card-register__field">
+      <span>Nome no cartão</span>
+      <input
+        [(ngModel)]="cardholderName"
+        name="name"
+        placeholder="Como impresso no cartão"
+        autocomplete="cc-name"
+        required
+      />
+    </label>
+
+    <label class="card-register__field">
+      <span>Número do cartão</span>
+      <input
+        [(ngModel)]="cardNumber"
+        name="number"
+        placeholder="0000 0000 0000 0000"
+        inputmode="numeric"
+        autocomplete="cc-number"
+        (input)="onCardNumberInput($event)"
+        required
+      />
+    </label>
+
+    <div class="card-register__row">
+      <label class="card-register__field">
+        <span>Validade (MM/AA)</span>
+        <input
+          [(ngModel)]="expiration"
+          name="exp"
+          placeholder="12/30"
+          inputmode="numeric"
+          autocomplete="cc-exp"
+          (input)="onExpirationInput($event)"
+          required
+        />
+      </label>
+
+      <label class="card-register__field">
+        <span>CVV</span>
+        <input
+          [(ngModel)]="securityCode"
+          name="cvv"
+          type="password"
+          placeholder="123"
+          inputmode="numeric"
+          maxlength="4"
+          autocomplete="cc-csc"
+          required
+        />
+      </label>
+    </div>
+
+    @if (erro()) {
+      <p class="card-register__erro">{{ erro() }}</p>
+    }
+
+    <nutri-button type="submit" variant="primary" [disabled]="salvando()">
+      {{ salvando() ? 'Salvando...' : 'Salvar cartão' }}
+    </nutri-button>
+
+    @if (!environment.production && sandboxTestCards()) {
+      <p class="card-register__sandbox">
+        Sandbox: Visa <code>5031 4332 1540 6351</code>, CVV <code>123</code>, nome <code>APRO</code>.
+      </p>
+    }
+  </form>
+}

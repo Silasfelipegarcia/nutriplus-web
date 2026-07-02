@@ -324,8 +324,8 @@ export const routes: Routes = [
       },
       {
         path: 'planos',
-        loadComponent: () => import('../presentation/portal/plans/portal-plans.component').then(m => m.PortalPlansComponent),
-        data: mon(3, 'portal_plans_view'),
+        redirectTo: 'assinatura',
+        pathMatch: 'full',
       },
       {
         path: 'planos/sucesso',

@@ -1,0 +1,215 @@
+.shopping-list-page__period {
+  margin: -0.25rem 0 1rem;
+  font-size: 0.9rem;
+  color: var(--nutri-ink-muted, #6b7280);
+}
+
+.shopping-list-page__section-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.shopping-budget-card {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.15rem;
+  border-radius: var(--nutri-radius-sm, 12px);
+  background: color-mix(in srgb, var(--nutri-brand, #3d8b5f) 8%, white);
+  border: 1px solid color-mix(in srgb, var(--nutri-brand, #3d8b5f) 18%, white);
+}
+
+.shopping-budget-card__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.shopping-budget-card__title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.shopping-budget-card__level {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--nutri-ink-muted, #6b7280);
+}
+
+.shopping-budget-card__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.85rem 1rem;
+}
+
+.shopping-budget-card__metric-label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--nutri-ink-muted, #6b7280);
+  margin-bottom: 0.15rem;
+}
+
+.shopping-budget-card__metrics strong {
+  display: block;
+  font-size: 1.05rem;
+}
+
+.shopping-budget-card__metric-hint {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: var(--nutri-ink-muted, #6b7280);
+}
+
+.shopping-budget-card__summary {
+  margin: 0.85rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.shopping-budget-card__disclaimer {
+  margin: 0.65rem 0 0;
+  font-size: 0.78rem;
+  color: var(--nutri-ink-muted, #6b7280);
+}
+
+.shopping-swap-banner {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--nutri-radius-sm, 12px);
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  font-size: 0.9rem;
+}
+
+.shopping-swap-banner strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.shopping-swap-banner p {
+  margin: 0;
+  color: var(--nutri-ink-muted, #6b7280);
+}
+
+.shopping-item-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  width: 100%;
+  padding: 0.65rem 0;
+  border: none;
+  border-bottom: 1px solid var(--nutri-border, #e5e7eb);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.shopping-item-row:last-child {
+  border-bottom: none;
+}
+
+.shopping-item-row:hover {
+  background: rgba(61, 139, 95, 0.04);
+}
+
+.shopping-item-row__main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.shopping-item-row__name {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.shopping-item-row__subtitle {
+  font-size: 0.8rem;
+  color: var(--nutri-ink-muted, #6b7280);
+  line-height: 1.35;
+}
+
+.shopping-item-row__qty {
+  flex-shrink: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--nutri-ink-muted, #6b7280);
+}
+
+.shopping-satiety {
+  margin-top: 1.5rem;
+}
+
+.shopping-satiety__lead {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--nutri-ink-muted, #6b7280);
+}
+
+.shopping-satiety__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.shopping-satiety__chip {
+  border: 1px solid var(--nutri-border, #e5e7eb);
+  border-radius: 999px;
+  background: #fff;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.shopping-satiety__chip:hover {
+  border-color: var(--nutri-brand, #3d8b5f);
+}
+
+.shopping-tip-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.shopping-tip-dialog {
+  width: min(420px, 100%);
+  background: #fff;
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+}
+
+.shopping-tip-dialog h2 {
+  margin: 0 0 0.65rem;
+  font-size: 1.05rem;
+}
+
+.shopping-tip-dialog p {
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--nutri-ink-muted, #6b7280);
+}
+
+.shopping-tip-dialog__close {
+  border: none;
+  background: var(--nutri-brand, #3d8b5f);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}

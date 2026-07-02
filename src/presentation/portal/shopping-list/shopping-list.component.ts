@@ -1,68 +1,83 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { NutriEmptyStateComponent } from '../../../design-system/nutri-empty-state/nutri-empty-state.component';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
-import { ShoppingList } from '../../../domain/entities';
+import { ShoppingList, ShoppingListItem } from '../../../domain/entities';
 import { isNotFound } from '../../../infrastructure/http/api-error';
-
 import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
+import { PortalDataStore } from '../../core/portal-data.store';
+import {
+  buildShoppingFinanceSnapshot,
+  formatBrl,
+  formatBrlRange,
+  ShoppingFinanceSnapshot,
+} from '../../core/shopping-finance';
+import {
+  formatShoppingWeekPeriod,
+  shoppingItemHasSwapChoices,
+  shoppingItemListSubtitle,
+} from '../../core/shopping-list-helpers';
+import { ShoppingItemDetailComponent } from './shopping-item-detail.component';
 
 @Component({
   selector: 'app-shopping-list',
   standalone: true,
-  imports: [NutriEmptyStateComponent, PortalPageSkeletonComponent],
-  template: `
-    <div class="portal-page">
-      <div class="portal-main__header">
-        <h1>Lista de compras</h1>
-        <p>Itens da semana baseados no seu plano alimentar.</p>
-      </div>
-
-    @if (list()) {
-      @for (group of groupedItems(); track group.category) {
-        <div class="shopping-category">
-          <h3>{{ group.category }}</h3>
-          @for (item of group.items; track item.itemName) {
-            <div class="meal-item-row">
-              <span>{{ item.itemName }}</span>
-              <span>{{ item.quantity }}</span>
-            </div>
-          }
-        </div>
-      }
-    } @else if (!loading()) {
-      <nutri-empty-state icon="🛒" title="Lista vazia" message="Gere um plano alimentar para criar sua lista de compras." />
-    }
-
-    @if (loading()) {
-      <app-portal-page-skeleton [cards]="1" [rows]="5" />
-    }
-    </div>
-  `,
-  styleUrl: '../portal.scss',
+  imports: [NutriEmptyStateComponent, PortalPageSkeletonComponent, ShoppingItemDetailComponent],
+  templateUrl: './shopping-list.component.html',
+  styleUrls: ['./shopping-list.component.scss', '../portal.scss'],
 })
 export class ShoppingListComponent implements OnInit {
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
+  private readonly portalData = inject(PortalDataStore);
+
+  readonly shoppingItemListSubtitle = shoppingItemListSubtitle;
+  readonly shoppingItemHasSwapChoices = shoppingItemHasSwapChoices;
+  readonly formatBrl = formatBrl;
+  readonly formatBrlRange = formatBrlRange;
 
   readonly list = signal<ShoppingList | null>(null);
+  readonly finance = signal<ShoppingFinanceSnapshot | null>(null);
   readonly loading = signal(true);
+  readonly groupedItems = signal<{ category: string; items: ShoppingList['items'] }[]>([]);
+  readonly itemSelecionado = signal<ShoppingListItem | null>(null);
+  readonly dicaAberta = signal<{ title: string; description: string } | null>(null);
 
-  groupedItems = signal<{ category: string; items: ShoppingList['items'] }[]>([]);
+  readonly weekPeriodLabel = computed(() => {
+    const current = this.list();
+    const label = formatShoppingWeekPeriod(current?.weekStart, current?.weekEnd);
+    return label ? `Período: ${label}` : null;
+  });
 
   async ngOnInit(): Promise<void> {
     this.loading.set(true);
     try {
+      await this.portalData.loadNutritionProfile(false);
+      const profile = this.portalData.nutritionProfile();
       const list = await this.nutritionRepo.getLatestShoppingList();
       this.list.set(list);
-      const map = new Map<string, ShoppingList['items']>();
-      for (const item of list.items) {
-        const cat = item.category ?? 'Outros';
-        if (!map.has(cat)) map.set(cat, []);
-        map.get(cat)!.push(item);
-      }
-      this.groupedItems.set([...map.entries()].map(([category, items]) => ({ category, items })));
+      this.finance.set(
+        buildShoppingFinanceSnapshot({
+          foodBudgetLevel: profile?.foodBudgetLevel,
+          list,
+        }),
+      );
+      this.groupedItems.set(this.agruparPorCategoria(list.items));
     } catch (e) {
       if (!isNotFound(e)) throw e;
     }
     this.loading.set(false);
+  }
+
+  abrirDetalhe(item: ShoppingListItem): void {
+    this.itemSelecionado.set(item);
+  }
+
+  private agruparPorCategoria(items: ShoppingListItem[]): { category: string; items: ShoppingListItem[] }[] {
+    const map = new Map<string, ShoppingListItem[]>();
+    for (const item of items) {
+      const cat = item.category?.trim() || 'Outros';
+      if (!map.has(cat)) map.set(cat, []);
+      map.get(cat)!.push(item);
+    }
+    return [...map.entries()].map(([category, groupItems]) => ({ category, items: groupItems }));
   }
 }

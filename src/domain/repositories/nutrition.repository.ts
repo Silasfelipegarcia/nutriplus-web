@@ -3,6 +3,7 @@ import {
   CheckinStats,
   MealPlan,
   MealPlanGenerationStatus,
+  PlanRegenerationEligibility,
   NutritionProfile,
   PlanAdherenceHistory,
   GoalTimeline,
@@ -24,7 +25,11 @@ export interface NutritionRepository {
     athleteModeEnabled: boolean,
     activities: TrainingProfile['activities'],
   ): Promise<NutritionProfile>;
-  requestMealPlanGeneration(): Promise<MealPlanGenerationStatus>;
+  requestMealPlanGeneration(
+    reason: string,
+    reviewId?: number,
+  ): Promise<MealPlanGenerationStatus>;
+  getPlanRegenerationEligibility(): Promise<PlanRegenerationEligibility>;
   getMealPlanGenerationStatus(): Promise<MealPlanGenerationStatus>;
   getLatestMealPlan(): Promise<MealPlan>;
   getLatestShoppingList(): Promise<ShoppingList>;

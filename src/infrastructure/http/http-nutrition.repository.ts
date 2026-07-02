@@ -11,6 +11,7 @@ import {
   EvolutionReport,
   MealPlan,
   MealPlanGenerationStatus,
+  PlanRegenerationEligibility,
   NutritionProfile,
   PlanAdherenceHistory,
   GoalTimeline,
@@ -121,8 +122,19 @@ export class HttpNutritionRepository implements NutritionRepository {
     );
   }
 
-  requestMealPlanGeneration(): Promise<MealPlanGenerationStatus> {
-    return this.post('/meal-plans/generate', {}, 'generate-meal-plan');
+  requestMealPlanGeneration(reason: string, reviewId?: number): Promise<MealPlanGenerationStatus> {
+    return this.post(
+      '/meal-plans/generate',
+      {
+        reason,
+        ...(reviewId != null ? { reviewId } : {}),
+      },
+      'generate-meal-plan',
+    );
+  }
+
+  getPlanRegenerationEligibility(): Promise<PlanRegenerationEligibility> {
+    return this.get('/meal-plans/regeneration-eligibility', 'meal-plan-regen-eligibility');
   }
 
   getMealPlanGenerationStatus(): Promise<MealPlanGenerationStatus> {

@@ -1,0 +1,41 @@
+.billing-page {
+  max-width: 520px;
+}
+
+.billing-page__back {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--nutri-brand, #3d8b5f);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.billing-page__back:hover {
+  text-decoration: underline;
+}
+
+.billing-page__header {
+  margin-bottom: 1.25rem;
+}
+
+.billing-page h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.5rem;
+}
+
+.billing-page__lead {
+  margin: 0;
+  color: var(--nutri-ink-muted, #6b7280);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.billing-page__ok {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  background: #ecfdf5;
+  color: #15803d;
+  font-size: 0.9rem;
+}

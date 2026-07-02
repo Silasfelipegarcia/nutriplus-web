@@ -1,50 +1,288 @@
+.plan-catalog__loading {
+  margin: 0;
+  color: var(--nutri-ink-muted, #6b7280);
+}
+
+.plan-catalog__alert {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.plan-catalog__alert--info {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.plan-catalog__alert--success {
+  background: #ecfdf5;
+  color: #15803d;
+}
+
+.plan-catalog__alert--error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.plan-catalog__trial {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
 .plans-grid {
   display: grid;
-  gap: 1.25rem;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  margin-top: 1.5rem;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .plans-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .plan-card {
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: 12px;
-  padding: 1.25rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--nutri-border, #e5e7eb);
+  border-radius: 14px;
+  padding: 1.1rem 1.15rem;
   background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.plan-card:hover:not(.plan-card--current) {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
 }
 
 .plan-card--current {
-  border-color: var(--primary, #16a34a);
+  border-color: var(--nutri-brand, #3d8b5f);
+  background: rgba(61, 139, 95, 0.04);
 }
 
-.plan-price {
-  font-size: 1.5rem;
+.plan-card--featured {
+  border-color: #86efac;
+}
+
+.plan-card__tag {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  margin: 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #166534;
+  background: #dcfce7;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
 }
 
-.payment-prefs {
-  margin: 1rem 0;
-  padding: 1rem;
+.plan-card__name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding-right: 4.5rem;
 }
 
-.payment-prefs__row {
+.plan-card__price {
+  margin: 0.35rem 0 0.5rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--nutri-ink, #111827);
+  line-height: 1.2;
+}
+
+.plan-card__desc {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--nutri-ink-muted, #6b7280);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.plan-card__benefits {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
   display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: #374151;
 }
 
-.trial-banner {
+.plan-card__benefits li::before {
+  content: '✓';
+  color: var(--nutri-brand, #3d8b5f);
+  font-weight: 700;
+  margin-right: 0.4rem;
+}
+
+.plan-card__current {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(61, 139, 95, 0.12);
+  color: #166534;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: auto;
+}
+
+.checkout-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+@media (min-width: 640px) {
+  .checkout-overlay {
+    align-items: center;
+    padding: 1.5rem;
+  }
+}
+
+.checkout-sheet {
   width: 100%;
-  margin-bottom: 0.5rem;
+  max-width: 440px;
+  max-height: min(92dvh, 640px);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  padding: 1.25rem 1.25rem 1.5rem;
+  box-shadow: 0 -8px 40px rgba(15, 23, 42, 0.15);
 }
 
-.alert {
-  padding: 0.75rem 1rem;
+@media (min-width: 640px) {
+  .checkout-sheet {
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+  }
+}
+
+.checkout-sheet__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.checkout-sheet__step {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--nutri-ink-muted, #6b7280);
+}
+
+.checkout-sheet__header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.checkout-sheet__close {
+  border: none;
+  background: #f3f4f6;
+  color: #4b5563;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checkout-sheet__plan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--nutri-border, #e5e7eb);
+}
+
+.checkout-sheet__plan-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--nutri-ink-muted, #6b7280);
+}
+
+.checkout-sheet__plan-price {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--nutri-brand, #3d8b5f);
+}
+
+.checkout-sheet__erro {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.75rem;
   border-radius: 8px;
-  margin: 0.75rem 0;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.88rem;
 }
 
-.alert-info { background: #eff6ff; color: #1e40af; }
-.alert-error { background: #fef2f2; color: #b91c1c; }
+.checkout-sheet__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
 
-.hint { color: #6b7280; font-size: 0.9rem; }
+.checkout-sheet__field select,
+.checkout-sheet__field input {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--nutri-border, #e5e7eb);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+.checkout-sheet__field--cvv input {
+  max-width: 6rem;
+}
+
+.checkout-sheet__secure {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  color: var(--nutri-ink-muted, #6b7280);
+  line-height: 1.45;
+}
+
+.checkout-sheet__no-card {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--nutri-ink-muted, #6b7280);
+  line-height: 1.5;
+}
+
+.checkout-sheet__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

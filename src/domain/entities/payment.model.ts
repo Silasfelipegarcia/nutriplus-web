@@ -14,6 +14,8 @@ export interface PaymentConfig {
   publicKey: string;
   configured: boolean;
   billingEnabled: boolean;
+  sandboxTestCards?: boolean;
+  cardVaultMock?: boolean;
 }
 
 export interface PlanCatalogResponse {
@@ -93,6 +95,7 @@ export interface PaymentHistoryItem {
 
 export interface SubscriptionStatus {
   status: string;
+  statusLabel?: string;
   plan?: SubscriptionPlanCode;
   planNome?: string;
   validUntil?: string;
