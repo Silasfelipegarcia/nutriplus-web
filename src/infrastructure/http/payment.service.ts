@@ -75,7 +75,10 @@ export class PaymentService {
   }
 
   removerCartao(cardId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiBase}/payments/cards/${cardId}`).pipe(catchError(this.tratarErro));
+    const headers = withIdempotencyKey({}, newIdempotencyKey());
+    return this.http.delete<void>(`${this.apiBase}/payments/cards/${cardId}`, { headers }).pipe(
+      catchError(this.tratarErro),
+    );
   }
 
   listarHistorico(): Observable<PaymentHistoryItem[]> {
