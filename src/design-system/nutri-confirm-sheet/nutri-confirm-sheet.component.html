@@ -1,0 +1,49 @@
+@if (open()) {
+  <div class="confirm-overlay" (click)="onDismiss()" role="presentation">
+    <div
+      class="confirm-sheet"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="'confirm-sheet-title'"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="confirm-sheet__header">
+        <h2 id="confirm-sheet-title">{{ title() }}</h2>
+        <button type="button" class="confirm-sheet__close" (click)="onDismiss()" aria-label="Fechar">
+          ×
+        </button>
+      </header>
+
+      @if (message()) {
+        <p class="confirm-sheet__lead">{{ message() }}</p>
+      }
+
+      <ng-content />
+
+      @if (requireCheckbox()) {
+        <label class="confirm-sheet__confirm">
+          <input
+            type="checkbox"
+            [checked]="checked()"
+            (change)="checked.set($any($event.target).checked)"
+          />
+          <span>{{ checkboxLabel() }}</span>
+        </label>
+      }
+
+      <div class="confirm-sheet__actions">
+        <nutri-button variant="primary" [block]="true" [disabled]="processing()" (click)="onDismiss()">
+          {{ cancelLabel() }}
+        </nutri-button>
+        <nutri-button
+          variant="outline"
+          [block]="true"
+          [disabled]="!podeConfirmar()"
+          (click)="onConfirm()"
+        >
+          @if (processing()) { Aguarde... } @else { {{ confirmLabel() }} }
+        </nutri-button>
+      </div>
+    </div>
+  </div>
+}

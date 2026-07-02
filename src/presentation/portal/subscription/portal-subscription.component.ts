@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
+import { NutriConfirmSheetComponent } from '../../../design-system/nutri-confirm-sheet/nutri-confirm-sheet.component';
 import { PlanCatalogComponent } from '../../subscription/plan-catalog/plan-catalog.component';
 import { PaymentService } from '../../../infrastructure/http/payment.service';
 import {
@@ -25,7 +26,7 @@ import {
 @Component({
   selector: 'app-portal-subscription',
   standalone: true,
-  imports: [CommonModule, RouterLink, NutriButtonComponent, PlanCatalogComponent],
+  imports: [CommonModule, RouterLink, NutriButtonComponent, NutriConfirmSheetComponent, PlanCatalogComponent],
   templateUrl: './portal-subscription.component.html',
   styleUrl: './portal-subscription.component.scss',
 })
@@ -55,6 +56,9 @@ export class PortalSubscriptionComponent implements OnInit {
   mostrarCancelamento = signal(false);
   confirmarCancelamentoChecked = signal(false);
   confirmarCancelamentoTexto = signal('');
+  cartaoParaRemover = signal<SavedCard | null>(null);
+  mostrarRemoverCartao = signal(false);
+  processandoRemoverCartao = signal(false);
 
   nomePlanoAtual = computed(() => {
     const s = this.sub();
@@ -87,6 +91,12 @@ export class PortalSubscriptionComponent implements OnInit {
   sugestaoUpgradeItem = computed(() =>
     sugestaoUpgrade(this.catalogo(), this.sub(), this.cobrancaHabilitada()),
   );
+
+  mensagemRemoverCartao = computed(() => {
+    const card = this.cartaoParaRemover();
+    if (!card) return '';
+    return `Tem certeza que deseja excluir o cartão ${card.brand} •••• ${card.lastFourDigits}? Você poderá cadastrar outro quando quiser.`;
+  });
 
   ngOnInit(): void {
     this.iniciarTrialAposCartao.set(this.route.snapshot.queryParamMap.get('trial') === '1');
@@ -224,14 +234,41 @@ export class PortalSubscriptionComponent implements OnInit {
     });
   }
 
-  removerCartao(cardId: string): void {
-    this.payment.removerCartao(cardId).subscribe({
+  abrirRemoverCartao(card: SavedCard): void {
+    this.erro.set('');
+    this.cartaoParaRemover.set(card);
+    this.mostrarRemoverCartao.set(true);
+  }
+
+  fecharRemoverCartao(): void {
+    if (this.processandoRemoverCartao()) return;
+    this.mostrarRemoverCartao.set(false);
+    this.cartaoParaRemover.set(null);
+  }
+
+  confirmarRemoverCartao(): void {
+    const card = this.cartaoParaRemover();
+    if (!card) return;
+
+    this.processandoRemoverCartao.set(true);
+    this.erro.set('');
+    this.payment.removerCartao(card.id).subscribe({
       next: () => {
-        this.mensagem.set('Cartão removido.');
+        this.mensagem.set(`Cartão ${card.brand} •••• ${card.lastFourDigits} removido com sucesso.`);
+        this.processandoRemoverCartao.set(false);
+        this.fecharRemoverCartao();
         this.carregar();
       },
-      error: (msg: string) => this.erro.set(msg),
+      error: (msg: string) => {
+        this.erro.set(msg);
+        this.processandoRemoverCartao.set(false);
+        this.fecharRemoverCartao();
+      },
     });
+  }
+
+  removerCartao(card: SavedCard): void {
+    this.abrirRemoverCartao(card);
   }
 
   statusClass(status: string): string {

@@ -141,7 +141,7 @@
                   {{ card.holderName }} — validade {{ card.expirationMonth }}/{{ card.expirationYear }}
                 </span>
               </div>
-              <nutri-button variant="outline" size="sm" (click)="removerCartao(card.id)">Remover</nutri-button>
+              <nutri-button variant="outline" size="sm" (click)="removerCartao(card)">Remover</nutri-button>
             </div>
           }
         </div>
@@ -266,3 +266,15 @@
     </div>
   </div>
 }
+
+<nutri-confirm-sheet
+  [open]="mostrarRemoverCartao()"
+  title="Remover cartão?"
+  [message]="mensagemRemoverCartao()"
+  cancelLabel="Manter cartão"
+  confirmLabel="Sim, remover cartão"
+  checkboxLabel="Tenho certeza que desejo excluir este cartão"
+  [processing]="processandoRemoverCartao()"
+  (confirmed)="confirmarRemoverCartao()"
+  (dismissed)="fecharRemoverCartao()"
+/>
