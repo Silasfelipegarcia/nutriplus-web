@@ -39,9 +39,10 @@ export class CardRegisterComponent implements OnInit {
   ngOnInit(): void {
     this.payment.obterConfig().subscribe({
       next: (config) => {
-        if (!config.configured || !config.publicKey) {
+        const podeCadastrar = !!config.publicKey && (config.configured || config.cardVaultMock);
+        if (!podeCadastrar) {
           this.erroInicial.set(
-            'Pagamentos não configurados na API. Reinicie o nutriplus-api com MERCADOPAGO_PUBLIC_KEY e MERCADOPAGO_ACCESS_TOKEN no arquivo .env.',
+            'Pagamentos indisponíveis. No Railway da API, confira MERCADOPAGO_ACCESS_TOKEN, MERCADOPAGO_PUBLIC_KEY e MERCADOPAGO_MOCK_MODE=false (redeploy após salvar).',
           );
         } else {
           this.mpPublicKey = config.publicKey;

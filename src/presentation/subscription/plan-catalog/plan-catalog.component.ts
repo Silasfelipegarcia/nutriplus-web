@@ -89,7 +89,9 @@ export class PlanCatalogComponent implements OnInit {
     if (this.auth.isAuthenticated()) {
       this.payment.obterConfig().subscribe({
         next: (config) => {
-          this.pagamentosConfigurados.set(config.configured && !!config.publicKey);
+          this.pagamentosConfigurados.set(
+            !!config.publicKey && (config.configured || config.cardVaultMock),
+          );
         },
         error: () => this.pagamentosConfigurados.set(false),
       });
