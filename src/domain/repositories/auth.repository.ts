@@ -33,6 +33,7 @@ export interface AuthRepository {
   updateProfile(data: { name?: string; photoUrl?: string }): Promise<User>;
   forgotPassword(email: string): Promise<string>;
   resetPassword(token: string, newPassword: string): Promise<void>;
+  deleteAccount(currentPassword: string, emailConfirmation: string): Promise<void>;
 }
 
 export const AUTH_REPOSITORY = new InjectionToken<AuthRepository>('AUTH_REPOSITORY');

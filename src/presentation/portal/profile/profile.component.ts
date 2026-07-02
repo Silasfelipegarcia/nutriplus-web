@@ -1,6 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
 import { NutriAvatarComponent } from '../../../design-system/nutri-avatar/nutri-avatar.component';
@@ -370,8 +371,97 @@ const BUDGET_LABELS: Record<string, string> = {
             </form>
           </div>
         </nutri-section>
+
+        <nutri-section
+          title="Zona de perigo"
+          description="Exclusão permanente da conta. Disponível apenas neste portal web."
+        >
+          <section class="portal-danger-zone">
+            <h3 class="portal-danger-zone__title">Excluir conta</h3>
+            <p class="portal-danger-zone__text">
+              Remove seu perfil, planos, check-ins e histórico de evolução. Pagamentos já realizados podem ser
+              mantidos de forma anonimizada por obrigação legal. Esta ação não pode ser desfeita.
+            </p>
+            <button type="button" class="portal-danger-zone__link" (click)="abrirExclusaoConta()">
+              Excluir minha conta permanentemente
+            </button>
+          </section>
+        </nutri-section>
       }
     </div>
+
+    @if (mostrarExclusaoConta()) {
+      <div class="portal-confirm-overlay" (click)="fecharExclusaoConta()" role="presentation">
+        <div
+          class="portal-confirm-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-account-title"
+          (click)="$event.stopPropagation()"
+        >
+          <header class="portal-confirm-sheet__header">
+            <h2 id="delete-account-title">Excluir conta permanentemente?</h2>
+            <button type="button" class="portal-confirm-sheet__close" (click)="fecharExclusaoConta()" aria-label="Fechar">
+              ×
+            </button>
+          </header>
+
+          <p class="portal-confirm-sheet__lead">
+            Você perderá o acesso imediato e seus dados pessoais serão removidos do Nutri+.
+          </p>
+
+          <ul class="portal-confirm-sheet__list">
+            <li>Planos alimentares, check-ins e medições serão apagados.</li>
+            <li>Renovação automática da assinatura será desativada antes da exclusão.</li>
+            <li>Esta ação só pode ser feita pelo portal web, não pelo app mobile.</li>
+          </ul>
+
+          <label class="portal-confirm-sheet__confirm">
+            <input
+              type="checkbox"
+              [checked]="confirmarExclusaoChecked()"
+              (change)="confirmarExclusaoChecked.set($any($event.target).checked)"
+            />
+            <span>Entendo que esta ação é irreversível e meus dados serão excluídos</span>
+          </label>
+
+          <label class="portal-confirm-sheet__field">
+            <span>Digite <strong>{{ auth.user()?.email }}</strong> para confirmar</span>
+            <input
+              type="email"
+              [value]="confirmarExclusaoEmail()"
+              (input)="confirmarExclusaoEmail.set($any($event.target).value)"
+              autocomplete="off"
+              spellcheck="false"
+              [attr.placeholder]="auth.user()?.email ?? ''"
+            />
+          </label>
+
+          <nutri-input
+            label="Senha atual"
+            type="password"
+            [(ngModel)]="exclusaoSenhaAtual"
+            name="deleteAccountPassword"
+            autocomplete="current-password"
+          />
+
+          <div class="portal-confirm-sheet__actions">
+            <nutri-button variant="primary" [block]="true" [disabled]="excluindoConta()" (click)="fecharExclusaoConta()">
+              Manter minha conta
+            </nutri-button>
+            <nutri-button
+              variant="outline"
+              [block]="true"
+              [disabled]="!podeConfirmarExclusaoConta() || excluindoConta()"
+              (click)="confirmarExclusaoConta()"
+            >
+              @if (excluindoConta()) { Excluindo... }
+              @else { Sim, excluir minha conta }
+            </nutri-button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   styleUrl: '../portal.scss',
   styles: `
@@ -419,6 +509,7 @@ export class ProfileComponent implements OnInit {
   private readonly portalData = inject(PortalDataStore);
   private readonly tokens = inject(TokenStorage);
   private readonly toast = inject(NutriToastService);
+  private readonly router = inject(Router);
 
   readonly profile = this.portalData.nutritionProfile;
   readonly training = this.portalData.trainingProfile;
@@ -436,6 +527,11 @@ export class ProfileComponent implements OnInit {
   savingPhoto = false;
   removingPhoto = false;
   changingPassword = false;
+  readonly mostrarExclusaoConta = signal(false);
+  readonly confirmarExclusaoChecked = signal(false);
+  readonly confirmarExclusaoEmail = signal('');
+  exclusaoSenhaAtual = '';
+  excluindoConta = signal(false);
   private readonly photoPreview = signal<string | null>(null);
 
   readonly displayPhotoUrl = computed(() => {
@@ -638,5 +734,53 @@ export class ProfileComponent implements OnInit {
     );
     this.changingPassword = false;
     if (!ok) return;
+  }
+
+  abrirExclusaoConta(): void {
+    this.confirmarExclusaoChecked.set(false);
+    this.confirmarExclusaoEmail.set('');
+    this.exclusaoSenhaAtual = '';
+    this.mostrarExclusaoConta.set(true);
+  }
+
+  fecharExclusaoConta(): void {
+    if (this.excluindoConta()) return;
+    this.mostrarExclusaoConta.set(false);
+  }
+
+  podeConfirmarExclusaoConta(): boolean {
+    const email = this.auth.user()?.email?.trim().toLowerCase() ?? '';
+    return (
+      this.confirmarExclusaoChecked() &&
+      this.confirmarExclusaoEmail().trim().toLowerCase() === email &&
+      this.exclusaoSenhaAtual.length > 0
+    );
+  }
+
+  async confirmarExclusaoConta(): Promise<void> {
+    if (!this.podeConfirmarExclusaoConta()) return;
+
+    this.excluindoConta.set(true);
+    const ok = await withActionFeedback(
+      this.toast,
+      async () => {
+        await this.authRepo.deleteAccount(this.exclusaoSenhaAtual, this.confirmarExclusaoEmail().trim());
+        this.generation.stopPolling();
+        this.portalData.invalidate(
+          'nutritionProfile',
+          'checkinStats',
+          'todayCheckins',
+          'trainingProfile',
+          'sportCatalog',
+        );
+        this.auth.logout();
+        await this.router.navigate(['/']);
+      },
+      { success: 'Conta excluída com sucesso' },
+    );
+    this.excluindoConta.set(false);
+    if (ok) {
+      this.mostrarExclusaoConta.set(false);
+    }
   }
 }

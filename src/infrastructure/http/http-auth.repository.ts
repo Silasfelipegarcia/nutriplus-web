@@ -122,6 +122,27 @@ export class HttpAuthRepository implements AuthRepository {
     }
   }
 
+  async deleteAccount(currentPassword: string, emailConfirmation: string): Promise<void> {
+    const idempotencyKey = newIdempotencyKey();
+    try {
+      await firstValueFrom(
+        this.http.delete<void>(`${environment.apiBaseUrl}/users/me`, {
+          headers: withIdempotencyKey(
+            {
+              'Content-Type': 'application/json',
+              'X-Nutri-Client': 'web',
+              ...this.trace.headers('delete-account'),
+            },
+            idempotencyKey,
+          ),
+          body: { currentPassword, emailConfirmation },
+        }),
+      );
+    } catch (e) {
+      throw this.toApiError(e);
+    }
+  }
+
   private async postRegister(path: string, body: unknown, flowId: string): Promise<RegisterResponse> {
     const idempotencyKey = newIdempotencyKey();
     try {
@@ -202,7 +223,7 @@ export class HttpAuthRepository implements AuthRepository {
         case 'PUT':
           return await firstValueFrom(this.http.put<T>(url, body, { headers }));
         case 'DELETE':
-          return await firstValueFrom(this.http.delete<T>(url, { headers }));
+          return await firstValueFrom(this.http.delete<T>(url, { headers, ...(body !== undefined ? { body } : {}) }));
         default:
           throw new ApiError('Método HTTP não suportado');
       }
