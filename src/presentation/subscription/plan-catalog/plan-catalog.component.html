@@ -29,7 +29,9 @@
           [class.plan-card--current]="isPlanoAtual(item.plan)"
           [class.plan-card--featured]="isAnual(item.plan) && modo() !== 'upgrade'"
         >
-          @if (isAnual(item.plan) && modo() !== 'upgrade') {
+          @if (item.plan === 'TEST_MONTHLY') {
+            <span class="plan-card__tag plan-card__tag--test">Teste pagamento</span>
+          } @else if (isAnual(item.plan) && modo() !== 'upgrade') {
             <span class="plan-card__tag">Melhor valor</span>
           }
           <h2 class="plan-card__name">{{ item.nome }}</h2>

@@ -90,7 +90,7 @@ export class PlanCatalogComponent implements OnInit {
       this.payment.obterConfig().subscribe({
         next: (config) => {
           this.pagamentosConfigurados.set(
-            !!config.publicKey && (config.configured || config.cardVaultMock),
+            !!config.publicKey && (config.configured === true || config.cardVaultMock === true),
           );
         },
         error: () => this.pagamentosConfigurados.set(false),
@@ -113,6 +113,7 @@ export class PlanCatalogComponent implements OnInit {
       });
 
       for (const plan of [
+        'TEST_MONTHLY',
         'ESSENTIAL_MONTHLY',
         'ESSENTIAL_YEARLY',
         'ATHLETE_MONTHLY',

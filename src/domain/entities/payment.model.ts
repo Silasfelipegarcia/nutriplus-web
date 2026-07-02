@@ -3,7 +3,8 @@ export type SubscriptionPlanCode =
   | 'ESSENTIAL_MONTHLY'
   | 'ESSENTIAL_YEARLY'
   | 'ATHLETE_MONTHLY'
-  | 'ATHLETE_YEARLY';
+  | 'ATHLETE_YEARLY'
+  | 'TEST_MONTHLY';
 
 /** @deprecated use SubscriptionPlanCode */
 export type AthletePlan = SubscriptionPlanCode;
@@ -130,4 +131,8 @@ export function isAthletePlan(plan: SubscriptionPlanCode | undefined): boolean {
 
 export function isEssentialPlan(plan: SubscriptionPlanCode | undefined): boolean {
   return plan === 'ESSENTIAL_MONTHLY' || plan === 'ESSENTIAL_YEARLY';
+}
+
+export function isTestPlan(plan: SubscriptionPlanCode | undefined): boolean {
+  return plan === 'TEST_MONTHLY';
 }
