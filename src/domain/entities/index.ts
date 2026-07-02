@@ -163,6 +163,22 @@ export interface MealPlanGenerationStatus {
   progressTotalSteps?: number;
 }
 
+export interface PlanRegenerationEligibility {
+  allowedReasons: string[];
+  lockedUntil?: string;
+  daysUntilUnlock: number;
+  oneTimeCorrectionAvailable: boolean;
+  athleteRegenAvailable: boolean;
+  reviewDue: boolean;
+  daysUntilReview: number;
+  nextReviewDue?: string;
+  hasMealPlan: boolean;
+  pendingCycleReviewId?: number | null;
+  aiPlanEligible: boolean;
+  aiPlanIneligibleReason?: string;
+  aiPlanIneligibleMessagePt?: string;
+}
+
 export interface TodayMealCheckin {
   mealId: number;
   mealType: string;
@@ -240,6 +256,7 @@ export interface GoalTimelineChartPoint {
 export interface GoalTimeline {
   journeyStartDate?: string;
   targetDate?: string;
+  chartEndDate?: string;
   startWeightKg?: number;
   targetWeightKg?: number;
   latestWeightKg?: number;

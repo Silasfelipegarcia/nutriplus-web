@@ -22,19 +22,23 @@ interface PlotLine {
       <p class="goal-chart__empty">Registre peso e check-ins no plano atual para ver a curva da meta.</p>
     } @else {
       <div class="goal-chart">
-        <svg class="goal-chart__svg" viewBox="0 0 360 200" preserveAspectRatio="none" role="img" aria-label="Gráfico de previsão da meta de peso">
+        <svg class="goal-chart__svg" viewBox="0 0 360 220" preserveAspectRatio="none" role="img" aria-label="Gráfico de previsão da meta de peso">
           @for (grid of horizontalGrids(); track grid) {
-            <line x1="40" [attr.y1]="grid" x2="350" [attr.y2]="grid" class="goal-chart__grid" />
+            <line x1="48" [attr.y1]="grid" x2="350" [attr.y2]="grid" class="goal-chart__grid" />
+          }
+          @for (label of yLabels(); track label.y) {
+            <text x="4" [attr.y]="label.y + 3" class="goal-chart__y-label">{{ label.text }}</text>
           }
           @if (targetY() != null) {
-            <line x1="40" [attr.y1]="targetY()" x2="350" [attr.y2]="targetY()" class="goal-chart__target" />
+            <line x1="48" [attr.y1]="targetY()" x2="350" [attr.y2]="targetY()" class="goal-chart__target" />
             <text x="352" [attr.y]="targetY()! + 4" class="goal-chart__target-label">Meta</text>
           }
-          @for (marker of planMarkers(); track marker.x) {
-            <line [attr.x1]="marker.x" y1="16" [attr.x2]="marker.x" y2="184" class="goal-chart__plan-marker" />
+          @if (targetMarkerX() != null) {
+            <line [attr.x1]="targetMarkerX()" y1="20" [attr.x2]="targetMarkerX()" y2="196" class="goal-chart__deadline" />
+            <text [attr.x]="targetMarkerX()! + 2" y="14" class="goal-chart__deadline-label">Prazo</text>
           }
-          @if (currentPlanMarkerX() != null) {
-            <line [attr.x1]="currentPlanMarkerX()" y1="16" [attr.x2]="currentPlanMarkerX()" y2="184" class="goal-chart__current-plan" />
+          @for (marker of planMarkers(); track marker.x) {
+            <line [attr.x1]="marker.x" y1="20" [attr.x2]="marker.x" y2="196" class="goal-chart__plan-marker" />
           }
           @for (line of lines(); track line.color + line.points.length) {
             <polyline
@@ -48,7 +52,7 @@ interface PlotLine {
             />
           }
           @for (dot of dots(); track dot.x + '-' + dot.y) {
-            <circle [attr.cx]="dot.x" [attr.cy]="dot.y" r="3.5" [attr.fill]="dot.color" />
+            <circle [attr.cx]="dot.x" [attr.cy]="dot.y" [attr.r]="dot.radius ?? 3.5" [attr.fill]="dot.color" />
           }
         </svg>
         <div class="goal-chart__x-labels">
@@ -60,7 +64,7 @@ interface PlotLine {
           <span><i class="goal-chart__swatch goal-chart__swatch--muted"></i>Histórico</span>
           <span><i class="goal-chart__swatch goal-chart__swatch--brand"></i>Plano atual</span>
           <span><i class="goal-chart__swatch goal-chart__swatch--pace"></i>Ritmo da meta</span>
-          <span><i class="goal-chart__swatch" [style.background]="paceColor()"></i>Previsão</span>
+          <span><i class="goal-chart__swatch" [style.background]="paceColor()"></i>Tendência</span>
         </div>
       </div>
     }
@@ -70,19 +74,21 @@ interface PlotLine {
     .goal-chart__empty { margin: 0; font-size: 0.85rem; color: var(--nutri-ink-muted); }
     .goal-chart__svg {
       width: 100%;
-      height: 220px;
+      height: 240px;
       background: linear-gradient(180deg, rgba(61, 139, 95, 0.04) 0%, transparent 100%);
       border-radius: var(--nutri-radius-sm);
     }
     .goal-chart__grid { stroke: var(--nutri-border); stroke-width: 1; }
+    .goal-chart__y-label { font-size: 8px; fill: var(--nutri-ink-muted); }
     .goal-chart__target { stroke: rgba(61, 139, 95, 0.45); stroke-width: 1.5; stroke-dasharray: 6 4; }
     .goal-chart__target-label { font-size: 8px; fill: var(--nutri-ink-muted); }
+    .goal-chart__deadline { stroke: rgba(107, 114, 128, 0.45); stroke-width: 1.5; stroke-dasharray: 5 5; }
+    .goal-chart__deadline-label { font-size: 8px; fill: var(--nutri-ink-muted); }
     .goal-chart__plan-marker { stroke: rgba(230, 81, 0, 0.45); stroke-width: 1.5; stroke-dasharray: 4 4; }
-    .goal-chart__current-plan { stroke: rgba(61, 139, 95, 0.35); stroke-width: 2; }
     .goal-chart__x-labels {
       position: relative;
       height: 1.1rem;
-      margin: 0 2.5rem 0 2.2rem;
+      margin: 0 2.5rem 0 2.8rem;
       font-size: 0.65rem;
       color: var(--nutri-ink-muted);
     }
@@ -117,10 +123,11 @@ export class NutriGoalTimelineChartComponent {
   readonly lines = computed(() => this.plot().lines);
   readonly dots = computed(() => this.plot().dots);
   readonly xLabels = computed(() => this.plot().xLabels);
+  readonly yLabels = computed(() => this.plot().yLabels);
   readonly horizontalGrids = computed(() => this.plot().horizontalGrids);
   readonly targetY = computed(() => this.plot().targetY);
+  readonly targetMarkerX = computed(() => this.plot().targetMarkerX);
   readonly planMarkers = computed(() => this.plot().planMarkers);
-  readonly currentPlanMarkerX = computed(() => this.plot().currentPlanMarkerX);
   readonly paceColor = computed(() => goalTimelinePaceColor(this.timeline().paceStatus));
 
   polylinePoints(points: PlotPoint[]): string {
@@ -139,41 +146,21 @@ function dayIndex(d: Date): number {
 }
 
 function buildGoalTimelinePlot(timeline: GoalTimeline) {
-  const dates: Date[] = [];
-  const add = (raw?: string) => {
-    const d = parseDate(raw);
-    if (d) dates.push(d);
-  };
-  for (const p of timeline.weightHistory ?? []) add(p.date);
-  for (const p of timeline.requiredPaceLine ?? []) add(p.date);
-  for (const p of timeline.projectionLine ?? []) add(p.date);
-  add(timeline.journeyStartDate);
-  add(timeline.targetDate);
-  add(timeline.projectedFinishDate);
-  add(timeline.currentPlanStartDate);
+  const journeyStart = parseDate(timeline.journeyStartDate ?? timeline.currentPlanStartDate);
+  const chartEnd = parseDate(timeline.chartEndDate ?? timeline.targetDate);
 
-  if (dates.length === 0) {
-    return {
-      layout: null as null,
-      lines: [] as PlotLine[],
-      dots: [] as { x: number; y: number; color: string }[],
-      xLabels: [] as { x: number; pct: number; text: string }[],
-      horizontalGrids: [] as number[],
-      targetY: null as number | null,
-      planMarkers: [] as { x: number }[],
-      currentPlanMarkerX: null as number | null,
-    };
+  if (!journeyStart || !chartEnd || chartEnd.getTime() <= journeyStart.getTime()) {
+    return emptyPlot();
   }
 
-  dates.sort((a, b) => a.getTime() - b.getTime());
-  const minDay = dayIndex(dates[0]);
-  const maxDay = dayIndex(dates[dates.length - 1]);
+  const minDay = dayIndex(journeyStart);
+  const maxDay = dayIndex(chartEnd);
   const span = Math.max(maxDay - minDay, 1);
 
-  const left = 40;
+  const left = 48;
   const right = 350;
-  const top = 16;
-  const bottom = 184;
+  const top = 20;
+  const bottom = 196;
   const width = right - left;
   const height = bottom - top;
 
@@ -186,6 +173,10 @@ function buildGoalTimelinePlot(timeline: GoalTimeline) {
   for (const p of timeline.projectionLine ?? []) collectY(p.weightKg);
   collectY(timeline.targetWeightKg);
   collectY(timeline.startWeightKg);
+
+  if (yValues.length === 0) {
+    return emptyPlot();
+  }
 
   const minY = Math.min(...yValues);
   const maxY = Math.max(...yValues);
@@ -207,7 +198,13 @@ function buildGoalTimelinePlot(timeline: GoalTimeline) {
       .sort((a, b) => a.x - b.x);
 
   const prior = toPoints((timeline.weightHistory ?? []).filter((p) => !p.currentPlanPeriod));
-  const current = toPoints((timeline.weightHistory ?? []).filter((p) => p.currentPlanPeriod));
+  let current = toPoints((timeline.weightHistory ?? []).filter((p) => p.currentPlanPeriod));
+  if (current.length === 1 && timeline.startWeightKg != null && journeyStart) {
+    const anchor = { x: xFor(journeyStart), y: yFor(timeline.startWeightKg) };
+    if (current[0].x > anchor.x) {
+      current = [anchor, ...current];
+    }
+  }
   const pace = toPoints(timeline.requiredPaceLine ?? []);
   const projection = toPoints(timeline.projectionLine ?? []);
 
@@ -216,10 +213,22 @@ function buildGoalTimelinePlot(timeline: GoalTimeline) {
   if (current.length >= 1) lines.push({ points: current, color: 'var(--nutri-brand)', strokeWidth: 3 });
   if (pace.length >= 2) lines.push({ points: pace, color: '#6b7280', dashed: true });
   if (projection.length >= 2) {
-    lines.push({ points: projection, color: goalTimelinePaceColor(timeline.paceStatus), dashed: true, strokeWidth: 2.5 });
+    lines.push({
+      points: projection,
+      color: goalTimelinePaceColor(timeline.paceStatus),
+      dashed: true,
+      strokeWidth: 2.5,
+    });
   }
 
-  const dots = current.length === 1 ? [{ x: current[0].x, y: current[0].y, color: 'var(--nutri-brand)' }] : [];
+  const dots: { x: number; y: number; color: string; radius?: number }[] = [];
+  for (const point of current) {
+    dots.push({ x: point.x, y: point.y, color: 'var(--nutri-brand)' });
+  }
+  if (projection.length > 0) {
+    const last = projection[projection.length - 1];
+    dots.push({ x: last.x, y: last.y, color: goalTimelinePaceColor(timeline.paceStatus), radius: 4 });
+  }
 
   const xLabels = [0, 0.25, 0.5, 0.75, 1].map((ratio) => {
     const day = minDay + Math.round(span * ratio);
@@ -229,8 +238,15 @@ function buildGoalTimelinePlot(timeline: GoalTimeline) {
     return { x, pct: (x / 360) * 100, text };
   });
 
+  const yLabels = [0, 0.5, 1].map((ratio) => {
+    const value = chartMax - ratio * ySpan;
+    return { y: yFor(value), text: `${value.toFixed(1)} kg` };
+  });
+
   const horizontalGrids = [0.25, 0.5, 0.75].map((r) => top + r * height);
   const targetY = timeline.targetWeightKg != null ? yFor(timeline.targetWeightKg) : null;
+  const targetDate = parseDate(timeline.targetDate);
+  const targetMarkerX = targetDate ? xFor(targetDate) : null;
 
   const planMarkers = (timeline.planEras ?? [])
     .filter((e) => !e.current)
@@ -238,17 +254,29 @@ function buildGoalTimelinePlot(timeline: GoalTimeline) {
     .filter((d): d is Date => d != null)
     .map((d) => ({ x: xFor(d) }));
 
-  const currentStart = parseDate(timeline.currentPlanStartDate ?? timeline.journeyStartDate);
-  const currentPlanMarkerX = currentStart ? xFor(currentStart) : null;
-
   return {
     layout: { minDay, maxDay },
     lines,
     dots,
     xLabels,
+    yLabels,
     horizontalGrids,
     targetY,
+    targetMarkerX,
     planMarkers,
-    currentPlanMarkerX,
+  };
+}
+
+function emptyPlot() {
+  return {
+    layout: null as null,
+    lines: [] as PlotLine[],
+    dots: [] as { x: number; y: number; color: string; radius?: number }[],
+    xLabels: [] as { x: number; pct: number; text: string }[],
+    yLabels: [] as { y: number; text: string }[],
+    horizontalGrids: [] as number[],
+    targetY: null as number | null,
+    targetMarkerX: null as number | null,
+    planMarkers: [] as { x: number }[],
   };
 }
