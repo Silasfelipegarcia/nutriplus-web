@@ -34,6 +34,8 @@ export interface AuthRepository {
   forgotPassword(email: string): Promise<string>;
   resetPassword(token: string, newPassword: string): Promise<void>;
   deleteAccount(currentPassword: string, emailConfirmation: string): Promise<void>;
+  freezeAccount(currentPassword: string, emailConfirmation: string): Promise<void>;
+  reactivateAccount(email: string, password: string): Promise<AuthResponse>;
 }
 
 export const AUTH_REPOSITORY = new InjectionToken<AuthRepository>('AUTH_REPOSITORY');

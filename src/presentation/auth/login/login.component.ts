@@ -5,6 +5,7 @@ import { NutriLogoComponent } from '../../../design-system/nutri-logo/nutri-logo
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
 import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-input.component';
 import { AuthFacade } from '../../core/auth.facade';
+import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository';
 import { localizeAuthErrorMessage } from '../../core/auth-error-messages';
 import { jwtRoles } from '../../core/jwt.util';
 import { TokenStorage } from '../../../infrastructure/auth/token-storage';
@@ -28,6 +29,14 @@ import { APP_NAME } from '../../core/constants';
         }
         @if (authErrorMessage) {
           <div class="auth-card__error" role="alert">{{ authErrorMessage }}</div>
+        }
+        @if (contaCongelada()) {
+          <div class="auth-card__info" role="status">
+            Sua conta está congelada. Confirme e-mail e senha para reativar e continuar de onde parou.
+          </div>
+          <nutri-button variant="primary" [block]="true" [disabled]="auth.loading()" (click)="reativarConta()">
+            {{ auth.loading() ? 'Reativando...' : 'Reativar minha conta' }}
+          </nutri-button>
         }
         <form (ngSubmit)="submit()">
           <nutri-input label="E-mail" type="email" [(ngModel)]="email" name="email" />
@@ -56,6 +65,8 @@ export class LoginComponent implements OnInit {
   readonly auth = inject(AuthFacade);
   readonly appName = APP_NAME;
   readonly registrationOpen = signal<boolean | null>(null);
+  readonly contaCongelada = signal(false);
+  private readonly authRepo = inject(AUTH_REPOSITORY);
   private readonly router = inject(Router);
   private readonly tokens = inject(TokenStorage);
   private readonly analytics = inject(AnalyticsService);
@@ -80,6 +91,7 @@ export class LoginComponent implements OnInit {
   }
 
   async submit(): Promise<void> {
+    this.contaCongelada.set(false);
     this.analytics.trackLoginFormStart();
     try {
       await this.auth.login(this.email, this.password);
@@ -88,6 +100,25 @@ export class LoginComponent implements OnInit {
     } catch {
       const error = this.auth.error();
       this.analytics.trackLoginError(error ?? 'login_failed');
+      if (error?.includes('congelada')) {
+        this.contaCongelada.set(true);
+      }
+    }
+  }
+
+  async reativarConta(): Promise<void> {
+    this.auth.loading.set(true);
+    this.auth.error.set(null);
+    try {
+      const auth = await this.authRepo.reactivateAccount(this.email, this.password);
+      this.auth.user.set(auth.user);
+      this.contaCongelada.set(false);
+      this.analytics.trackLogin(this.auth.primaryRole());
+      this.router.navigateByUrl(this.postLoginRoute());
+    } catch (e) {
+      this.auth.error.set(e instanceof Error ? e.message : 'Erro ao reativar conta');
+    } finally {
+      this.auth.loading.set(false);
     }
   }
 

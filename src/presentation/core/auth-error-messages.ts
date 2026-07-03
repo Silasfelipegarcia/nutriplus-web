@@ -8,6 +8,8 @@ export function localizeAuthErrorMessage(message: string): string {
       'Seu cadastro foi recebido. Aguarde a liberação do acesso para entrar no app.',
     'Sua solicitação de acesso ao Nutri+ não foi aprovada neste momento. Verifique o e-mail que enviamos com mais detalhes.':
       'Sua solicitação de acesso ao Nutri+ não foi aprovada neste momento. Verifique o e-mail que enviamos com mais detalhes.',
+    'Sua conta está congelada. Seus dados foram preservados — reative quando quiser voltar ao Nutri+.':
+      'Sua conta está congelada. Seus dados foram preservados — reative quando quiser voltar ao Nutri+.',
   };
   return exact[message.trim()] ?? message;
 }

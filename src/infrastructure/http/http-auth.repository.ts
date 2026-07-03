@@ -143,6 +143,50 @@ export class HttpAuthRepository implements AuthRepository {
     }
   }
 
+  async freezeAccount(currentPassword: string, emailConfirmation: string): Promise<void> {
+    const idempotencyKey = newIdempotencyKey();
+    try {
+      await firstValueFrom(
+        this.http.post<void>(`${environment.apiBaseUrl}/users/me/freeze`, {
+          currentPassword,
+          emailConfirmation,
+        }, {
+          headers: withIdempotencyKey(
+            {
+              'Content-Type': 'application/json',
+              'X-Nutri-Client': 'web',
+              ...this.trace.headers('freeze-account'),
+            },
+            idempotencyKey,
+          ),
+        }),
+      );
+    } catch (e) {
+      throw this.toApiError(e);
+    }
+  }
+
+  async reactivateAccount(email: string, password: string): Promise<AuthResponse> {
+    const idempotencyKey = newIdempotencyKey();
+    try {
+      const auth = await firstValueFrom(
+        this.http.post<AuthResponse>(`${environment.apiBaseUrl}/auth/reactivate-account`, {
+          email,
+          password,
+        }, {
+          headers: withIdempotencyKey(
+            { 'Content-Type': 'application/json', ...this.trace.headers('reactivate-account') },
+            idempotencyKey,
+          ),
+        }),
+      );
+      this.tokens.setTokens(auth.token, auth.refreshToken);
+      return auth;
+    } catch (e) {
+      throw this.toApiError(e);
+    }
+  }
+
   private async postRegister(path: string, body: unknown, flowId: string): Promise<RegisterResponse> {
     const idempotencyKey = newIdempotencyKey();
     try {
