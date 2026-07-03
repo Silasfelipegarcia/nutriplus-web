@@ -3,6 +3,8 @@ description: Guardrails de latência no portal web — não sobrecarregar a API
 alwaysApply: true
 ---
 
+> Ver documentação humana: [`../../../nutriplus-api/docs/LATENCY_GUARDRAILS.md`](../../../nutriplus-api/docs/LATENCY_GUARDRAILS.md)
+
 # Latência no portal (Nutri+ Web)
 
 A API tem SLAs em `nutriplus-api/docs/PERFORMANCE.md`. O frontend não pode anular isso.

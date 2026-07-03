@@ -9,6 +9,8 @@ Site marketing + portal do usuário em Angular 19.
 - Design system Nutri+ alinhado ao app Flutter
 - Deploy: Vercel
 
+**Documentação plataforma:** [`../nutriplus-api/docs/README.md`](../nutriplus-api/docs/README.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`../nutriplus-api/docs/RULES_MAP.md`](../nutriplus-api/docs/RULES_MAP.md)
+
 ## Desenvolvimento
 
 ```bash

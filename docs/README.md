@@ -7,6 +7,11 @@ Site marketing + portal do usuário + Nutri+ Pro + admin em **Angular 19**.
 
 ---
 
+| Documento | Conteúdo |
+|-----------|----------|
+| [**ARCHITECTURE.md**](./ARCHITECTURE.md) | DDD, C4 slice, fluxos críticos, bootstrap, plan-reset |
+| Rotas (abaixo) | Mapa completo de URLs |
+
 ## Stack
 
 | Item | Detalhe |
@@ -77,12 +82,12 @@ Guard: desktop only (mobile redireciona para `/baixar-app`).
 | Rota | Feature |
 |------|---------|
 | `/app/dashboard` | Hoje — check-ins, plano |
-| `/app/plano` | Cardápio |
+| `/app/plano` | Cardápio + **zerar plano** (`plan-reset-entry`) |
 | `/app/compras` | Lista de compras |
 | `/app/progresso` | Progresso |
 | `/app/evolucao` | Evolução + aderência |
 | `/app/treino` | Modo atleta |
-| `/app/perfil` | Perfil |
+| `/app/perfil` | Perfil + hub nutricional + **zerar plano** |
 | `/app/nutricionistas` | Marketplace |
 | `/app/nutricionistas/:id` | Detalhe nutricionista |
 | `/app/planos` | Catálogo assinatura |
@@ -123,8 +128,10 @@ Doc: [`NUTRI_PLUS_PRO.md`](../../nutriplus-api/docs/NUTRI_PLUS_PRO.md).
 |---------|-----|---------|
 | Shell 5 abas | portal nav | `NutriMainShell` |
 | Onboarding | 8 rotas web | 13 passos wizard |
-| Reativar assinatura | Sim | Gap |
-| Trial + cartão | Sim | Gap |
+| Reativar assinatura | Sim | Sim (jul/26) |
+| Bootstrap dashboard | Sim | `AppDataStore` |
+| Zerar plano | `plan-reset-entry` | `PlanResetFlowScreen` |
+| Congelar conta | portal | — (web only) |
 | Chat care | Parcial (Pro) | Sim (paciente) |
 | Lembretes locais | Não | Sim |
 
