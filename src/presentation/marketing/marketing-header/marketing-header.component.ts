@@ -30,6 +30,12 @@ import { hasDirectAndroidApkDownload, hasAnyMobileDownload } from '../../core/ap
             >Participar do beta</a>
           }
           <a
+            class="header-btn header-btn--outline header-btn--pro"
+            routerLink="/auth/cadastro-nutricionista"
+            appAnalyticsCta="cadastro_nutricionista"
+            appAnalyticsCtaLocation="header"
+          >Sou nutricionista</a>
+          <a
             class="header-btn header-btn--outline"
             routerLink="/auth/login"
             appAnalyticsCta="entrar"

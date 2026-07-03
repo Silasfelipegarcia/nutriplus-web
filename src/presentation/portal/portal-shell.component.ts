@@ -97,6 +97,15 @@ const NAV_GROUPS: PortalNavGroup[] = [
           }
         </nav>
 
+        @if (proNav()) {
+          <div class="portal-sidebar__admin">
+            <a [routerLink]="proNav()!.path" routerLinkActive="active">
+              <span class="portal-sidebar__icon" aria-hidden="true">{{ proNav()!.icon }}</span>
+              <span class="portal-sidebar__text">{{ proNav()!.label }}</span>
+            </a>
+          </div>
+        }
+
         @if (adminNav()) {
           <div class="portal-sidebar__admin">
             <a [routerLink]="adminNav()!.path" routerLinkActive="active">
@@ -133,6 +142,7 @@ export class PortalShellComponent implements OnInit {
   private readonly featureFlags = inject(FeatureFlagService);
 
   readonly navGroups = signal<PortalNavGroup[]>(NAV_GROUPS);
+  readonly proNav = signal<PortalNavItem | null>(null);
   readonly adminNav = signal<PortalNavItem | null>(null);
 
   ngOnInit(): void {
@@ -154,6 +164,10 @@ export class PortalShellComponent implements OnInit {
         label: 'Economia',
         icon: '💰',
       });
+    }
+
+    if (jwtRoles(this.tokens.getAccessToken()).includes('NUTRITIONIST')) {
+      this.proNav.set({ path: '/pro/dashboard', label: 'Portal Pro', icon: '🩺' });
     }
 
     if (jwtRoles(this.tokens.getAccessToken()).includes('ADMIN')) {

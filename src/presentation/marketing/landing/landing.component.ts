@@ -1,4 +1,5 @@
 import { Component, HostListener, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MarketingHeaderComponent } from '../marketing-header/marketing-header.component';
 import { MarketingFooterComponent } from '../marketing-footer/marketing-footer.component';
 import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-button.component';
@@ -16,6 +17,7 @@ import { hasDirectAndroidApkDownload, androidApkDownloadUrl, androidApkVersionLa
   selector: 'app-landing',
   standalone: true,
   imports: [
+    RouterLink,
     MarketingHeaderComponent,
     MarketingFooterComponent,
     NutriButtonComponent,
@@ -78,6 +80,10 @@ import { hasDirectAndroidApkDownload, androidApkDownloadUrl, androidApkVersionLa
                   >Baixar app</nutri-button>
                 }
               </div>
+              <p class="hero__pro-link">
+                É nutricionista?
+                <a routerLink="/auth/cadastro-nutricionista" appAnalyticsCta="cadastro_nutricionista" appAnalyticsCtaLocation="hero">Cadastre-se no Nutri+ Pro</a>
+              </p>
               <p class="hero__trust-note">
                 <app-nutri-icon name="shield" [size]="16" />
                 Seus dados protegidos · IA transparente · Apoio à consulta profissional

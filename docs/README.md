@@ -97,6 +97,8 @@ Guard: desktop only (mobile redireciona para `/baixar-app`).
 
 ### Portal Pro (`/pro/*`)
 
+Área do **nutricionista** no mesmo site (não é outro domínio). Cadastro em `/auth/cadastro-nutricionista`; após aprovação do CRN no admin, login envia direto para `/pro/dashboard` (sem onboarding Luna/Bruno do paciente).
+
 | Rota | Feature |
 |------|---------|
 | `/pro/dashboard` | Overview |
@@ -106,6 +108,8 @@ Guard: desktop only (mobile redireciona para `/baixar-app`).
 | `/pro/conversas/:id` | Chat |
 | `/pro/convites` | Convites |
 | `/pro/perfil` | Perfil + pricing |
+
+**Fluxo:** cadastro → admin verifica em `/admin/nutricionistas` → nutricionista entra em `/auth/login` → `/pro/dashboard`. Link "Portal Pro" no sidebar do `/app/*` para quem tem role `NUTRITIONIST`.
 
 Doc: [`NUTRI_PLUS_PRO.md`](../../nutriplus-api/docs/NUTRI_PLUS_PRO.md).
 

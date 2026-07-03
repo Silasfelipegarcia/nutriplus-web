@@ -4,6 +4,8 @@ import { FeatureFlagService } from '../../infrastructure/http/feature-flag.servi
 import { AuthFacade } from '../core/auth.facade';
 import { isMobileDevice } from '../core/device.util';
 import { hasAnyMobileDownload } from '../core/app-download.config';
+import { resolvePostLoginRoute, isNutritionist } from '../core/auth-routing.util';
+import { TokenStorage } from '../../infrastructure/auth/token-storage';
 export { nutritionistGuard, adminGuard } from '../core/jwt.util';
 
 export const authGuard: CanActivateFn = () => {
@@ -18,8 +20,15 @@ export const authGuard: CanActivateFn = () => {
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthFacade);
   const router = inject(Router);
+  const tokens = inject(TokenStorage);
   if (auth.isAuthenticated()) {
-    return router.createUrlTree(['/app/dashboard']);
+    return router.createUrlTree([
+      resolvePostLoginRoute(
+        tokens.getAccessToken(),
+        auth.needsOnboarding(),
+        auth.needsTerms(),
+      ),
+    ]);
   }
   return true;
 };
@@ -45,8 +54,12 @@ export const onboardingGuard: CanActivateFn = () => {
 export const onboardingOnlyGuard: CanActivateFn = () => {
   const auth = inject(AuthFacade);
   const router = inject(Router);
+  const tokens = inject(TokenStorage);
   if (!auth.needsOnboarding()) {
-    return router.createUrlTree(['/app/dashboard']);
+    const destination = isNutritionist(tokens.getAccessToken())
+      ? '/pro/dashboard'
+      : '/app/dashboard';
+    return router.createUrlTree([destination]);
   }
   return true;
 };
