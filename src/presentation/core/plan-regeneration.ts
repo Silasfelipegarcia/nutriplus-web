@@ -7,6 +7,7 @@ export const PlanRegenerationReasons = {
   cycleReview: 'CYCLE_REVIEW',
   generationRetry: 'GENERATION_RETRY',
   unlockedRegen: 'UNLOCKED_REGEN',
+  planReset: 'PLAN_RESET',
 } as const;
 
 export type PlanRegenerationReason =
@@ -47,7 +48,36 @@ export function resolvePlanRegenerationReason(
   if (eligibility.allowedReasons.includes(PlanRegenerationReasons.generationRetry)) {
     return PlanRegenerationReasons.generationRetry;
   }
+  if (eligibility.allowedReasons.includes(PlanRegenerationReasons.planReset)) {
+    return PlanRegenerationReasons.planReset;
+  }
   return null;
+}
+
+export const PLAN_RESET_CONFIRM_PHRASE = 'ZERAR PLANO';
+
+export function planResetIntroMessage(): string {
+  return 'Use esta opção para descartar o plano atual e gerar outro do zero. '
+    + 'Planos anteriores permanecem no histórico da Evolução.';
+}
+
+export function planResetConsequences(eligibility: PlanRegenerationEligibility): string[] {
+  const lines = [
+    'O plano alimentar atual será substituído por um novo.',
+    'Planos anteriores continuam no histórico da Evolução.',
+    'Você perde todos os registros deste plano: check-ins, extras, medidas e reavaliações desde que ele começou.',
+    'O acompanhamento de 15 dias reinicia a partir do novo plano.',
+  ];
+  if (eligibility.currentPlanStarted) {
+    lines.push('Sua sequência e aderência deste plano serão apagadas.');
+    lines.push('Esta ação não devolve a correção única — é um reinício completo.');
+  }
+  return lines;
+}
+
+export function canResetPlan(eligibility: PlanRegenerationEligibility | null | undefined): boolean {
+  return eligibility?.planResetAvailable === true
+    && eligibility.allowedReasons.includes(PlanRegenerationReasons.planReset);
 }
 
 export function planRegenLockedMessage(eligibility: PlanRegenerationEligibility): string {

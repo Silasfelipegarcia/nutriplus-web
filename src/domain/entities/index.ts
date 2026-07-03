@@ -177,6 +177,10 @@ export interface PlanRegenerationEligibility {
   aiPlanEligible: boolean;
   aiPlanIneligibleReason?: string;
   aiPlanIneligibleMessagePt?: string;
+  planResetAvailable?: boolean;
+  currentPlanStarted?: boolean;
+  currentPlanCheckinCount?: number;
+  currentPlanDaysActive?: number;
 }
 
 export interface TodayMealCheckin {

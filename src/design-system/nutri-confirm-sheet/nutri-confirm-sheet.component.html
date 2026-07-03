@@ -31,6 +31,20 @@
         </label>
       }
 
+      @if (typedConfirmPhrase(); as phrase) {
+        <label class="confirm-sheet__field">
+          <span>{{ typedConfirmLabel() }} <strong>{{ phrase }}</strong></span>
+          <input
+            type="text"
+            [value]="typedConfirmValue()"
+            (input)="typedConfirmValue.set($any($event.target).value)"
+            autocomplete="off"
+            spellcheck="false"
+            [attr.placeholder]="phrase"
+          />
+        </label>
+      }
+
       <div class="confirm-sheet__actions">
         <nutri-button variant="primary" [block]="true" [disabled]="processing()" (click)="onDismiss()">
           {{ cancelLabel() }}

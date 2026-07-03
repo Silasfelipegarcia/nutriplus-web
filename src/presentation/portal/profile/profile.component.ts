@@ -26,6 +26,9 @@ import { mealRoutineSummary } from '../../core/meal-routine';
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
 import { ProfileEditService } from './profile-edit.service';
 import { fileToPhotoDataUrl, pickImageFile, PhotoPickerError } from '../../core/photo-picker.util';
+import { PlanResetEntryComponent } from '../plan-reset/plan-reset-entry.component';
+import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
+import { PlanRegenerationEligibility } from '../../../domain/entities';
 
 const GOAL_LABELS: Record<string, string> = {
   LOSE_WEIGHT: 'Perder peso',
@@ -65,6 +68,7 @@ const BUDGET_LABELS: Record<string, string> = {
     NutriStatCardComponent,
     NutriSectionComponent,
     NutriBadgeComponent,
+    PlanResetEntryComponent,
   ],
   template: `
     <div class="portal-page">
@@ -136,6 +140,18 @@ const BUDGET_LABELS: Record<string, string> = {
               <nutri-stat-card [value]="(p.targetFatG | number:'1.0-0') + 'g'" label="Gorduras" />
               <nutri-stat-card [value]="goalLabel()" label="Objetivo" />
             </div>
+          </nutri-section>
+
+          <nutri-section
+            title="Plano alimentar"
+            description="Descarte o plano atual e gere outro do zero, com confirmação explícita."
+          >
+            <app-plan-reset-entry
+              [eligibility]="regenerationEligibility()"
+              source="profile"
+              buttonVariant="secondary"
+              buttonSize="sm"
+            />
           </nutri-section>
 
           <nutri-section
@@ -374,21 +390,131 @@ const BUDGET_LABELS: Record<string, string> = {
 
         <nutri-section
           title="Zona de perigo"
-          description="Exclusão permanente da conta. Disponível apenas neste portal web."
+          description="Encerrar uso da conta. Disponível apenas neste portal web."
         >
           <section class="portal-danger-zone">
-            <h3 class="portal-danger-zone__title">Excluir conta</h3>
+            <h3 class="portal-danger-zone__title">Encerrar minha conta</h3>
             <p class="portal-danger-zone__text">
-              Remove seu perfil, planos, check-ins e histórico de evolução. Pagamentos já realizados podem ser
-              mantidos de forma anonimizada por obrigação legal. Esta ação não pode ser desfeita.
+              Recomendamos <strong>congelar</strong> a conta: seus dados ficam guardados e você pode voltar quando
+              quiser. A exclusão permanente só faz sentido se tiver certeza de que não vai retornar — após 90 dias
+              congelada, removemos os dados automaticamente.
             </p>
-            <button type="button" class="portal-danger-zone__link" (click)="abrirExclusaoConta()">
-              Excluir minha conta permanentemente
+            <button type="button" class="portal-danger-zone__link" (click)="abrirEncerramentoConta()">
+              Quero encerrar minha conta
             </button>
           </section>
         </nutri-section>
       }
     </div>
+
+    @if (mostrarEncerramentoConta()) {
+      <div class="portal-confirm-overlay" (click)="fecharEncerramentoConta()" role="presentation">
+        <div
+          class="portal-confirm-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="close-account-title"
+          (click)="$event.stopPropagation()"
+        >
+          <header class="portal-confirm-sheet__header">
+            <h2 id="close-account-title">Como deseja encerrar?</h2>
+            <button type="button" class="portal-confirm-sheet__close" (click)="fecharEncerramentoConta()" aria-label="Fechar">
+              ×
+            </button>
+          </header>
+
+          <p class="portal-confirm-sheet__lead">
+            A opção mais segura é <strong>congelar</strong>: você perde o acesso agora, mas mantém planos, histórico e
+            evolução salvos para reativar depois com e-mail e senha.
+          </p>
+
+          <ul class="portal-confirm-sheet__list">
+            <li>Congelar desativa login e renovação automática da assinatura.</li>
+            <li>Você pode reativar a qualquer momento na tela de login.</li>
+            <li>Contas congeladas há mais de 90 dias são excluídas permanentemente.</li>
+          </ul>
+
+          <div class="portal-confirm-sheet__actions">
+            <nutri-button variant="primary" [block]="true" (click)="abrirCongelamentoConta()">
+              Congelar minha conta (recomendado)
+            </nutri-button>
+            <nutri-button variant="outline" [block]="true" (click)="abrirExclusaoConta()">
+              Excluir permanentemente agora
+            </nutri-button>
+            <nutri-button variant="ghost" [block]="true" (click)="fecharEncerramentoConta()">
+              Manter minha conta
+            </nutri-button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (mostrarCongelamentoConta()) {
+      <div class="portal-confirm-overlay" (click)="fecharCongelamentoConta()" role="presentation">
+        <div
+          class="portal-confirm-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="freeze-account-title"
+          (click)="$event.stopPropagation()"
+        >
+          <header class="portal-confirm-sheet__header">
+            <h2 id="freeze-account-title">Congelar conta?</h2>
+            <button type="button" class="portal-confirm-sheet__close" (click)="fecharCongelamentoConta()" aria-label="Fechar">
+              ×
+            </button>
+          </header>
+
+          <p class="portal-confirm-sheet__lead">
+            Você sairá do Nutri+ agora, mas seus dados permanecem guardados para quando quiser voltar.
+          </p>
+
+          <label class="portal-confirm-sheet__confirm">
+            <input
+              type="checkbox"
+              [checked]="confirmarCongelamentoChecked()"
+              (change)="confirmarCongelamentoChecked.set($any($event.target).checked)"
+            />
+            <span>Entendo que perderei o acesso até reativar a conta</span>
+          </label>
+
+          <label class="portal-confirm-sheet__field">
+            <span>Digite <strong>{{ auth.user()?.email }}</strong> para confirmar</span>
+            <input
+              type="email"
+              [value]="confirmarCongelamentoEmail()"
+              (input)="confirmarCongelamentoEmail.set($any($event.target).value)"
+              autocomplete="off"
+              spellcheck="false"
+              [attr.placeholder]="auth.user()?.email ?? ''"
+            />
+          </label>
+
+          <nutri-input
+            label="Senha atual"
+            type="password"
+            [(ngModel)]="congelamentoSenhaAtual"
+            name="freezeAccountPassword"
+            autocomplete="current-password"
+          />
+
+          <div class="portal-confirm-sheet__actions">
+            <nutri-button variant="primary" [block]="true" [disabled]="congelandoConta()" (click)="fecharCongelamentoConta()">
+              Manter minha conta
+            </nutri-button>
+            <nutri-button
+              variant="outline"
+              [block]="true"
+              [disabled]="!podeConfirmarCongelamentoConta() || congelandoConta()"
+              (click)="confirmarCongelamentoConta()"
+            >
+              @if (congelandoConta()) { Congelando... }
+              @else { Sim, congelar conta }
+            </nutri-button>
+          </div>
+        </div>
+      </div>
+    }
 
     @if (mostrarExclusaoConta()) {
       <div class="portal-confirm-overlay" (click)="fecharExclusaoConta()" role="presentation">
@@ -407,7 +533,10 @@ const BUDGET_LABELS: Record<string, string> = {
           </header>
 
           <p class="portal-confirm-sheet__lead">
-            Você perderá o acesso imediato e seus dados pessoais serão removidos do Nutri+.
+            Você perderá o acesso imediato e seus dados pessoais serão removidos do Nutri+ agora. Prefere voltar depois?
+            <button type="button" class="portal-danger-zone__link" (click)="voltarParaCongelamento()">
+              Congele a conta em vez de excluir
+            </button>
           </p>
 
           <ul class="portal-confirm-sheet__list">
@@ -504,6 +633,7 @@ export class ProfileComponent implements OnInit {
   readonly auth = inject(AuthFacade);
   readonly profileEdit = inject(ProfileEditService);
   readonly generation = inject(MealPlanGenerationFacade);
+  private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
   private readonly authRepo = inject(AUTH_REPOSITORY);
   private readonly careRepo = inject(CARE_REPOSITORY);
   private readonly portalData = inject(PortalDataStore);
@@ -513,6 +643,7 @@ export class ProfileComponent implements OnInit {
 
   readonly profile = this.portalData.nutritionProfile;
   readonly training = this.portalData.trainingProfile;
+  readonly regenerationEligibility = signal<PlanRegenerationEligibility | null>(null);
   readonly careRelationships = signal<CareRelationship[]>([]);
   readonly careLoading = signal(true);
   readonly ratedCareIds = signal(new Set<number>());
@@ -527,7 +658,13 @@ export class ProfileComponent implements OnInit {
   savingPhoto = false;
   removingPhoto = false;
   changingPassword = false;
+  readonly mostrarEncerramentoConta = signal(false);
+  readonly mostrarCongelamentoConta = signal(false);
   readonly mostrarExclusaoConta = signal(false);
+  readonly confirmarCongelamentoChecked = signal(false);
+  readonly confirmarCongelamentoEmail = signal('');
+  congelamentoSenhaAtual = '';
+  congelandoConta = signal(false);
   readonly confirmarExclusaoChecked = signal(false);
   readonly confirmarExclusaoEmail = signal('');
   exclusaoSenhaAtual = '';
@@ -610,6 +747,11 @@ export class ProfileComponent implements OnInit {
     const p = this.portalData.nutritionProfile();
     if (p?.athleteModeEnabled) {
       await this.portalData.loadTrainingProfile();
+    }
+    try {
+      this.regenerationEligibility.set(await this.nutritionRepo.getPlanRegenerationEligibility());
+    } catch {
+      this.regenerationEligibility.set(null);
     }
   }
 
@@ -736,10 +878,79 @@ export class ProfileComponent implements OnInit {
     if (!ok) return;
   }
 
+  abrirEncerramentoConta(): void {
+    this.mostrarEncerramentoConta.set(true);
+  }
+
+  fecharEncerramentoConta(): void {
+    this.mostrarEncerramentoConta.set(false);
+  }
+
+  abrirCongelamentoConta(): void {
+    this.resetCongelamentoForm();
+    this.mostrarEncerramentoConta.set(false);
+    this.mostrarCongelamentoConta.set(true);
+  }
+
+  fecharCongelamentoConta(): void {
+    if (this.congelandoConta()) return;
+    this.mostrarCongelamentoConta.set(false);
+  }
+
+  voltarParaCongelamento(): void {
+    this.mostrarExclusaoConta.set(false);
+    this.abrirCongelamentoConta();
+  }
+
+  podeConfirmarCongelamentoConta(): boolean {
+    const email = this.auth.user()?.email?.trim().toLowerCase() ?? '';
+    return (
+      this.confirmarCongelamentoChecked() &&
+      this.confirmarCongelamentoEmail().trim().toLowerCase() === email &&
+      this.congelamentoSenhaAtual.length > 0
+    );
+  }
+
+  async confirmarCongelamentoConta(): Promise<void> {
+    if (!this.podeConfirmarCongelamentoConta()) return;
+
+    this.congelandoConta.set(true);
+    const ok = await withActionFeedback(
+      this.toast,
+      async () => {
+        await this.authRepo.freezeAccount(this.congelamentoSenhaAtual, this.confirmarCongelamentoEmail().trim());
+        this.generation.stopPolling();
+        this.portalData.invalidate(
+          'nutritionProfile',
+          'checkinStats',
+          'todayCheckins',
+          'trainingProfile',
+          'sportCatalog',
+        );
+        this.auth.logout();
+        await this.router.navigate(['/'], {
+          state: { registerMessage: 'Conta congelada. Seus dados foram preservados — reative quando quiser voltar.' },
+        });
+      },
+      { success: 'Conta congelada' },
+    );
+    this.congelandoConta.set(false);
+    if (ok) {
+      this.mostrarCongelamentoConta.set(false);
+    }
+  }
+
+  private resetCongelamentoForm(): void {
+    this.confirmarCongelamentoChecked.set(false);
+    this.confirmarCongelamentoEmail.set('');
+    this.congelamentoSenhaAtual = '';
+  }
+
   abrirExclusaoConta(): void {
     this.confirmarExclusaoChecked.set(false);
     this.confirmarExclusaoEmail.set('');
     this.exclusaoSenhaAtual = '';
+    this.mostrarEncerramentoConta.set(false);
     this.mostrarExclusaoConta.set(true);
   }
 

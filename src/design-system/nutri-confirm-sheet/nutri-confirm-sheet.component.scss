@@ -61,6 +61,22 @@
   margin-top: 0.15rem;
 }
 
+.confirm-sheet__field {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.confirm-sheet__field input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  font: inherit;
+}
+
 .confirm-sheet__actions {
   display: grid;
   gap: 0.55rem;

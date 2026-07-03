@@ -5,16 +5,17 @@ import { NutriButtonComponent } from '../../../design-system/nutri-button/nutri-
 import { NutriAiLinkComponent } from '../../../design-system/nutri-ai-link/nutri-ai-link.component';
 import { APP_COPY } from '../../core/app-copy';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
-import { MealPlan, MEAL_TYPE_LABELS, NutritionProfile } from '../../../domain/entities';
+import { MealPlan, MEAL_TYPE_LABELS, NutritionProfile, PlanRegenerationEligibility } from '../../../domain/entities';
 import { MealPlanGenerationFacade } from '../../core/meal-plan-generation.facade';
 import { isNotFound } from '../../../infrastructure/http/api-error';
 import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
 import { formatMealItemLine } from '../../core/meal-item-quantity';
+import { PlanResetEntryComponent } from '../plan-reset/plan-reset-entry.component';
 
 @Component({
   selector: 'app-meal-plan',
   standalone: true,
-  imports: [DecimalPipe, NutriEmptyStateComponent, NutriButtonComponent, NutriAiLinkComponent, PortalPageSkeletonComponent],
+  imports: [DecimalPipe, NutriEmptyStateComponent, NutriButtonComponent, NutriAiLinkComponent, PortalPageSkeletonComponent, PlanResetEntryComponent],
   template: `
     <div class="portal-page">
       <div class="portal-main__header">
@@ -46,6 +47,15 @@ import { formatMealItemLine } from '../../core/meal-item-quantity';
       }
 
       <nutri-ai-link />
+
+      <div class="meal-plan-reset">
+        <app-plan-reset-entry
+          [eligibility]="regenerationEligibility()"
+          source="plano"
+          [block]="true"
+          (resetStarted)="onResetStarted()"
+        />
+      </div>
     } @else if (!loading()) {
       <nutri-empty-state icon="🍽️" [title]="planEmptyTitle" [message]="planEmptyMessage">
         <nutri-button variant="primary" (click)="generate()" [disabled]="generation.phase() === 'generating'">
@@ -60,6 +70,11 @@ import { formatMealItemLine } from '../../core/meal-item-quantity';
     </div>
   `,
   styleUrl: '../portal.scss',
+  styles: `
+    .meal-plan-reset {
+      margin-top: 1rem;
+    }
+  `,
 })
 export class MealPlanComponent implements OnInit {
   readonly planEmptyTitle = APP_COPY.planEmptyTitle;
@@ -72,6 +87,7 @@ export class MealPlanComponent implements OnInit {
 
   readonly plan = signal<MealPlan | null>(null);
   readonly profile = signal<NutritionProfile | null>(null);
+  readonly regenerationEligibility = signal<PlanRegenerationEligibility | null>(null);
   readonly loading = signal(true);
 
   constructor() {
@@ -103,7 +119,16 @@ export class MealPlanComponent implements OnInit {
       if (!isNotFound(e)) throw e;
       this.profile.set(null);
     }
+    try {
+      this.regenerationEligibility.set(await this.nutritionRepo.getPlanRegenerationEligibility());
+    } catch {
+      this.regenerationEligibility.set(null);
+    }
     this.loading.set(false);
+  }
+
+  onResetStarted(): void {
+    void this.load();
   }
 
   mealLabel(type: string): string {
