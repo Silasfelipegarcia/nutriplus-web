@@ -4,6 +4,24 @@
   color: var(--nutri-ink-muted, #6b7280);
 }
 
+.shopping-family-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.shopping-list-page__family-hint {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: var(--nutri-ink-muted, #6b7280);
+}
+
+.shopping-item-row--readonly {
+  cursor: default;
+}
+
 .shopping-list-page__section-title {
   margin: 0 0 0.75rem;
   font-size: 1rem;

@@ -161,11 +161,11 @@ export class PortalDataStore {
   }
 
   /** Prefetch do shell: dados usados no dashboard + assistente. */
-  async prefetchPortalCore(): Promise<void> {
+  async prefetchPortalCore(force = false): Promise<void> {
     await Promise.all([
-      this.loadNutritionProfile(),
-      this.loadCheckinStats(),
-      this.loadTodayCheckins(),
+      this.loadNutritionProfile(force),
+      this.loadCheckinStats(force),
+      this.loadTodayCheckins(force),
     ]);
     if (this.shouldRevalidate('nutritionProfile', this.nutritionProfileCache())) {
       void this.loadNutritionProfile(true);

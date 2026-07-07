@@ -126,6 +126,19 @@ export const routes: Routes = [
     },
   },
   {
+    path: 'plano-familia/:token',
+    loadComponent: () =>
+      import('../presentation/marketing/plan-family-invite/plan-family-invite.component').then(
+        (m) => m.PlanFamilyInviteComponent,
+      ),
+    data: acq(2, 'plan_family_invite_view', {
+      title: 'Convite — Plano da família — Nutri+',
+      description: 'Aceite o convite para seguir o plano alimentar da casa no Nutri+.',
+      path: '/plano-familia',
+      noindex: true,
+    }),
+  },
+  {
     path: 'baixar-app',
     loadComponent: () => import('../presentation/mobile-redirect/download-app.component').then(m => m.DownloadAppComponent),
     data: acq(2, 'download_app_view', {

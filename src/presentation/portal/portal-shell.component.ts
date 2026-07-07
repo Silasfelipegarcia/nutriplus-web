@@ -148,7 +148,7 @@ export class PortalShellComponent implements OnInit {
   ngOnInit(): void {
     void this.buildNav();
     void this.generation.bootstrap(this.destroyRef);
-    void this.portalData.prefetchPortalCore();
+    void this.portalData.prefetchPortalCore(true);
   }
 
   private async buildNav(): Promise<void> {

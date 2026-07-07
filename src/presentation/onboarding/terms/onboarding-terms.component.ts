@@ -8,6 +8,7 @@ import { AuthFacade } from '../../core/auth.facade';
 import { environment } from '../../../environments/environment';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
+import { HouseholdInviteFlowService } from '../../core/household-invite-flow.service';
 
 @Component({
   selector: 'app-onboarding-terms',
@@ -49,6 +50,7 @@ export class OnboardingTermsComponent {
   private readonly router = inject(Router);
   private readonly toast = inject(NutriToastService);
   private readonly analytics = inject(AnalyticsService);
+  private readonly householdInviteFlow = inject(HouseholdInviteFlowService);
 
   readonly termsBody = `${TERMS_BODY}\n\n${HEALTH_ELIGIBILITY_SUMMARY}`;
   readonly termsCheckboxLabel = APP_COPY.termsCheckboxShort;
@@ -69,6 +71,7 @@ export class OnboardingTermsComponent {
         healthEligibilityAccepted: this.acceptedHealthEligibility,
       });
       this.analytics.trackOnboardingCompleted();
+      await this.householdInviteFlow.tryAcceptPendingInvite();
       this.toast.success('Perfil configurado!');
       setTimeout(() => this.router.navigate(['/app/dashboard']), 800);
     } catch (e) {

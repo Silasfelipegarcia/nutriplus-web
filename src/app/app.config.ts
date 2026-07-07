@@ -26,6 +26,8 @@ import { HttpAuthRepository } from '../infrastructure/http/http-auth.repository'
 import { HttpNutritionRepository } from '../infrastructure/http/http-nutrition.repository';
 import { HttpProRepository } from '../infrastructure/http/http-pro.repository';
 import { HttpCareRepository } from '../infrastructure/http/http-care.repository';
+import { HttpHouseholdRepository } from '../infrastructure/http/http-household.repository';
+import { HOUSEHOLD_REPOSITORY } from '../domain/repositories/household.repository';
 import { AuthFacade } from '../presentation/core/auth.facade';
 import { ChunkLoadRecovery, provideChunkLoadRecovery } from '../presentation/core/chunk-load-recovery';
 import { authInterceptor } from '../infrastructure/http/auth.interceptor';
@@ -94,10 +96,12 @@ export const appConfig: ApplicationConfig = {
     { provide: NUTRITION_REPOSITORY, useClass: HttpNutritionRepository },
     { provide: PRO_REPOSITORY, useClass: HttpProRepository },
     { provide: CARE_REPOSITORY, useClass: HttpCareRepository },
+    { provide: HOUSEHOLD_REPOSITORY, useClass: HttpHouseholdRepository },
     HttpAuthRepository,
     HttpNutritionRepository,
     HttpProRepository,
     HttpCareRepository,
+    HttpHouseholdRepository,
     ChunkLoadRecovery,
     provideChunkLoadRecovery(),
     {
