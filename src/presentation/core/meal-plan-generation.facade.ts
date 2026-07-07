@@ -7,6 +7,7 @@ import { AnalyticsService } from '../../infrastructure/analytics/analytics.servi
 import { PortalDataStore } from './portal-data.store';
 import {
   isAiPlanEligible,
+  isUnlimitedPlanRegen,
   planRegenLockedMessage,
   PlanRegenerationReasons,
   resolvePlanRegenerationReason,
@@ -76,7 +77,8 @@ export class MealPlanGenerationFacade {
       return false;
     }
 
-    const reason = resolvePlanRegenerationReason(eligibility, options);
+    const reason = resolvePlanRegenerationReason(eligibility, options)
+      ?? (isUnlimitedPlanRegen(eligibility) ? PlanRegenerationReasons.unlockedRegen : null);
     if (!reason) {
       const message = planRegenLockedMessage(eligibility);
       this.phase.set('failed');

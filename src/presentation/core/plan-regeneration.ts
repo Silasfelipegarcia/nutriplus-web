@@ -99,3 +99,8 @@ export function planRegenLockedMessage(eligibility: PlanRegenerationEligibility)
 export function isAiPlanEligible(eligibility: PlanRegenerationEligibility): boolean {
   return eligibility.aiPlanEligible !== false;
 }
+
+export function isUnlimitedPlanRegen(eligibility: PlanRegenerationEligibility): boolean {
+  return eligibility.unlimitedRegenEnabled === true
+    || eligibility.allowedReasons.includes(PlanRegenerationReasons.unlockedRegen);
+}

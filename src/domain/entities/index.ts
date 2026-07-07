@@ -181,6 +181,7 @@ export interface PlanRegenerationEligibility {
   currentPlanStarted?: boolean;
   currentPlanCheckinCount?: number;
   currentPlanDaysActive?: number;
+  unlimitedRegenEnabled?: boolean;
 }
 
 export interface TodayMealCheckin {
