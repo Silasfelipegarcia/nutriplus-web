@@ -1,7 +1,9 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { NutriEmptyStateComponent } from '../../../design-system/nutri-empty-state/nutri-empty-state.component';
 import { NUTRITION_REPOSITORY } from '../../../domain/repositories/nutrition.repository';
+import { HOUSEHOLD_REPOSITORY } from '../../../domain/repositories/household.repository';
 import { ShoppingList, ShoppingListItem } from '../../../domain/entities';
+import { AggregatedShoppingItem } from '../../../domain/entities/household.model';
 import { isNotFound } from '../../../infrastructure/http/api-error';
 import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
 import { PortalDataStore } from '../../core/portal-data.store';
@@ -27,6 +29,7 @@ import { ShoppingItemDetailComponent } from './shopping-item-detail.component';
 })
 export class ShoppingListComponent implements OnInit {
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
+  private readonly householdRepo = inject(HOUSEHOLD_REPOSITORY);
   private readonly portalData = inject(PortalDataStore);
 
   readonly shoppingItemListSubtitle = shoppingItemListSubtitle;
@@ -36,6 +39,8 @@ export class ShoppingListComponent implements OnInit {
 
   readonly list = signal<ShoppingList | null>(null);
   readonly finance = signal<ShoppingFinanceSnapshot | null>(null);
+  readonly familyList = signal<AggregatedShoppingItem[] | null>(null);
+  readonly familyMode = signal(false);
   readonly loading = signal(true);
   readonly groupedItems = signal<{ category: string; items: ShoppingList['items'] }[]>([]);
   readonly itemSelecionado = signal<ShoppingListItem | null>(null);
@@ -48,6 +53,15 @@ export class ShoppingListComponent implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
+    await this.loadList();
+  }
+
+  async toggleFamilyMode(enabled: boolean): Promise<void> {
+    this.familyMode.set(enabled);
+    await this.loadList();
+  }
+
+  private async loadList(): Promise<void> {
     this.loading.set(true);
     try {
       await this.portalData.loadNutritionProfile(false);
@@ -61,6 +75,18 @@ export class ShoppingListComponent implements OnInit {
         }),
       );
       this.groupedItems.set(this.agruparPorCategoria(list.items));
+      if (this.familyMode()) {
+        try {
+          const family = await this.householdRepo.getAggregatedShoppingList();
+          this.familyList.set(family.items);
+        } catch (e) {
+          if (!isNotFound(e)) throw e;
+          this.familyList.set(null);
+          this.familyMode.set(false);
+        }
+      } else {
+        this.familyList.set(null);
+      }
     } catch (e) {
       if (!isNotFound(e)) throw e;
     }

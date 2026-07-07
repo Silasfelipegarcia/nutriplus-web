@@ -7,7 +7,7 @@ import { NutriInputComponent } from '../../../design-system/nutri-input/nutri-in
 import { AuthFacade } from '../../core/auth.facade';
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository';
 import { localizeAuthErrorMessage } from '../../core/auth-error-messages';
-import { jwtRoles } from '../../core/jwt.util';
+import { resolvePostLoginRoute } from '../../core/auth-routing.util';
 import { TokenStorage } from '../../../infrastructure/auth/token-storage';
 import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 import { FeatureFlagService } from '../../../infrastructure/http/feature-flag.service';
@@ -123,9 +123,10 @@ export class LoginComponent implements OnInit {
   }
 
   private postLoginRoute(): string {
-    if (jwtRoles(this.tokens.getAccessToken()).includes('ADMIN')) return '/admin';
-    if (this.auth.needsOnboarding()) return '/onboarding';
-    if (this.auth.needsTerms()) return '/onboarding/termos';
-    return '/app/dashboard';
+    return resolvePostLoginRoute(
+      this.tokens.getAccessToken(),
+      this.auth.needsOnboarding(),
+      this.auth.needsTerms(),
+    );
   }
 }

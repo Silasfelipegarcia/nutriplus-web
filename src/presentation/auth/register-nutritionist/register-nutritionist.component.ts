@@ -36,7 +36,7 @@ import { RegistrationMode } from '../../../domain/analytics/analytics.model';
             Estamos selecionando nutricionistas para o teste beta. Solicite participação para validarmos seu perfil.
           </p>
         }
-        <nutri-info-tip message="Seu CRN será verificado pela equipe antes da publicação no marketplace." />
+        <nutri-info-tip message="Validamos seu CRN manualmente. Após aprovação, você acessa o portal Pro com pacientes, dossiê e chat." />
         @if (validationError) {
           <div class="auth-card__error" role="alert">{{ validationError }}</div>
         }
@@ -151,8 +151,11 @@ export class RegisterNutritionistComponent implements OnInit {
         await this.auth.betaRequestNutritionist(data);
       }
       this.analytics.trackSignUpPro(mode);
+      const defaultMessage = this.registrationOpen()
+        ? 'Cadastro recebido. Nossa equipe valida seu CRN e libera o acesso em breve — você receberá um e-mail quando puder entrar.'
+        : 'Solicitação recebida. Entraremos em contato após analisar seu perfil e CRN.';
       this.router.navigateByUrl('/auth/login', {
-        state: { registerMessage: this.auth.registerMessage() ?? 'Cadastro recebido. Aguarde a liberação do acesso.' },
+        state: { registerMessage: this.auth.registerMessage() ?? defaultMessage },
       });
     } catch {
       const error = this.auth.error();

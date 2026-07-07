@@ -21,11 +21,15 @@ export class AuthFacade {
   readonly isAuthenticated = computed(() => this.user() !== null);
   readonly needsOnboarding = computed(() => {
     const u = this.user();
-    return u !== null && !u.hasNutritionProfile;
+    if (u === null) return false;
+    if (jwtRoles(this.tokens.getAccessToken()).includes('NUTRITIONIST')) return false;
+    return !u.hasNutritionProfile;
   });
   readonly needsTerms = computed(() => {
     const u = this.user();
-    return u !== null && u.hasNutritionProfile && !userHasAcceptedLegal(u);
+    if (u === null) return false;
+    if (jwtRoles(this.tokens.getAccessToken()).includes('NUTRITIONIST')) return false;
+    return u.hasNutritionProfile && !userHasAcceptedLegal(u);
   });
 
   async bootstrap(): Promise<void> {

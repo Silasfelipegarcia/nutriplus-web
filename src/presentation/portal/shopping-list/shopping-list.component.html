@@ -5,6 +5,33 @@
   </div>
 
   @if (list()) {
+    <label class="shopping-family-toggle">
+      <input
+        type="checkbox"
+        [checked]="familyMode()"
+        (change)="toggleFamilyMode($any($event.target).checked)"
+      />
+      <span>Somar plano da família</span>
+    </label>
+    <p class="shopping-list-page__family-hint">Ingredientes para toda a casa</p>
+
+    @if (familyMode() && familyList()?.length) {
+      <h2 class="shopping-list-page__section-title">Lista da casa</h2>
+      @for (item of familyList()!; track item.itemName) {
+        <button type="button" class="shopping-item-row shopping-item-row--readonly">
+          <div class="shopping-item-row__main">
+            <span class="shopping-item-row__name">{{ item.itemName }}</span>
+            <span class="shopping-item-row__subtitle">
+              {{ item.quantity }}
+              @if (item.category) {
+                · {{ item.category }}
+              }
+            </span>
+          </div>
+          <span class="shopping-item-row__qty">{{ item.memberCount }}p</span>
+        </button>
+      }
+    } @else {
     @if (weekPeriodLabel()) {
       <p class="shopping-list-page__period">{{ weekPeriodLabel() }}</p>
     }
@@ -83,6 +110,7 @@
           }
         </div>
       </section>
+    }
     }
   } @else if (!loading()) {
     <nutri-empty-state icon="🛒" title="Lista vazia" message="Gere um plano alimentar para criar sua lista de compras." />

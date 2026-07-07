@@ -11,11 +11,13 @@ import { isNotFound } from '../../../infrastructure/http/api-error';
 import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
 import { formatMealItemLine } from '../../core/meal-item-quantity';
 import { PlanResetEntryComponent } from '../plan-reset/plan-reset-entry.component';
+import { SharePlanFamilyComponent } from './share-plan-family.component';
+import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 
 @Component({
   selector: 'app-meal-plan',
   standalone: true,
-  imports: [DecimalPipe, NutriEmptyStateComponent, NutriButtonComponent, NutriAiLinkComponent, PortalPageSkeletonComponent, PlanResetEntryComponent],
+  imports: [DecimalPipe, NutriEmptyStateComponent, NutriButtonComponent, NutriAiLinkComponent, PortalPageSkeletonComponent, PlanResetEntryComponent, SharePlanFamilyComponent],
   template: `
     <div class="portal-page">
       <div class="portal-main__header">
@@ -48,6 +50,12 @@ import { PlanResetEntryComponent } from '../plan-reset/plan-reset-entry.componen
 
       <nutri-ai-link />
 
+      <div class="meal-plan-family-share">
+        <nutri-button variant="secondary" (click)="showFamilyShare.set(true)">
+          Compartilhar plano com família
+        </nutri-button>
+      </div>
+
       <div class="meal-plan-reset">
         <app-plan-reset-entry
           [eligibility]="regenerationEligibility()"
@@ -67,11 +75,22 @@ import { PlanResetEntryComponent } from '../plan-reset/plan-reset-entry.componen
     @if (loading()) {
       <app-portal-page-skeleton [cards]="2" [rows]="4" />
     }
+
+    @if (showFamilyShare()) {
+      <app-share-plan-family
+        [mealPlanId]="plan()?.id ?? null"
+        (closed)="showFamilyShare.set(false)"
+        (invited)="onFamilyInvited($event)"
+      />
+    }
     </div>
   `,
   styleUrl: '../portal.scss',
   styles: `
     .meal-plan-reset {
+      margin-top: 1rem;
+    }
+    .meal-plan-family-share {
       margin-top: 1rem;
     }
   `,
@@ -83,12 +102,14 @@ export class MealPlanComponent implements OnInit {
   readonly formatMealItemLine = formatMealItemLine;
 
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
+  private readonly toast = inject(NutriToastService);
   readonly generation = inject(MealPlanGenerationFacade);
 
   readonly plan = signal<MealPlan | null>(null);
   readonly profile = signal<NutritionProfile | null>(null);
   readonly regenerationEligibility = signal<PlanRegenerationEligibility | null>(null);
   readonly loading = signal(true);
+  readonly showFamilyShare = signal(false);
 
   constructor() {
     effect(() => {
@@ -137,5 +158,10 @@ export class MealPlanComponent implements OnInit {
 
   async generate(): Promise<void> {
     await this.generation.generate('plano');
+  }
+
+  onFamilyInvited(email: string): void {
+    this.toast.success(`Convite enviado para ${email}. Quando aceitar, geramos um plano alinhado ao seu.`);
+    this.showFamilyShare.set(false);
   }
 }

@@ -185,12 +185,28 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.875rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
 
   .nutri-btn--beta {
     padding: 0.95rem 1.85rem;
     font-size: 1.05rem;
     letter-spacing: -0.01em;
+  }
+}
+
+.hero__pro-link {
+  margin: 0 0 1.25rem;
+  font-size: 0.92rem;
+  color: var(--nutri-ink-muted, #5c534a);
+
+  a {
+    color: var(--nutri-brand, #2d6a4f);
+    font-weight: 700;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 
