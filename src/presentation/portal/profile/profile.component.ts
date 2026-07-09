@@ -16,8 +16,10 @@ import {
   agentDisplayName,
   CareRelationship,
   lifeStageLabel,
+  NutritionProfile,
   profileTypeLabel,
 } from '../../../domain/entities';
+import { formatWaterTargetMl, waterTargetRenalMessage } from '../../core/hydration';
 import { TokenStorage } from '../../../infrastructure/auth/token-storage';
 import { jwtRoles } from '../../core/jwt.util';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
@@ -138,6 +140,9 @@ const BUDGET_LABELS: Record<string, string> = {
               <nutri-stat-card [value]="(p.targetProteinG | number:'1.0-0') + 'g'" label="Proteína" />
               <nutri-stat-card [value]="(p.targetCarbsG | number:'1.0-0') + 'g'" label="Carboidratos" />
               <nutri-stat-card [value]="(p.targetFatG | number:'1.0-0') + 'g'" label="Gorduras" />
+              @if (waterTargetLabel(p)) {
+                <nutri-stat-card [value]="waterTargetLabel(p)!" label="Água (meta)" />
+              }
               <nutri-stat-card [value]="goalLabel()" label="Objetivo" />
             </div>
           </nutri-section>
@@ -699,6 +704,14 @@ export class ProfileComponent implements OnInit {
   goalLabel(): string {
     const g = this.profile()?.goal ?? '';
     return GOAL_LABELS[g] ?? g;
+  }
+
+  waterTargetLabel(profile: NutritionProfile): string | null {
+    if (profile.severeRenalRestriction) {
+      return waterTargetRenalMessage;
+    }
+    const label = formatWaterTargetMl(profile.dailyWaterTargetMl);
+    return label || null;
   }
 
   dietLabel(): string {

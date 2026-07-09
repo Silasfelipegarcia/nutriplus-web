@@ -62,6 +62,8 @@ export interface NutritionProfile {
   targetFatG?: number;
   athleteModeEnabled?: boolean;
   trainingDailyExtraKcal?: number;
+  dailyWaterTargetMl?: number;
+  severeRenalRestriction?: boolean;
   eatsBreakfast?: boolean;
   eatsLunch?: boolean;
   eatsAfternoonSnack?: boolean;

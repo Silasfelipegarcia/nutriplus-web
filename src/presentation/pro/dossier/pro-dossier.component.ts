@@ -11,6 +11,7 @@ import { PRO_REPOSITORY } from '../../../domain/repositories/pro.repository';
 import { MealPlan, PatientDossier, TREND_LABELS } from '../../../domain/entities';
 import { NutriToastService } from '../../../design-system/nutri-toast/nutri-toast.service';
 import { withActionFeedback } from '../../core/action-feedback';
+import { formatWaterTargetMl } from '../../core/hydration';
 import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 const GOAL_OPTIONS = [
@@ -69,6 +70,9 @@ const DIET_OPTIONS = [
               <nutri-stat-card [value]="(p.targetProteinG | number:'1.0-0') + 'g'" label="Proteína" />
               <nutri-stat-card [value]="(p.targetCarbsG | number:'1.0-0') + 'g'" label="Carbos" />
               <nutri-stat-card [value]="(p.targetFatG | number:'1.0-0') + 'g'" label="Gorduras" />
+              @if (formatWaterTargetMl(p.dailyWaterTargetMl)) {
+                <nutri-stat-card [value]="formatWaterTargetMl(p.dailyWaterTargetMl)" label="Meta hídrica" />
+              }
             </div>
             <div class="portal-card">
               <p><strong>Objetivo:</strong> {{ p.goal }}</p>
@@ -221,6 +225,7 @@ export class ProDossierComponent implements OnInit {
 
   readonly goalOptions = GOAL_OPTIONS;
   readonly dietOptions = DIET_OPTIONS;
+  readonly formatWaterTargetMl = formatWaterTargetMl;
   readonly dossier = signal<PatientDossier | null>(null);
   readonly plans = signal<MealPlan[]>([]);
 

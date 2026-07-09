@@ -13,6 +13,7 @@ import { withActionFeedback } from '../../core/action-feedback';
 import { isNotFound } from '../../../infrastructure/http/api-error';
 import { PortalPageSkeletonComponent } from '../portal-page-skeleton.component';
 import { APP_COPY } from '../../core/app-copy';
+import { formatWaterTargetShort } from '../../core/hydration';
 import { AnalyticsService } from '../../../infrastructure/analytics/analytics.service';
 
 @Component({
@@ -35,6 +36,9 @@ import { AnalyticsService } from '../../../infrastructure/analytics/analytics.se
           <p class="dashboard-header__meta">
             Meta: {{ profile.targetCalories | number:'1.0-0' }} kcal ·
             {{ profile.targetProteinG | number:'1.0-0' }}g proteína
+            @if (profile.dailyWaterTargetMl) {
+              · Água {{ formatWaterTargetShort(profile.dailyWaterTargetMl) }}
+            }
           </p>
         }
       </div>
@@ -264,6 +268,7 @@ export class DashboardComponent implements OnInit {
   readonly planEmptyTitle = APP_COPY.planEmptyTitle;
   readonly planEmptyMessage = APP_COPY.planEmptyMessage;
   readonly planEmptyAction = APP_COPY.planEmptyAction;
+  readonly formatWaterTargetShort = formatWaterTargetShort;
 
   private readonly nutritionRepo = inject(NUTRITION_REPOSITORY);
   private readonly toast = inject(NutriToastService);
