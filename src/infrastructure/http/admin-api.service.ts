@@ -79,6 +79,26 @@ export interface AdminUserAccess {
   acquisitionCampaign?: string;
 }
 
+export interface PagedAdminUserAccess {
+  items: AdminUserAccess[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export type AdminUserAccessStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL';
+
+export interface AdminUserSearchParams {
+  status: AdminUserAccessStatus;
+  page?: number;
+  size?: number;
+  search?: string;
+  role?: string;
+  registrationSource?: string;
+  hasNutritionProfile?: boolean;
+}
+
 export interface FeatureFlag {
   code: string;
   name: string;
@@ -152,6 +172,25 @@ export class AdminApiService {
 
   approvedUsers(): Promise<AdminUserAccess[]> {
     return this.get<AdminUserAccess[]>('/admin/access/approved', 'admin-approved');
+  }
+
+  searchUsers(params: AdminUserSearchParams): Promise<PagedAdminUserAccess> {
+    const query = new URLSearchParams();
+    query.set('status', params.status);
+    query.set('page', String(params.page ?? 0));
+    query.set('size', String(params.size ?? 20));
+    const search = params.search?.trim();
+    if (search) query.set('search', search);
+    if (params.role) query.set('role', params.role);
+    if (params.registrationSource) query.set('registrationSource', params.registrationSource);
+    if (params.hasNutritionProfile != null) {
+      query.set('hasNutritionProfile', String(params.hasNutritionProfile));
+    }
+    return this.get<PagedAdminUserAccess>(`/admin/access/users?${query}`, 'admin-users-search');
+  }
+
+  deleteUser(userId: number): Promise<void> {
+    return this.delete(`/admin/access/users/${userId}`, 'admin-user-delete');
   }
 
   admins(): Promise<AdminUserAccess[]> {
@@ -232,6 +271,10 @@ export class AdminApiService {
     return this.request<T>('POST', path, flowId, body);
   }
 
+  private async delete(path: string, flowId: string): Promise<void> {
+    await this.request<void>('DELETE', path, flowId);
+  }
+
   private async request<T>(method: string, path: string, flowId: string, body?: unknown): Promise<T> {
     const token = this.tokens.getAccessToken();
     if (!token) throw new ApiError('Não autenticado');
@@ -249,6 +292,9 @@ export class AdminApiService {
       }
       if (method === 'POST') {
         return await firstValueFrom(this.http.post<T>(url, body ?? {}, { headers: finalHeaders }));
+      }
+      if (method === 'DELETE') {
+        return await firstValueFrom(this.http.delete<T>(url, { headers: finalHeaders }));
       }
       return await firstValueFrom(this.http.patch<T>(url, body, { headers: finalHeaders }));
     } catch (e: unknown) {

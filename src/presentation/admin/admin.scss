@@ -491,17 +491,62 @@ tbody tr:last-child td {
 }
 
 .admin-filter {
+  margin-bottom: 0;
+}
+
+.admin-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem 1rem;
   margin-bottom: 1rem;
+}
+
+.admin-filter select {
+  display: block;
+  margin-top: 0.35rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e8e3db;
+  border-radius: 8px;
+  font: inherit;
+  background: #fff;
 }
 
 .admin-filter input[type='search'] {
   display: block;
   margin-top: 0.35rem;
-  width: min(100%, 320px);
+  width: 100%;
   padding: 0.5rem 0.75rem;
   border: 1px solid #e8e3db;
   border-radius: 8px;
   font: inherit;
+}
+
+.admin-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.admin-pagination__meta {
+  margin: 0;
+  color: var(--nutri-ink-muted, #6b7280);
+  font-size: 0.9rem;
+}
+
+.admin-pagination__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-pagination__current {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--nutri-ink-muted, #6b7280);
 }
 
 .admin-hint a {
