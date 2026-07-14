@@ -76,6 +76,8 @@ export function goalTimelinePaceLabel(paceStatus: string): string {
       return 'Atrasado';
     case 'MAINTAIN':
       return 'Manutenção';
+    case 'INSUFFICIENT_DATA':
+      return 'Aguardando dados';
     default:
       return 'Calculando…';
   }

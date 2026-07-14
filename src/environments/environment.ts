@@ -4,7 +4,7 @@ export const environment = {
   appStoreUrl: 'https://apps.apple.com/app/nutriplus',
   playStoreUrl: 'https://play.google.com/store/apps/details?id=br.com.nutriplus',
   androidApkDownloadUrl: '/downloads/nutriplus.apk',
-  androidApkVersionLabel: 'v1.1.11',
+  androidApkVersionLabel: 'v1.1.13',
   iosTestFlightUrl: '',
   iosAdHocManifestPath: '',
   iosVersionLabel: 'v1.1.11',
