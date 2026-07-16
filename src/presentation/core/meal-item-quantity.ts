@@ -47,6 +47,10 @@ const UNIT_RULES: UnitRule[] = [
 
 function matchRule(foodName: string): UnitRule | undefined {
   const lower = foodName.toLowerCase();
+  // Soft cheeses sold by weight — not slices
+  if (['cottage', 'ricota', 'requeijão', 'requeijao', 'cream cheese'].some((k) => lower.includes(k))) {
+    return undefined;
+  }
   return UNIT_RULES.find((rule) => rule.keywords.some((keyword) => lower.includes(keyword)));
 }
 
