@@ -77,6 +77,7 @@ export interface NutritionProfile {
   allergies?: string;
   healthNotes?: string;
   updatedAt?: string;
+  planSyncedAt?: string;
 }
 
 export interface MealItem {
